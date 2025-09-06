@@ -12,6 +12,7 @@ interface AdminAuthContextType {
   loginAdmin: (email: string, password: string) => Promise<void>;
   logoutAdmin: () => Promise<void>;
   verifyTwoFactor: (token: string) => Promise<boolean>;
+  refreshAdminData: () => Promise<void>;
 }
 
 const AdminAuthContext = createContext<AdminAuthContextType>({
@@ -21,6 +22,7 @@ const AdminAuthContext = createContext<AdminAuthContextType>({
   loginAdmin: async () => {},
   logoutAdmin: async () => {},
   verifyTwoFactor: async () => false,
+  refreshAdminData: async () => {},
 });
 
 export const useAdminAuth = () => {
@@ -40,17 +42,18 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
       try {
         if (user) {
           // Verificar se o usuário é um admin
-          const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+          const adminDoc = await getDoc(doc(db!, 'admins', user.uid));
           if (adminDoc.exists()) {
             const adminData = adminDoc.data() as AdminUser;
             setAdminSession({
               user: adminData,
               isAuthenticated: true,
-              requiresTwoFactor: adminData.twoFactorEnabled
+              requiresTwoFactor: adminData.twoFactorEnabled,
+              twoFactorVerified: !adminData.twoFactorEnabled
             });
           } else {
             setAdminSession(null);
@@ -112,6 +115,28 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     }
   };
 
+  const refreshAdminData = async (): Promise<void> => {
+    try {
+      if (adminSession?.user) {
+        setLoading(true);
+        const adminDoc = await getDoc(doc(db!, 'admins', adminSession.user.uid));
+        if (adminDoc.exists()) {
+          const adminData = adminDoc.data() as AdminUser;
+          setAdminSession({
+            user: adminData,
+            isAuthenticated: true,
+            requiresTwoFactor: adminData.twoFactorEnabled,
+            twoFactorVerified: !adminData.twoFactorEnabled
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar dados do admin:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const value: AdminAuthContextType = {
     adminSession,
     loading,
@@ -119,6 +144,7 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     loginAdmin: handleLoginAdmin,
     logoutAdmin: handleLogoutAdmin,
     verifyTwoFactor: handleVerifyTwoFactor,
+    refreshAdminData,
   };
 
   return (

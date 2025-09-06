@@ -6,7 +6,6 @@ import {
   Mail, 
   CheckCircle, 
   RefreshCw, 
-  ArrowRight,
   AlertCircle,
   Clock
 } from 'lucide-react';
@@ -25,7 +24,7 @@ const VerifyEmail: React.FC = () => {
 
   useEffect(() => {
     // Verificar se o e-mail foi verificado
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth!, (user) => {
       if (user && user.emailVerified) {
         navigate('/onboarding-complete');
       }
@@ -49,8 +48,8 @@ const VerifyEmail: React.FC = () => {
     setSuccess('');
 
     try {
-      if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser);
+      if (auth!.currentUser) {
+        await sendEmailVerification(auth!.currentUser);
         setSuccess('E-mail de verificação reenviado!');
         setCountdown(60); // 60 segundos de cooldown
       }
@@ -66,9 +65,9 @@ const VerifyEmail: React.FC = () => {
     setError('');
 
     try {
-      if (auth.currentUser) {
-        await auth.currentUser.reload();
-        if (auth.currentUser.emailVerified) {
+      if (auth!.currentUser) {
+        await auth!.currentUser.reload();
+        if (auth!.currentUser.emailVerified) {
           navigate('/onboarding-complete');
         } else {
           setError('E-mail ainda não foi verificado. Verifique sua caixa de entrada.');

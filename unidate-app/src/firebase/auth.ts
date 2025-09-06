@@ -16,4 +16,3 @@ export const {
 
 // Re-exportar tipos
 export type UserProfile = realAuth.UserProfile;
-export type UserCredential = realAuth.UserCredential;

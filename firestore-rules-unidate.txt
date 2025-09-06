@@ -1,0 +1,184 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Função para verificar se o usuário está autenticado
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Função para verificar se é admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Função para verificar se é super-admin
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super-admin';
+    }
+    
+    // ========================================
+    // REGRAS PARA USUÁRIOS
+    // ========================================
+    
+    // Usuários podem ler e escrever apenas seus próprios dados
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      // Admins podem ler todos os usuários
+      allow read: if isAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA ADMINISTRADORES
+    // ========================================
+    
+    // Apenas admins podem acessar dados de outros admins
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA POSTS (FEED UNIVERSO)
+    // ========================================
+    
+    match /posts/{postId} {
+      // Usuários autenticados podem ler posts
+      allow read: if isAuthenticated();
+      
+      // Usuários podem criar posts
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.authorId;
+      
+      // Usuários podem atualizar apenas seus próprios posts
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.authorId;
+      
+      // Usuários podem deletar apenas seus próprios posts
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.authorId;
+      
+      // Admins podem fazer tudo
+      allow read, write: if isAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA GRUPOS
+    // ========================================
+    
+    match /groups/{groupId} {
+      // Usuários autenticados podem ler grupos
+      allow read: if isAuthenticated();
+      
+      // Usuários podem criar grupos
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.createdBy;
+      
+      // Membros do grupo podem atualizar
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.members;
+      
+      // Criador do grupo pode deletar
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.createdBy;
+    }
+    
+    // ========================================
+    // REGRAS PARA CHATS
+    // ========================================
+    
+    match /chats/{chatId} {
+      // Apenas participantes podem acessar o chat
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+    }
+    
+    // Mensagens de chat
+    match /chats/{chatId}/messages/{messageId} {
+      // Apenas participantes do chat podem ler mensagens
+      allow read: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      
+      // Usuários podem enviar mensagens se são participantes
+      allow create: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants &&
+        request.auth.uid == request.resource.data.senderId;
+    }
+    
+    // ========================================
+    // REGRAS PARA MATCHES
+    // ========================================
+    
+    match /matches/{matchId} {
+      // Usuários podem ler apenas seus próprios matches
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+      
+      // Usuários podem criar matches
+      allow create: if isAuthenticated() && 
+        (request.auth.uid == request.resource.data.user1Id || request.auth.uid == request.resource.data.user2Id);
+      
+      // Usuários podem atualizar apenas seus próprios matches
+      allow update: if isAuthenticated() && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+    }
+    
+    // ========================================
+    // REGRAS PARA DENÚNCIAS
+    // ========================================
+    
+    match /reports/{reportId} {
+      // Apenas admins podem acessar denúncias
+      allow read, write: if isAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA CONFIGURAÇÕES DO SISTEMA
+    // ========================================
+    
+    match /system/{document} {
+      // Apenas super-admins podem acessar
+      allow read, write: if isSuperAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA EVENTOS (BATALHA DE CURSOS)
+    // ========================================
+    
+    match /events/{eventId} {
+      // Usuários podem ler eventos ativos
+      allow read: if isAuthenticated() && resource.data.status == 'active';
+      
+      // Apenas admins podem criar/editar eventos
+      allow create, update, delete: if isAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA NOTIFICAÇÕES
+    // ========================================
+    
+    match /notifications/{notificationId} {
+      // Usuários podem ler apenas suas próprias notificações
+      allow read: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
+      
+      // Usuários podem marcar como lida
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+    }
+    
+    // ========================================
+    // REGRA PADRÃO - NEGA TUDO MAIS
+    // ========================================
+    
+    // Nega acesso a qualquer documento não especificado acima
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

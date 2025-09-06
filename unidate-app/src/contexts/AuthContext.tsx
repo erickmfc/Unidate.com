@@ -37,7 +37,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
       try {
         if (user) {
           setCurrentUser(user);
@@ -61,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logoutUser = async (): Promise<void> => {
     try {
-      await signOut(auth);
+      await signOut(auth!);
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       throw error;

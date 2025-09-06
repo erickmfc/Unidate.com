@@ -26,6 +26,8 @@ import AdminRoute from './components/Admin/AdminRoute';
 import AdminLayout from './components/Admin/Layout/AdminLayout';
 import UserManagement from './components/Admin/Users/UserManagement';
 import ContentModeration from './components/Admin/Moderation/ContentModeration';
+import SOSPage from './pages/SOSPage';
+import AnonymousWallPage from './pages/AnonymousWallPage';
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -115,6 +117,24 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Settings />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* New Features Routes */}
+          <Route 
+            path="/sos" 
+            element={
+              <ProtectedRoute>
+                <SOSPage />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/anonymous-wall" 
+            element={
+              <ProtectedRoute>
+                <AnonymousWallPage />
               </ProtectedRoute>
             } 
           />

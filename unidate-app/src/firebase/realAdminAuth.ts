@@ -1,7 +1,6 @@
 import { 
   signInWithEmailAndPassword, 
   signOut, 
-  User,
   createUserWithEmailAndPassword,
   updateProfile
 } from 'firebase/auth';
@@ -39,6 +38,7 @@ export interface AdminSession {
   user: AdminUser;
   isAuthenticated: boolean;
   requiresTwoFactor: boolean;
+  twoFactorVerified: boolean;
 }
 
 // Função para criar um novo administrador
@@ -50,7 +50,7 @@ export const createAdminUser = async (
 ): Promise<AdminUser> => {
   try {
     // Criar usuário no Firebase Auth
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
     const user = userCredential.user;
 
     // Definir permissões baseadas no role
@@ -83,7 +83,7 @@ export const createAdminUser = async (
       permissions: permissions[role]
     };
 
-    await setDoc(doc(db, 'admins', user.uid), adminData);
+    await setDoc(doc(db!, 'admins', user.uid), adminData);
 
     // Atualizar perfil do usuário
     await updateProfile(user, { displayName });
@@ -98,11 +98,11 @@ export const createAdminUser = async (
 // Função para fazer login de administrador
 export const loginAdmin = async (email: string, password: string): Promise<AdminSession> => {
   try {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(auth!, email, password);
     const user = userCredential.user;
 
     // Buscar dados do admin no Firestore
-    const adminDoc = await getDoc(doc(db, 'admins', user.uid));
+    const adminDoc = await getDoc(doc(db!, 'admins', user.uid));
     
     if (!adminDoc.exists()) {
       throw new Error('Usuário não é um administrador');
@@ -115,14 +115,15 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
     }
 
     // Atualizar último login
-    await updateDoc(doc(db, 'admins', user.uid), {
+    await updateDoc(doc(db!, 'admins', user.uid), {
       lastLogin: new Date()
     });
 
     return {
       user: adminData,
       isAuthenticated: true,
-      requiresTwoFactor: adminData.twoFactorEnabled
+      requiresTwoFactor: adminData.twoFactorEnabled,
+      twoFactorVerified: !adminData.twoFactorEnabled
     };
   } catch (error) {
     console.error('Erro no login de administrador:', error);
@@ -140,7 +141,7 @@ export const verifyTwoFactor = async (secret: string, token: string): Promise<bo
 // Função para habilitar 2FA
 export const enableTwoFactor = async (uid: string, secret: string): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'admins', uid), {
+    await updateDoc(doc(db!, 'admins', uid), {
       twoFactorEnabled: true,
       twoFactorSecret: secret
     });
@@ -153,7 +154,7 @@ export const enableTwoFactor = async (uid: string, secret: string): Promise<void
 // Função para fazer logout
 export const logoutAdmin = async (): Promise<void> => {
   try {
-    await signOut(auth);
+    await signOut(auth!);
   } catch (error) {
     console.error('Erro ao fazer logout:', error);
     throw error;
@@ -163,7 +164,7 @@ export const logoutAdmin = async (): Promise<void> => {
 // Função para buscar todos os administradores
 export const getAllAdmins = async (): Promise<AdminUser[]> => {
   try {
-    const adminsQuery = query(collection(db, 'admins'));
+    const adminsQuery = query(collection(db!, 'admins'));
     const querySnapshot = await getDocs(adminsQuery);
     
     return querySnapshot.docs.map(doc => doc.data() as AdminUser);
@@ -179,7 +180,7 @@ export const updateAdminPermissions = async (
   permissions: Partial<AdminUser['permissions']>
 ): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'admins', uid), {
+    await updateDoc(doc(db!, 'admins', uid), {
       permissions: { ...permissions }
     });
   } catch (error) {
@@ -191,7 +192,7 @@ export const updateAdminPermissions = async (
 // Função para desativar/ativar admin
 export const toggleAdminStatus = async (uid: string, isActive: boolean): Promise<void> => {
   try {
-    await updateDoc(doc(db, 'admins', uid), {
+    await updateDoc(doc(db!, 'admins', uid), {
       isActive
     });
   } catch (error) {

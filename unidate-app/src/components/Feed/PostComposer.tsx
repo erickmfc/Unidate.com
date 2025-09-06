@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { 
   Image, 
   BarChart3, 
-  MapPin, 
   Eye, 
   Smile, 
   Send,
@@ -24,6 +23,10 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
     clothing: '',
     activity: ''
   });
+  const [pollData, setPollData] = useState({
+    question: '',
+    options: ['', '']
+  });
 
   const handleTeViSubmit = () => {
     const teViPost = {
@@ -39,6 +42,23 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
     setTeViData({ location: '', clothing: '', activity: '' });
   };
 
+  const handlePollSubmit = () => {
+    if (!pollData.question.trim() || pollData.options.some(opt => !opt.trim())) return;
+    
+    const post = {
+      type: 'poll',
+      content: pollData.question.trim(),
+      pollData: {
+        question: pollData.question.trim(),
+        options: pollData.options.filter(opt => opt.trim()),
+        votes: new Array(pollData.options.filter(opt => opt.trim()).length).fill(0)
+      },
+      timestamp: new Date().toISOString()
+    };
+    onSubmit(post);
+    setPollData({ question: '', options: ['', ''] });
+  };
+
   const handleRegularSubmit = () => {
     if (!content.trim()) return;
     
@@ -49,6 +69,25 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
     };
     onSubmit(post);
     setContent('');
+  };
+
+  const addPollOption = () => {
+    if (pollData.options.length < 4) {
+      setPollData({ ...pollData, options: [...pollData.options, ''] });
+    }
+  };
+
+  const removePollOption = (index: number) => {
+    if (pollData.options.length > 2) {
+      const newOptions = pollData.options.filter((_, i) => i !== index);
+      setPollData({ ...pollData, options: newOptions });
+    }
+  };
+
+  const updatePollOption = (index: number, value: string) => {
+    const newOptions = [...pollData.options];
+    newOptions[index] = value;
+    setPollData({ ...pollData, options: newOptions });
   };
 
   const handleHashtagClick = (hashtag: string) => {
@@ -141,6 +180,93 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
     );
   }
 
+  if (postType === 'poll') {
+    return (
+      <div className="card">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+            <BarChart3 className="h-5 w-5 text-primary-500" />
+            <span>Criar Enquete</span>
+          </h3>
+          <button
+            onClick={() => setPostType('text')}
+            className="p-1 text-gray-600 hover:bg-gray-100 rounded"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Pergunta da enquete
+            </label>
+            <input
+              type="text"
+              placeholder="Ex: Qual é o melhor lugar para estudar no campus?"
+              value={pollData.question}
+              onChange={(e) => setPollData({ ...pollData, question: e.target.value })}
+              className="input-field"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Opções (mínimo 2, máximo 4)
+            </label>
+            <div className="space-y-2">
+              {pollData.options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    placeholder={`Opção ${index + 1}`}
+                    value={option}
+                    onChange={(e) => updatePollOption(index, e.target.value)}
+                    className="flex-1 input-field"
+                  />
+                  {pollData.options.length > 2 && (
+                    <button
+                      onClick={() => removePollOption(index)}
+                      className="p-1 text-red-500 hover:bg-red-50 rounded"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {pollData.options.length < 4 && (
+              <button
+                onClick={addPollOption}
+                className="mt-2 flex items-center space-x-1 text-primary-500 hover:text-primary-600 text-sm"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Adicionar opção</span>
+              </button>
+            )}
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={() => setPostType('text')}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handlePollSubmit}
+              disabled={!pollData.question.trim() || pollData.options.some(opt => !opt.trim())}
+              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Criar Enquete
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card">
       <div className="flex items-center space-x-3 mb-4">
@@ -218,10 +344,6 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
           <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-500 transition-colors duration-200">
             <Image className="h-5 w-5" />
             <span>Foto</span>
-          </button>
-          <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-500 transition-colors duration-200">
-            <MapPin className="h-5 w-5" />
-            <span>Local</span>
           </button>
           <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-500 transition-colors duration-200">
             <Smile className="h-5 w-5" />

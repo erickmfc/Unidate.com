@@ -8,9 +8,9 @@ import {
   User,
   UserCredential
 } from 'firebase/auth';
-import { auth } from './config';
+import { auth, db } from './config';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from './config';
+import * as offlineAuth from './offlineAuth';
 
 export interface UserProfile {
   uid: string;
@@ -54,7 +54,27 @@ export const registerUser = async (
       throw new Error('Por favor, insira um e-mail válido');
     }
 
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    // Se Firebase não estiver disponível, usar sistema offline
+    if (!auth || !db) {
+      console.log('🔄 Firebase não disponível, usando sistema offline...');
+      const result = await offlineAuth.registerUserOffline(
+        email, password, displayName, registrationNumber, university, course, year, period
+      );
+      
+      // Simular UserCredential para compatibilidade
+      return {
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          emailVerified: result.user.emailVerified,
+        } as User,
+        providerId: 'offline',
+        operationType: 'signIn'
+      } as UserCredential;
+    }
+
+    const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
     const user = userCredential.user;
 
     // Atualizar perfil do usuário
@@ -83,7 +103,7 @@ export const registerUser = async (
       updatedAt: new Date(),
     };
 
-    await setDoc(doc(db, 'users', user.uid), userProfile);
+    await setDoc(doc(db!, 'users', user.uid), userProfile);
 
     return userCredential;
   } catch (error: any) {
@@ -94,7 +114,25 @@ export const registerUser = async (
 // Fazer login
 export const loginUser = async (email: string, password: string): Promise<UserCredential> => {
   try {
-    return await signInWithEmailAndPassword(auth, email, password);
+    // Se Firebase não estiver disponível, usar sistema offline
+    if (!auth) {
+      console.log('🔄 Firebase não disponível, usando sistema offline...');
+      const result = await offlineAuth.loginUserOffline(email, password);
+      
+      // Simular UserCredential para compatibilidade
+      return {
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          emailVerified: result.user.emailVerified,
+        } as User,
+        providerId: 'offline',
+        operationType: 'signIn'
+      } as UserCredential;
+    }
+
+    return await signInWithEmailAndPassword(auth!, email, password);
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -109,7 +147,7 @@ export const loginWithRegistration = async (registrationNumber: string, password
       throw new Error('Matrícula não encontrada');
     }
 
-    return await signInWithEmailAndPassword(auth, userProfile.email, password);
+    return await signInWithEmailAndPassword(auth!, userProfile.email, password);
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -118,7 +156,7 @@ export const loginWithRegistration = async (registrationNumber: string, password
 // Buscar usuário por matrícula
 export const getUserByRegistration = async (registrationNumber: string): Promise<UserProfile | null> => {
   try {
-    const usersRef = collection(db, 'users');
+    const usersRef = collection(db!, 'users');
     const q = query(usersRef, where('registrationNumber', '==', registrationNumber));
     const querySnapshot = await getDocs(q);
     
@@ -135,7 +173,7 @@ export const getUserByRegistration = async (registrationNumber: string): Promise
 // Fazer logout
 export const logoutUser = async (): Promise<void> => {
   try {
-    await signOut(auth);
+    await signOut(auth!);
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -144,7 +182,7 @@ export const logoutUser = async (): Promise<void> => {
 // Recuperar senha
 export const resetPassword = async (email: string): Promise<void> => {
   try {
-    await sendPasswordResetEmail(auth, email);
+    await sendPasswordResetEmail(auth!, email);
   } catch (error: any) {
     throw new Error(error.message);
   }
@@ -153,7 +191,7 @@ export const resetPassword = async (email: string): Promise<void> => {
 // Buscar perfil do usuário
 export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', uid));
+    const userDoc = await getDoc(doc(db!, 'users', uid));
     if (userDoc.exists()) {
       return userDoc.data() as UserProfile;
     }
@@ -166,7 +204,7 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
 // Atualizar perfil do usuário
 export const updateUserProfile = async (uid: string, updates: Partial<UserProfile>): Promise<void> => {
   try {
-    const userRef = doc(db, 'users', uid);
+    const userRef = doc(db!, 'users', uid);
     await setDoc(userRef, {
       ...updates,
       updatedAt: new Date(),

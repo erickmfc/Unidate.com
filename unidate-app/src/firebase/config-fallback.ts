@@ -1,10 +1,10 @@
-import { initializeApp, FirebaseApp } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { getAnalytics, Analytics } from 'firebase/analytics';
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
 
-// Configuração do Firebase
+// Configuração do Firebase com fallback
 const firebaseConfig = {
   apiKey: "AIzaSyDYIK8EHJMz6r3vJSJE6U0fn7FEhI3btFc",
   authDomain: "unidate-2bcbc.firebaseapp.com",
@@ -15,11 +15,11 @@ const firebaseConfig = {
   measurementId: "G-21PEDSXMXQ"
 };
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let db: Firestore | null = null;
-let storage: FirebaseStorage | null = null;
-let analytics: Analytics | null = null;
+let app;
+let auth;
+let db;
+let storage;
+let analytics;
 
 try {
   // Tentar inicializar Firebase

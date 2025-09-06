@@ -1,0 +1,109 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regras para usuários
+    match /users/{userId} {
+      // Usuário pode ler e escrever apenas seus próprios dados
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Admins podem ler todos os usuários
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Regras para administradores
+    match /admins/{adminId} {
+      // Apenas admins podem acessar dados de outros admins
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Regras para posts do feed
+    match /posts/{postId} {
+      // Usuários autenticados podem ler posts
+      allow read: if request.auth != null;
+      
+      // Usuários podem criar posts
+      allow create: if request.auth != null && 
+        request.auth.uid == resource.data.authorId;
+      
+      // Usuários podem atualizar apenas seus próprios posts
+      allow update: if request.auth != null && 
+        request.auth.uid == resource.data.authorId;
+      
+      // Usuários podem deletar apenas seus próprios posts
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.authorId;
+      
+      // Admins podem fazer tudo
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Regras para grupos
+    match /groups/{groupId} {
+      // Usuários autenticados podem ler grupos
+      allow read: if request.auth != null;
+      
+      // Usuários podem criar grupos
+      allow create: if request.auth != null;
+      
+      // Membros do grupo podem atualizar
+      allow update: if request.auth != null && 
+        request.auth.uid in resource.data.members;
+      
+      // Criador do grupo pode deletar
+      allow delete: if request.auth != null && 
+        request.auth.uid == resource.data.createdBy;
+    }
+    
+    // Regras para mensagens de chat
+    match /chats/{chatId}/messages/{messageId} {
+      // Apenas participantes do chat podem ler mensagens
+      allow read: if request.auth != null && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      
+      // Usuários podem enviar mensagens se são participantes
+      allow create: if request.auth != null && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+    }
+    
+    // Regras para chats
+    match /chats/{chatId} {
+      // Apenas participantes podem acessar o chat
+      allow read, write: if request.auth != null && 
+        request.auth.uid in resource.data.participants;
+    }
+    
+    // Regras para matches
+    match /matches/{matchId} {
+      // Usuários podem ler apenas seus próprios matches
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+      
+      // Usuários podem criar matches
+      allow create: if request.auth != null;
+      
+      // Usuários podem atualizar apenas seus próprios matches
+      allow update: if request.auth != null && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+    }
+    
+    // Regras para denúncias
+    match /reports/{reportId} {
+      // Apenas admins podem acessar denúncias
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    // Regras para configurações do sistema
+    match /system/{document} {
+      // Apenas super-admins podem acessar
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super-admin';
+    }
+  }
+}
