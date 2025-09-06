@@ -10,20 +10,14 @@ const Favicon: React.FC = () => {
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
-        <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#8B5CF6" />
-          <stop offset="100%" stopColor="#EC4899" />
+        <linearGradient id="faviconGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#EC4899" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
       
-      {/* Heart Shape with integrated graduation cap */}
-      <path
-        d="M50 85 C50 85, 20 60, 20 40 C20 25, 32 15, 50 15 C68 15, 80 25, 80 40 C80 60, 50 85, 50 85 Z"
-        fill="url(#faviconGradient)"
-      />
-      
-      {/* Graduation cap integrated with heart */}
-      <g transform="translate(50, 15)">
+      {/* Graduation Cap */}
+      <g transform="translate(50, 20)">
         {/* Cap top (square) */}
         <rect
           x="-8"
@@ -60,6 +54,70 @@ const Favicon: React.FC = () => {
           cx="12"
           cy="12"
           r="1"
+          fill="url(#faviconGradient)"
+        />
+      </g>
+      
+      {/* Infinity Symbol */}
+      <g transform="translate(50, 50)">
+        {/* Left loop */}
+        <ellipse
+          cx="-12"
+          cy="0"
+          rx="12"
+          ry="8"
+          fill="url(#faviconGradient)"
+        />
+        
+        {/* Right loop */}
+        <ellipse
+          cx="12"
+          cy="0"
+          rx="12"
+          ry="8"
+          fill="url(#faviconGradient)"
+        />
+        
+        {/* Center connection */}
+        <rect
+          x="-4"
+          y="-8"
+          width="8"
+          height="16"
+          fill="url(#faviconGradient)"
+        />
+        
+        {/* Left circle */}
+        <circle
+          cx="-12"
+          cy="0"
+          r="3"
+          fill="#EC4899"
+        />
+        
+        {/* Right circle */}
+        <circle
+          cx="12"
+          cy="0"
+          r="3"
+          fill="#8B5CF6"
+        />
+      </g>
+      
+      {/* Open Book */}
+      <g transform="translate(70, 25)">
+        {/* Book pages */}
+        <path
+          d="M-8 -6 L8 -6 L6 6 L-6 6 Z"
+          fill="url(#faviconGradient)"
+        />
+        
+        {/* Book spine */}
+        <rect
+          x="-2"
+          y="-6"
+          width="4"
+          height="12"
           fill="url(#faviconGradient)"
         />
       </g>

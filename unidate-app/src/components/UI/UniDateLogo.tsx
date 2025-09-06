@@ -30,61 +30,142 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
-            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#8B5CF6" />
-              <stop offset="100%" stopColor="#EC4899" />
+            <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#EC4899" />
+              <stop offset="100%" stopColor="#8B5CF6" />
             </linearGradient>
           </defs>
           
-          {/* Heart Shape with integrated graduation cap */}
-          <g>
-            {/* Heart body */}
-            <path
-              d="M50 85 C50 85, 20 60, 20 40 C20 25, 32 15, 50 15 C68 15, 80 25, 80 40 C80 60, 50 85, 50 85 Z"
+          {/* Graduation Cap */}
+          <g transform="translate(50, 20)">
+            {/* Cap top (square) */}
+            <rect
+              x="-8"
+              y="-8"
+              width="16"
+              height="16"
+              rx="2"
               fill="url(#logoGradient)"
             />
             
-            {/* Graduation cap integrated with heart */}
-            <g transform="translate(50, 15)">
-              {/* Cap top (square) */}
-              <rect
-                x="-8"
-                y="-8"
-                width="16"
-                height="16"
-                rx="2"
-                fill="url(#logoGradient)"
-              />
-              
-              {/* Cap band */}
-              <rect
-                x="-10"
-                y="6"
-                width="20"
-                height="4"
-                rx="2"
-                fill="url(#logoGradient)"
-              />
-              
-              {/* Tassel */}
-              <line
-                x1="8"
-                y1="8"
-                x2="12"
-                y2="12"
-                stroke="url(#logoGradient)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              
-              {/* Tassel end */}
-              <circle
-                cx="12"
-                cy="12"
-                r="1"
-                fill="url(#logoGradient)"
-              />
-            </g>
+            {/* Cap band */}
+            <rect
+              x="-10"
+              y="6"
+              width="20"
+              height="4"
+              rx="2"
+              fill="url(#logoGradient)"
+            />
+            
+            {/* Tassel */}
+            <line
+              x1="8"
+              y1="8"
+              x2="12"
+              y2="12"
+              stroke="url(#logoGradient)"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+            
+            {/* Tassel end */}
+            <circle
+              cx="12"
+              cy="12"
+              r="1"
+              fill="url(#logoGradient)"
+            />
+          </g>
+          
+          {/* Infinity Symbol */}
+          <g transform="translate(50, 50)">
+            {/* Left loop */}
+            <ellipse
+              cx="-12"
+              cy="0"
+              rx="12"
+              ry="8"
+              fill="url(#logoGradient)"
+            />
+            
+            {/* Right loop */}
+            <ellipse
+              cx="12"
+              cy="0"
+              rx="12"
+              ry="8"
+              fill="url(#logoGradient)"
+            />
+            
+            {/* Center connection */}
+            <rect
+              x="-4"
+              y="-8"
+              width="8"
+              height="16"
+              fill="url(#logoGradient)"
+            />
+            
+            {/* Left circle */}
+            <circle
+              cx="-12"
+              cy="0"
+              r="3"
+              fill="#EC4899"
+            />
+            
+            {/* Right circle */}
+            <circle
+              cx="12"
+              cy="0"
+              r="3"
+              fill="#8B5CF6"
+            />
+          </g>
+          
+          {/* Open Book */}
+          <g transform="translate(70, 25)">
+            {/* Book pages */}
+            <path
+              d="M-8 -6 L8 -6 L6 6 L-6 6 Z"
+              fill="url(#logoGradient)"
+            />
+            
+            {/* Book spine */}
+            <rect
+              x="-2"
+              y="-6"
+              width="4"
+              height="12"
+              fill="url(#logoGradient)"
+            />
+            
+            {/* Book lines */}
+            <line
+              x1="-6"
+              y1="-2"
+              x2="4"
+              y2="-2"
+              stroke="url(#logoGradient)"
+              strokeWidth="0.5"
+            />
+            <line
+              x1="-6"
+              y1="0"
+              x2="4"
+              y2="0"
+              stroke="url(#logoGradient)"
+              strokeWidth="0.5"
+            />
+            <line
+              x1="-6"
+              y1="2"
+              x2="4"
+              y2="2"
+              stroke="url(#logoGradient)"
+              strokeWidth="0.5"
+            />
           </g>
         </svg>
       </div>
@@ -92,7 +173,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
       {/* Logo Text */}
       {showText && (
         <div className="flex flex-col">
-          <h1 className={`font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent ${currentSize.text}`}>
+          <h1 className={`font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent ${currentSize.text}`}>
             UniDate
           </h1>
           <div className="text-sm text-gray-600 font-medium">
