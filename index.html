@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniDate - Conectando Estudantes Universitários</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>UniDate</span>
+            </div>
+            
+            <div class="nav-menu" id="nav-menu">
+                <a href="#home" class="nav-link">Início</a>
+                <a href="#about" class="nav-link">Sobre</a>
+                <a href="#features" class="nav-link">Recursos</a>
+                <a href="#contact" class="nav-link">Contato</a>
+            </div>
+            
+            <div class="nav-auth">
+                <button class="btn-login" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar
+                </button>
+                <button class="btn-register" id="registerBtn">
+                    <i class="fas fa-user-plus"></i>
+                    Cadastrar
+                </button>
+            </div>
+            
+            <div class="hamburger" id="hamburger">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1 class="hero-title">
+                        Conecte-se com sua
+                        <span class="gradient-text">comunidade universitária</span>
+                    </h1>
+                    <p class="hero-description">
+                        UniDate é a plataforma social exclusiva para estudantes universitários. 
+                        Descubra pessoas, acompanhe o que acontece no campus e participe de grupos 
+                        que combinam com seus interesses.
+                    </p>
+                    <div class="hero-buttons">
+                        <button class="btn-primary" id="heroRegisterBtn">
+                            <i class="fas fa-rocket"></i>
+                            Começar Agora
+                        </button>
+                        <button class="btn-secondary" id="heroLearnBtn">
+                            <i class="fas fa-play"></i>
+                            Como Funciona
+                        </button>
+                    </div>
+                </div>
+                <div class="hero-visual">
+                    <div class="phone-mockup">
+                        <div class="phone-screen">
+                            <div class="app-preview">
+                                <div class="preview-header">
+                                    <div class="preview-nav">
+                                        <div class="nav-dots">
+                                            <span></span>
+                                            <span></span>
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="preview-content">
+                                    <div class="swipe-card">
+                                        <div class="card-avatar"></div>
+                                        <div class="card-info">
+                                            <h3>Ana Silva</h3>
+                                            <p>Engenharia de Software</p>
+                                            <span class="card-tag">#Fotografia</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating Elements -->
+        <div class="floating-elements">
+            <div class="floating-icon icon-1">
+                <i class="fas fa-heart"></i>
+            </div>
+            <div class="floating-icon icon-2">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="floating-icon icon-3">
+                <i class="fas fa-comments"></i>
+            </div>
+            <div class="floating-icon icon-4">
+                <i class="fas fa-book"></i>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <h2>Três Pilares, Uma Experiência</h2>
+                <p>UniDate combina descoberta, informação e comunidade em uma única plataforma</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Descoberta</h3>
+                    <p>Conheça pessoas incríveis do seu campus com base em interesses, curso e personalidade.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h3>UniVerso</h3>
+                    <p>Mantenha-se atualizado com o que acontece no campus através do nosso feed público.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Grupos</h3>
+                    <p>Participe de comunidades que compartilham seus hobbies e interesses acadêmicos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Entrar no UniDate</h2>
+                <button class="close-btn" id="closeLoginModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="login-form">
+                <div class="form-group">
+                    <label for="email">E-mail Institucional</label>
+                    <input type="email" id="email" placeholder="seu.email@universidade.edu.br" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="Digite sua senha" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Entrar
+                </button>
+                <div class="form-footer">
+                    <a href="#" class="forgot-password">Esqueceu sua senha?</a>
+                    <p>Não tem conta? <a href="#" id="switchToRegister">Cadastre-se</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Criar Conta no UniDate</h2>
+                <button class="close-btn" id="closeRegisterModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form class="register-form">
+                <div class="form-group">
+                    <label for="regName">Nome Completo</label>
+                    <input type="text" id="regName" placeholder="Seu nome completo" required>
+                </div>
+                <div class="form-group">
+                    <label for="regEmail">E-mail Institucional</label>
+                    <input type="email" id="regEmail" placeholder="seu.email@universidade.edu.br" required>
+                </div>
+                <div class="form-group">
+                    <label for="regPassword">Senha</label>
+                    <input type="password" id="regPassword" placeholder="Mínimo 8 caracteres" required>
+                </div>
+                <div class="form-group">
+                    <label for="regConfirmPassword">Confirmar Senha</label>
+                    <input type="password" id="regConfirmPassword" placeholder="Digite a senha novamente" required>
+                </div>
+                <button type="submit" class="btn-primary full-width">
+                    <i class="fas fa-user-plus"></i>
+                    Criar Conta
+                </button>
+                <div class="form-footer">
+                    <p>Já tem conta? <a href="#" id="switchToLogin">Faça login</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
