@@ -570,27 +570,6 @@ const Feed: React.FC = () => {
               <p className="text-gray-600">A voz do campus • Não é sobre seguir, é sobre pertencer</p>
             </div>
 
-            {/* Botão de teste temporário */}
-            <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">🧪 Teste do Sistema de Posts</h3>
-              <p className="text-blue-700 mb-3">Clique no botão abaixo para testar a criação de um post:</p>
-              <button
-                onClick={() => {
-                  const testPost = {
-                    content: `Teste do sistema de posts - ${new Date().toLocaleString()} #teste #unidate`,
-                    type: 'text'
-                  };
-                  handleNewPost(testPost);
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Criar Post de Teste
-              </button>
-              <div className="mt-2 text-sm text-blue-600">
-                <p>Posts carregados: {posts.length}</p>
-                <p>Status: {loading ? 'Carregando...' : 'Pronto'}</p>
-              </div>
-            </div>
 
             {/* Create Post */}
             <PostComposer onSubmit={handleNewPost} />
