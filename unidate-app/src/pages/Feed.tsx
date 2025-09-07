@@ -98,6 +98,21 @@ const Feed: React.FC = () => {
             console.log('📱 [FEED] Posts recebidos do Firestore:', firestorePosts.length);
             console.log('📱 [FEED] Dados dos posts:', firestorePosts);
             
+            // Log detalhado de cada post
+            firestorePosts.forEach((post, index) => {
+              console.log(`📋 [FEED] Post ${index + 1} detalhado:`, {
+                id: post.id,
+                titulo: post.titulo,
+                conteudo: post.conteudo,
+                autorNome: post.autorNome,
+                autorCurso: post.autorCurso,
+                autorUniversidade: post.autorUniversidade,
+                dataCriacao: post.dataCriacao,
+                hashtags: post.hashtags,
+                tipo: post.tipo
+              });
+            });
+            
             if (firestorePosts.length === 0) {
               console.log('⚠️ [FEED] Nenhum post encontrado no Firestore');
               setPosts([]);
@@ -107,9 +122,10 @@ const Feed: React.FC = () => {
             
             // Converter posts para formato local
             const convertedPosts: Post[] = firestorePosts.map((post, index) => {
-              console.log(`🔄 [FEED] Convertendo post ${index + 1}:`, post);
-              
-              const convertedPost = {
+              try {
+                console.log(`🔄 [FEED] Convertendo post ${index + 1}:`, post);
+                
+                const convertedPost = {
                 id: post.id,
                 author: {
                   uid: post.autorId,
@@ -118,10 +134,24 @@ const Feed: React.FC = () => {
                   university: post.autorUniversidade || 'Universidade não informada',
                   avatar: post.autorAvatar || '/api/placeholder/40/40'
                 },
-                content: post.conteudo,
+                content: post.titulo || post.conteudo,
                 type: (post.tipo === 'texto' ? 'text' : post.tipo === 'imagem' ? 'image' : post.tipo === 'poll' ? 'poll' : 'tevi') as 'text' | 'image' | 'poll' | 'tevi',
                 image: undefined,
-                timestamp: post.dataCriacao?.toDate?.() ? post.dataCriacao.toDate().toISOString() : new Date().toISOString(),
+                timestamp: (() => {
+                  try {
+                    if (post.dataCriacao?.toDate) {
+                      const date = post.dataCriacao.toDate();
+                      console.log(`📅 [FEED] Data convertida para post ${index + 1}:`, date);
+                      return date.toISOString();
+                    } else {
+                      console.log(`⚠️ [FEED] DataCriacao não é um timestamp válido para post ${index + 1}:`, post.dataCriacao);
+                      return new Date().toISOString();
+                    }
+                  } catch (error) {
+                    console.error(`❌ [FEED] Erro ao converter data para post ${index + 1}:`, error);
+                    return new Date().toISOString();
+                  }
+                })(),
                 likes: post.curtidasPor?.length || 0,
                 comments: post.numeroComentarios || 0,
                 isLiked: currentUser ? (post.curtidasPor?.includes(currentUser.uid) || false) : false,
@@ -132,8 +162,29 @@ const Feed: React.FC = () => {
                 hashtags: post.hashtags || []
               };
               
-              console.log(`✅ [FEED] Post ${index + 1} convertido:`, convertedPost);
-              return convertedPost;
+                console.log(`✅ [FEED] Post ${index + 1} convertido com sucesso:`, convertedPost);
+                return convertedPost;
+              } catch (error) {
+                console.error(`❌ [FEED] Erro ao converter post ${index + 1}:`, error);
+                console.error(`❌ [FEED] Dados do post que falhou:`, post);
+                // Retornar um post vazio para não quebrar o array
+                return {
+                  id: post.id || `error-${index}`,
+                  author: { uid: '', name: 'Erro', course: '', university: '', avatar: '' },
+                  content: 'Erro ao carregar post',
+                  type: 'text' as const,
+                  image: undefined,
+                  timestamp: new Date().toISOString(),
+                  likes: 0,
+                  comments: 0,
+                  isLiked: false,
+                  location: undefined,
+                  teviData: undefined,
+                  pollData: undefined,
+                  event: undefined,
+                  hashtags: []
+                };
+              }
             });
             
             console.log('📱 [FEED] Todos os posts convertidos:', convertedPosts);
@@ -279,8 +330,8 @@ const Feed: React.FC = () => {
         autorId: currentUser.uid,
         autorNome: userProfile.displayName || currentUser.displayName || 'Usuário',
         autorAvatar: userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40',
-        autorCurso: userProfile.course || 'Curso não informado',
-        autorUniversidade: userProfile.university || 'Universidade não informada',
+        autorCurso: userProfile.course || 'Engenharia de Software',
+        autorUniversidade: userProfile.university || 'UFRJ - Universidade Federal do Rio de Janeiro',
         tipo: (postData.type === 'text' ? 'texto' : postData.type === 'image' ? 'imagem' : postData.type === 'poll' ? 'poll' : 'tev') as 'texto' | 'imagem' | 'poll' | 'tev'
       };
 
@@ -297,24 +348,24 @@ const Feed: React.FC = () => {
       console.log('✅ [POST] Post criado no Firestore com ID:', postId);
 
       // Criar post local para atualização imediata da UI (opcional, pois o listener vai atualizar)
-      const newPost: Post = {
+    const newPost: Post = {
         id: postId,
-        author: {
+      author: {
           uid: currentUser.uid,
           name: userProfile.displayName || currentUser.displayName || 'Usuário',
           course: userProfile.course || 'Curso não informado',
           university: userProfile.university || 'Universidade não informada',
           avatar: userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40'
-        },
-        content: postData.content,
-        type: postData.type,
+      },
+      content: postData.content,
+      type: postData.type,
         image: postData.image,
         timestamp: new Date().toISOString(),
-        likes: 0,
-        comments: 0,
-        isLiked: false,
+      likes: 0,
+      comments: 0,
+      isLiked: false,
         location: postData.location,
-        teviData: postData.teviData,
+      teviData: postData.teviData,
         pollData: postData.pollData,
         event: postData.event,
         hashtags: hashtags
@@ -331,7 +382,7 @@ const Feed: React.FC = () => {
       });
       
       console.log('✅ [POST] Post criado e adicionado com sucesso!');
-      alert('✅ Post criado com sucesso!');
+            // Post criado com sucesso - o listener vai atualizar automaticamente
     } catch (error: any) {
       console.error('❌ [POST] Erro ao criar post:', error);
       console.error('❌ [POST] Detalhes do erro:', error.message);
@@ -568,6 +619,7 @@ const Feed: React.FC = () => {
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">UniVerso</h1>
               <p className="text-gray-600">A voz do campus • Não é sobre seguir, é sobre pertencer</p>
+              
             </div>
 
 
@@ -650,7 +702,7 @@ const Feed: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-gray-600">Pessoas online</span>
                     <span className="font-semibold text-green-600">{campusStats.peopleOnline}</span>
-                  </div>
+                </div>
               </div>
             </div>
 
