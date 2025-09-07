@@ -1,33 +1,48 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import Navbar from './components/Layout/Navbar';
-import LoginForm from './components/Auth/LoginForm';
-import RegisterForm from './components/Auth/RegisterForm';
-import HomePage from './pages/HomePage';
-import About from './pages/About';
-import Features from './pages/Features';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Discover from './pages/Discover';
-import Feed from './pages/Feed';
-import Groups from './pages/Groups';
-import Chat from './pages/Chat';
-import Settings from './pages/Settings';
-import OnboardingFlow from './components/Onboarding/OnboardingFlow';
-import VerifyEmail from './pages/VerifyEmail';
-import OnboardingComplete from './pages/OnboardingComplete';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 import Footer from './components/UI/Footer';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import AdminRoute from './components/Admin/AdminRoute';
-import AdminLayout from './components/Admin/Layout/AdminLayout';
-import UserManagement from './components/Admin/Users/UserManagement';
-import ContentModeration from './components/Admin/Moderation/ContentModeration';
-import SOSPage from './pages/SOSPage';
-import AnonymousWallPage from './pages/AnonymousWallPage';
+import ModernAdminLayout from './components/Admin/Layout/SimpleAdminLayout';
+
+// Lazy load components for better performance
+const LoginForm = lazy(() => import('./components/Auth/LoginForm'));
+const RegisterForm = lazy(() => import('./components/Auth/RegisterForm'));
+const HomePage = lazy(() => import('./pages/HomePage'));
+const About = lazy(() => import('./pages/About'));
+const Features = lazy(() => import('./pages/Features'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Profile2 = lazy(() => import('./pages/Profile2'));
+const Discover = lazy(() => import('./pages/Discover'));
+const Feed = lazy(() => import('./pages/Feed'));
+const Groups = lazy(() => import('./pages/Groups'));
+const Chat = lazy(() => import('./pages/Chat'));
+const Settings = lazy(() => import('./pages/Settings'));
+const OnboardingFlow = lazy(() => import('./components/Onboarding/OnboardingFlow'));
+const VerifyEmail = lazy(() => import('./pages/VerifyEmail'));
+const OnboardingComplete = lazy(() => import('./pages/OnboardingComplete'));
+const AdminLogin = lazy(() => import('./pages/admin/AdminLogin'));
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const AdminDashboardV3 = lazy(() => import('./components/Admin/Dashboard/AdminDashboardV3'));
+const AdminRoute = lazy(() => import('./components/Admin/AdminRoute'));
+const AdminLayout = lazy(() => import('./components/Admin/Layout/AdminLayout'));
+const UserManagement = lazy(() => import('./components/Admin/Users/UserManagement'));
+const ContentManagement = lazy(() => import('./components/Admin/Content/ContentManagement'));
+const FeatureFlags = lazy(() => import('./components/Admin/Features/FeatureFlags'));
+const ContentModeration = lazy(() => import('./components/Admin/Moderation/ContentModeration'));
+const AdvancedAnalytics = lazy(() => import('./components/Admin/Analytics/AdvancedAnalytics'));
+const NotificationSystem = lazy(() => import('./components/Admin/Notifications/NotificationSystem'));
+const AdvancedReports = lazy(() => import('./components/Admin/Reports/AdvancedReports'));
+const AIControlPage = lazy(() => import('./pages/admin/AIControlPage'));
+const SOSPage = lazy(() => import('./pages/SOSPage'));
+const AnonymousWallPage = lazy(() => import('./pages/AnonymousWallPage'));
+const Events = lazy(() => import('./pages/Events'));
+const CampusGuide = lazy(() => import('./pages/CampusGuide'));
+const Achievements = lazy(() => import('./pages/Achievements'));
+const AdminInstructions = lazy(() => import('./components/Admin/AdminInstructions'));
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -43,6 +58,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 // Componente principal da aplicação
 const AppContent: React.FC = () => {
   const { loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <LoadingSpinner />;
@@ -50,9 +66,10 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="pt-16">
-        <Routes>
+      {!location.pathname.startsWith('/admin') && <Navbar />}
+      <main className={location.pathname.startsWith('/admin') ? '' : 'pt-16'}>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Routes>
           {/* Rotas públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<About />} />
@@ -77,6 +94,14 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile2" 
+            element={
+              <ProtectedRoute>
+                <Profile2 />
               </ProtectedRoute>
             } 
           />
@@ -120,6 +145,34 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/events" 
+            element={
+              <ProtectedRoute>
+                <Events />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/campus-guide" 
+            element={
+              <ProtectedRoute>
+                <CampusGuide />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/achievements" 
+            element={
+              <ProtectedRoute>
+                <Achievements />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin-instructions" 
+            element={<AdminInstructions />} 
+          />
           
           {/* New Features Routes */}
           <Route 
@@ -140,14 +193,23 @@ const AppContent: React.FC = () => {
           />
           
           {/* Admin Routes */}
+          <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route 
             path="/admin/dashboard" 
             element={
               <AdminRoute>
-                <AdminLayout>
-                  <AdminDashboard />
-                </AdminLayout>
+                <ModernAdminLayout>
+                  <AdminDashboardV3 />
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/ai-control" 
+            element={
+              <AdminRoute>
+                <AIControlPage />
               </AdminRoute>
             } 
           />
@@ -155,9 +217,19 @@ const AppContent: React.FC = () => {
             path="/admin/users" 
             element={
               <AdminRoute>
-                <AdminLayout>
+                <ModernAdminLayout>
                   <UserManagement />
-                </AdminLayout>
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/content" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <ContentManagement />
+                </ModernAdminLayout>
               </AdminRoute>
             } 
           />
@@ -165,16 +237,83 @@ const AppContent: React.FC = () => {
             path="/admin/moderation" 
             element={
               <AdminRoute>
-                <AdminLayout>
+                <ModernAdminLayout>
                   <ContentModeration />
-                </AdminLayout>
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/features" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <FeatureFlags />
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/events" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <div className="p-6">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Eventos</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Gerenciamento de eventos em desenvolvimento.</p>
+                  </div>
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/analytics" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <AdvancedAnalytics />
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/notifications" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <NotificationSystem />
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/reports" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <AdvancedReports />
+                </ModernAdminLayout>
+              </AdminRoute>
+            } 
+          />
+          <Route 
+            path="/admin/settings" 
+            element={
+              <AdminRoute>
+                <ModernAdminLayout>
+                  <div className="p-6">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Configurações</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Configurações do sistema em desenvolvimento.</p>
+                  </div>
+                </ModernAdminLayout>
               </AdminRoute>
             } 
           />
           
           {/* Rota padrão */}
           <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
       <Footer />
     </div>

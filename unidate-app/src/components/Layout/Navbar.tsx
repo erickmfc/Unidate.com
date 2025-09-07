@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { logoutUser } from '../../firebase/auth';
 import { 
-  GraduationCap, 
   Menu, 
   X, 
   LogIn, 
@@ -14,9 +13,11 @@ import {
   Heart,
   MessageCircle,
   Users,
-  Newspaper
+  Newspaper,
+  Calendar,
+  MapPin,
+  Award
 } from 'lucide-react';
-import UniDateLogo from '../UI/UniDateLogo';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -30,9 +31,23 @@ const Navbar: React.FC = () => {
       setIsScrolled(window.scrollY > 50);
     };
 
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isUserMenuOpen) {
+        const target = event.target as Element;
+        if (!target.closest('.user-menu-container')) {
+          setIsUserMenuOpen(false);
+        }
+      }
+    };
+
     window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isUserMenuOpen]);
 
   const handleLogout = async () => {
     try {
@@ -44,20 +59,30 @@ const Navbar: React.FC = () => {
     }
   };
 
-  const navLinks = [
+  // Menu para usuários não autenticados
+  const publicNavLinks = [
     { name: 'Início', href: '/', icon: null },
     { name: 'Sobre', href: '/about', icon: null },
     { name: 'Recursos', href: '/features', icon: null },
   ];
 
-  const userMenuItems = [
-    { name: 'Perfil', href: '/profile', icon: User },
+  // Menu para usuários autenticados
+  const authenticatedNavLinks = [
     { name: 'Descoberta', href: '/discover', icon: Heart },
-    { name: 'UniVerso', href: '/feed', icon: Newspaper },
+    { name: 'UniVerso', href: '/feed', icon: Newspaper, isHighlighted: true },
     { name: 'Grupos', href: '/groups', icon: Users },
-    { name: 'Chat', href: '/chat', icon: MessageCircle },
-    { name: 'Configurações', href: '/settings', icon: Settings },
+    { name: 'Bate-papo', href: '/chat', icon: MessageCircle },
+    { name: 'Eventos', href: '/events', icon: Calendar, isNew: true },
+    { name: 'Guia do Campus', href: '/campus-guide', icon: MapPin, isNew: true },
   ];
+
+  // Menu suspenso do usuário
+  const userDropdownItems = [
+    { name: 'Meu Perfil', href: '/profile', icon: User },
+    { name: 'Configurações', href: '/settings', icon: Settings },
+    { name: 'Minhas Conquistas', href: '/achievements', icon: Award, isNew: true },
+  ];
+
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -69,30 +94,60 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="group">
-            <UniDateLogo size="md" showText={true} className="group-hover:scale-105 transition-transform duration-300" />
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                className="text-gray-600 hover:text-indigo-500 font-medium transition-colors duration-200 relative group"
-              >
-                {link.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span>
-              </Link>
-            ))}
+            {isAuthenticated ? (
+              // Menu para usuários autenticados
+              authenticatedNavLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className={`font-medium transition-all duration-200 relative group flex items-center space-x-2 ${
+                    link.isHighlighted 
+                      ? 'text-pink-600 text-lg font-bold animate-pulse' 
+                      : 'text-gray-600 hover:text-indigo-500'
+                  }`}
+                >
+                  {link.icon && <link.icon className={`h-4 w-4 ${link.isHighlighted ? 'text-pink-500' : ''}`} />}
+                  <span className="relative">
+                    {link.name}
+                    {link.isNew && (
+                      <span className="absolute -top-2 -right-2 text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-1.5 py-0.5 rounded-full">
+                        NOVO
+                      </span>
+                    )}
+                  </span>
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span>
+                </Link>
+              ))
+            ) : (
+              // Menu para usuários não autenticados
+              publicNavLinks.map((link) => (
+                <Link
+                  key={link.name}
+                  to={link.href}
+                  className="text-gray-600 hover:text-indigo-500 font-medium transition-colors duration-200 relative group"
+                >
+                  {link.name}
+                  <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-pink-500 group-hover:w-full transition-all duration-300"></span>
+                </Link>
+              ))
+            )}
           </div>
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
-              <div className="relative">
+              <div className="relative user-menu-container">
+                {/* User Profile Button */}
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
+                  aria-label="Menu do usuário"
+                  aria-expanded={isUserMenuOpen}
+                  aria-haspopup="true"
                 >
                   <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">
@@ -106,8 +161,8 @@ const Navbar: React.FC = () => {
 
                 {/* User Dropdown Menu */}
                 {isUserMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
-                    {userMenuItems.map((item) => (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    {userDropdownItems.map((item) => (
                       <Link
                         key={item.name}
                         to={item.href}
@@ -115,7 +170,12 @@ const Navbar: React.FC = () => {
                         onClick={() => setIsUserMenuOpen(false)}
                       >
                         <item.icon className="h-4 w-4" />
-                        <span>{item.name}</span>
+                        <span className="flex-1">{item.name}</span>
+                        {item.isNew && (
+                          <span className="text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-0.5 rounded-full">
+                            NOVO
+                          </span>
+                        )}
                       </Link>
                     ))}
                     <hr className="my-2 border-gray-200" />
@@ -153,6 +213,9 @@ const Navbar: React.FC = () => {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+            aria-label="Menu de navegação"
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-menu"
           >
             {isMobileMenuOpen ? (
               <X className="h-6 w-6 text-gray-600" />
@@ -164,24 +227,12 @@ const Navbar: React.FC = () => {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200 py-4">
+          <div id="mobile-menu" className="md:hidden bg-white border-t border-gray-200 py-4" role="menu">
             <div className="space-y-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.href}
-                  className="block px-4 py-2 text-gray-600 hover:text-indigo-500 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {link.name}
-                </Link>
-              ))}
-              
-              <hr className="my-4 border-gray-200" />
-              
               {isAuthenticated ? (
-                <div className="space-y-2">
-                  <div className="px-4 py-2 flex items-center space-x-3">
+                // Menu para usuários autenticados
+                <>
+                  <div className="px-4 py-2 flex items-center space-x-3 border-b border-gray-200 pb-4">
                     <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-full flex items-center justify-center">
                       <span className="text-white text-sm font-semibold">
                         {userProfile?.displayName?.charAt(0) || currentUser?.email?.charAt(0) || 'U'}
@@ -192,17 +243,30 @@ const Navbar: React.FC = () => {
                     </span>
                   </div>
                   
-                  {userMenuItems.map((item) => (
+                  {authenticatedNavLinks.map((link) => (
                     <Link
-                      key={item.name}
-                      to={item.href}
-                      className="flex items-center space-x-3 px-4 py-2 text-gray-600 hover:text-indigo-500 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+                      key={link.name}
+                      to={link.href}
+                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 ${
+                        link.isHighlighted 
+                          ? 'text-pink-600 font-bold text-lg' 
+                          : 'text-gray-600 hover:text-indigo-500 hover:bg-gray-50'
+                      }`}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.name}</span>
+                      {link.icon && <link.icon className={`h-4 w-4 ${link.isHighlighted ? 'text-pink-500' : ''}`} />}
+                      <span className="relative">
+                        {link.name}
+                        {link.isNew && (
+                          <span className="ml-2 text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-0.5 rounded-full">
+                            NOVO
+                          </span>
+                        )}
+                      </span>
                     </Link>
                   ))}
+                  
+                  <hr className="my-4 border-gray-200" />
                   
                   <button
                     onClick={handleLogout}
@@ -211,8 +275,26 @@ const Navbar: React.FC = () => {
                     <LogOut className="h-4 w-4" />
                     <span>Sair</span>
                   </button>
-                </div>
+                </>
               ) : (
+                // Menu para usuários não autenticados
+                <>
+                  {publicNavLinks.map((link) => (
+                    <Link
+                      key={link.name}
+                      to={link.href}
+                      className="block px-4 py-2 text-gray-600 hover:text-indigo-500 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                  
+                  <hr className="my-4 border-gray-200" />
+                </>
+              )}
+              
+              {!isAuthenticated && (
                 <div className="space-y-2 px-4">
                   <Link
                     to="/login"

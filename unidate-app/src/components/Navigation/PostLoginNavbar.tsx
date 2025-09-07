@@ -16,7 +16,6 @@ import {
   HelpCircle,
   MessageSquare
 } from 'lucide-react';
-import UniDateLogo from '../UI/UniDateLogo';
 
 const PostLoginNavbar: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -50,7 +49,6 @@ const PostLoginNavbar: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <UniDateLogo size="sm" showText={false} />
             <span className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
               UniDate
             </span>
@@ -140,6 +138,14 @@ const PostLoginNavbar: React.FC = () => {
                   >
                     <User className="w-4 h-4" />
                     <span>Meu Perfil</span>
+                  </Link>
+                  <Link
+                    to="/profile2"
+                    className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    <User className="w-4 h-4" />
+                    <span>Perfil 2.0 (NOVO)</span>
                   </Link>
                   <Link
                     to="/settings"

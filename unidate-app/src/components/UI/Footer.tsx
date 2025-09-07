@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import UniDateLogo from './UniDateLogo';
 import { 
   Heart, 
   Mail, 
@@ -37,7 +36,8 @@ const Footer: React.FC = () => {
       { name: 'Termos de Uso', href: '/terms' },
       { name: 'Privacidade', href: '/privacy' },
       { name: 'Cookies', href: '/cookies' },
-      { name: 'Licenças', href: '/licenses' }
+      { name: 'Licenças', href: '/licenses' },
+      { name: 'Admin', href: '/admin' }
     ]
   };
 
@@ -55,7 +55,6 @@ const Footer: React.FC = () => {
         <div className="grid lg:grid-cols-5 gap-8 mb-12">
           {/* Logo and Description */}
           <div className="lg:col-span-2">
-            <UniDateLogo size="lg" showText={true} className="mb-6" />
             <p className="text-gray-300 mb-6 max-w-md">
               UniDate é a plataforma social exclusiva para estudantes universitários. 
               Conectamos pessoas, criamos comunidades e transformamos a experiência acadêmica.

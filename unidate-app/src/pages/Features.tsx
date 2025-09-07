@@ -15,13 +15,10 @@ import {
   Eye,
   BarChart3,
   Hash,
-  MapPin,
-  Calendar,
   UserPlus,
   GraduationCap,
   Sparkles
 } from 'lucide-react';
-import UniDateLogo from '../components/UI/UniDateLogo';
 
 const Features: React.FC = () => {
   const mainFeatures = [
@@ -163,7 +160,6 @@ const Features: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex justify-center mb-8">
-              <UniDateLogo size="xl" showText={true} className="animate-pulse" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
               Recursos do <span className="gradient-text">UniDate</span>

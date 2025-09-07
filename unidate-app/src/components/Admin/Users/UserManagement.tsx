@@ -1,15 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, 
-  Filter, 
-  MoreVertical, 
   UserCheck, 
   UserX, 
   AlertTriangle, 
   Shield, 
-  Mail,
-  Calendar,
-  Eye,
   MessageSquare,
   Users,
   Flag,
@@ -17,6 +12,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import { AdminUsersService } from '../../../services/firebaseAdmin';
 
 interface User {
   id: string;
@@ -57,71 +53,41 @@ const UserManagement: React.FC = () => {
 
   const usersPerPage = 10;
 
-  // Simular carregamento de usuários
+  // Carregar usuários reais do Firebase
   useEffect(() => {
     const loadUsers = async () => {
-      setLoading(true);
-      
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Dados simulados
-      const mockUsers: User[] = [
-        {
-          id: '1',
-          displayName: 'João Silva',
-          email: 'joao.silva@universidade.edu.br',
-          photoURL: '/api/placeholder/40/40',
-          university: 'USP',
+      try {
+        setLoading(true);
+        
+        // Buscar usuários reais do Firebase
+        const firebaseUsers = await AdminUsersService.getUsers(100);
+        
+        // Converter para o formato do componente
+        const convertedUsers: User[] = firebaseUsers.map(adminUser => ({
+          id: adminUser.id,
+          displayName: adminUser.displayName,
+          email: adminUser.email,
+          photoURL: '',
+          university: 'UFRJ - Universidade Federal do Rio de Janeiro',
           course: 'Engenharia de Software',
-          year: 3,
-          status: 'active',
-          isVerified: true,
-          createdAt: new Date('2024-01-15'),
-          lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000),
-          postsCount: 45,
-          groupsCount: 8,
+          year: 6,
+          status: adminUser.isActive ? 'active' : 'suspended',
+          isVerified: adminUser.role === 'super-admin' || adminUser.role === 'admin',
+          createdAt: adminUser.createdAt.toDate(),
+          lastLogin: adminUser.lastLogin?.toDate(),
+          postsCount: 0,
+          groupsCount: 0,
           reportsCount: 0,
           warningsCount: 0
-        },
-        {
-          id: '2',
-          displayName: 'Maria Santos',
-          email: 'maria.santos@universidade.edu.br',
-          photoURL: '/api/placeholder/40/40',
-          university: 'UNICAMP',
-          course: 'Medicina',
-          year: 2,
-          status: 'suspended',
-          isVerified: true,
-          createdAt: new Date('2024-02-20'),
-          lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          postsCount: 23,
-          groupsCount: 5,
-          reportsCount: 2,
-          warningsCount: 1
-        },
-        {
-          id: '3',
-          displayName: 'Pedro Costa',
-          email: 'pedro.costa@universidade.edu.br',
-          photoURL: '/api/placeholder/40/40',
-          university: 'FGV',
-          course: 'Administração',
-          year: 4,
-          status: 'banned',
-          isVerified: true,
-          createdAt: new Date('2023-11-10'),
-          lastLogin: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          postsCount: 12,
-          groupsCount: 3,
-          reportsCount: 5,
-          warningsCount: 3
-        }
-      ];
-
-      setUsers(mockUsers);
-      setLoading(false);
+        }));
+        
+        setUsers(convertedUsers);
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        setUsers([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadUsers();
@@ -268,7 +234,22 @@ const UserManagement: React.FC = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedUsers.map((user) => (
+              {paginatedUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <Users className="h-12 w-12 text-gray-400 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        Nenhum usuário encontrado
+                      </h3>
+                      <p className="text-gray-500">
+                        Ainda não há usuários cadastrados no sistema.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => handleUserClick(user)}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
@@ -351,7 +332,8 @@ const UserManagement: React.FC = () => {
                     </div>
                   </td>
                 </tr>
-              ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>

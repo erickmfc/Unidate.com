@@ -15,7 +15,6 @@ import {
   Eye,
   EyeOff
 } from 'lucide-react';
-import UniDateLogo from '../UI/UniDateLogo';
 
 interface OnboardingData {
   displayName: string;
@@ -496,7 +495,6 @@ const OnboardingFlow: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <UniDateLogo size="xl" showText={true} />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Bem-vindo ao UniDate!

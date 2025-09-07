@@ -21,9 +21,10 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
   const currentSize = sizeClasses[size];
 
   return (
-    <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Logo Icon */}
-      <div className={`${currentSize.icon} relative`}>
+    <div className={`flex items-center ${className}`}>
+      {/* Logo Icon - sempre oculto */}
+      {false && (
+        <div className={`${currentSize.icon} relative`}>
         <svg
           viewBox="0 0 100 100"
           className="w-full h-full"
@@ -168,20 +169,21 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
             />
           </g>
         </svg>
-      </div>
+        </div>
+      )}
 
-      {/* Logo Text */}
-      {showText && (
-        <div className="flex flex-col">
-          <h1 className={`font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent ${currentSize.text}`}>
-            UniDate
-          </h1>
+      {/* Logo Text - sempre visível */}
+      <div className="flex flex-col">
+        <h1 className={`font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent ${currentSize.text}`}>
+          UniDate
+        </h1>
+        {showText && (
           <div className="text-sm text-gray-600 font-medium">
             <div>Sua faculdade.</div>
             <div>Suas conexões.</div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

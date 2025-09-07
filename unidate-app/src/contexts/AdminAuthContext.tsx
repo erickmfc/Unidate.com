@@ -1,9 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { AdminUser, AdminSession, loginAdmin, logoutAdmin, verifyTwoFactor } from '../firebase/adminAuth';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { AdminSession, loginAdmin, logoutAdmin, verifyTwoFactor, getCurrentAdminSession, isAdminLoggedIn } from '../firebase/adminAuth';
 
 interface AdminAuthContextType {
   adminSession: AdminSession | null;
@@ -42,34 +38,20 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
+    // Verificar se há uma sessão de admin ativa
+    const checkAdminSession = () => {
       try {
-        if (user) {
-          // Verificar se o usuário é um admin
-          const adminDoc = await getDoc(doc(db!, 'admins', user.uid));
-          if (adminDoc.exists()) {
-            const adminData = adminDoc.data() as AdminUser;
-            setAdminSession({
-              user: adminData,
-              isAuthenticated: true,
-              requiresTwoFactor: adminData.twoFactorEnabled,
-              twoFactorVerified: !adminData.twoFactorEnabled
-            });
-          } else {
-            setAdminSession(null);
-          }
-        } else {
-          setAdminSession(null);
-        }
+        const currentSession = getCurrentAdminSession();
+        setAdminSession(currentSession);
       } catch (error) {
         console.error('Erro ao verificar sessão de admin:', error);
         setAdminSession(null);
       } finally {
         setLoading(false);
       }
-    });
+    };
 
-    return () => unsubscribe();
+    checkAdminSession();
   }, []);
 
   const handleLoginAdmin = async (email: string, password: string): Promise<void> => {
@@ -98,38 +80,26 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const handleVerifyTwoFactor = async (token: string): Promise<boolean> => {
     try {
       if (!adminSession?.user.uid) {
-        return false;
+        throw new Error('Sessão não encontrada');
       }
 
-      const isValid = await verifyTwoFactor(adminSession.user.twoFactorSecret || '', token);
-      if (isValid && adminSession) {
-        setAdminSession({
-          ...adminSession,
-          requiresTwoFactor: false
-        });
+      const verifiedSession = await verifyTwoFactor(adminSession.user.uid, token);
+      if (verifiedSession) {
+        setAdminSession(verifiedSession);
+        return true;
       }
-      return isValid;
+      return false;
     } catch (error) {
       console.error('Erro na verificação 2FA:', error);
-      return false;
+      throw error;
     }
   };
 
   const refreshAdminData = async (): Promise<void> => {
     try {
-      if (adminSession?.user) {
-        setLoading(true);
-        const adminDoc = await getDoc(doc(db!, 'admins', adminSession.user.uid));
-        if (adminDoc.exists()) {
-          const adminData = adminDoc.data() as AdminUser;
-          setAdminSession({
-            user: adminData,
-            isAuthenticated: true,
-            requiresTwoFactor: adminData.twoFactorEnabled,
-            twoFactorVerified: !adminData.twoFactorEnabled
-          });
-        }
-      }
+      setLoading(true);
+      const currentSession = getCurrentAdminSession();
+      setAdminSession(currentSession);
     } catch (error) {
       console.error('Erro ao atualizar dados do admin:', error);
     } finally {

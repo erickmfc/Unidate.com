@@ -3,20 +3,12 @@ import {
   Flag, 
   User, 
   Clock, 
-  Eye, 
   X, 
   CheckCircle, 
-  AlertTriangle, 
-  UserX,
   MessageSquare,
   Image,
   Hash,
-  Filter,
-  Search,
-  MoreVertical,
-  Shield,
-  Ban,
-  Mail
+  Search
 } from 'lucide-react';
 
 interface Report {
@@ -50,79 +42,20 @@ const ContentModeration: React.FC = () => {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Simular carregamento de denúncias
+  // Carregar denúncias reais
   useEffect(() => {
     const loadReports = async () => {
-      setLoading(true);
-      
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Dados simulados
-      const mockReports: Report[] = [
-        {
-          id: '1',
-          type: 'post',
-          content: {
-            text: 'Alguém tem as respostas da prova de cálculo? Preciso urgentemente!',
-            author: 'joao123',
-            authorId: 'user1',
-            createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
-          },
-          report: {
-            reason: 'spam',
-            description: 'Post pedindo respostas de prova, violando as regras acadêmicas',
-            reporterId: 'user2',
-            reporterName: 'maria456',
-            reportedAt: new Date(Date.now() - 30 * 60 * 1000)
-          },
-          status: 'pending',
-          priority: 'high'
-        },
-        {
-          id: '2',
-          type: 'post',
-          content: {
-            text: 'Que dia lindo para estudar! #estudando #foco #universidade',
-            imageUrl: '/api/placeholder/300/200',
-            author: 'ana789',
-            authorId: 'user3',
-            createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000)
-          },
-          report: {
-            reason: 'inappropriate',
-            description: 'Conteúdo inapropriado na imagem',
-            reporterId: 'user4',
-            reporterName: 'pedro321',
-            reportedAt: new Date(Date.now() - 15 * 60 * 1000)
-          },
-          status: 'pending',
-          priority: 'medium'
-        },
-        {
-          id: '3',
-          type: 'comment',
-          content: {
-            text: 'Você é muito burra, não deveria estar na universidade',
-            author: 'carlos555',
-            authorId: 'user5',
-            createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000)
-          },
-          report: {
-            reason: 'harassment',
-            description: 'Comentário ofensivo e desrespeitoso',
-            reporterId: 'user6',
-            reporterName: 'sofia888',
-            reportedAt: new Date(Date.now() - 10 * 60 * 1000)
-          },
-          status: 'pending',
-          priority: 'high'
-        }
-      ];
-
-      setReports(mockReports);
-      setFilteredReports(mockReports);
-      setLoading(false);
+      try {
+        setLoading(true);
+        // TODO: Implementar carregamento de denúncias reais do Firebase
+        // Por enquanto, deixar vazio para mostrar apenas denúncias reais
+        setReports([]);
+        setFilteredReports([]);
+      } catch (error) {
+        console.error('Erro ao carregar denúncias:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     loadReports();

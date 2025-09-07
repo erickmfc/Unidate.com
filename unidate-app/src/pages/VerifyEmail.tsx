@@ -9,7 +9,6 @@ import {
   AlertCircle,
   Clock
 } from 'lucide-react';
-import UniDateLogo from '../components/UI/UniDateLogo';
 
 const VerifyEmail: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -86,7 +85,6 @@ const VerifyEmail: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <UniDateLogo size="xl" showText={true} />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Verifique seu E-mail

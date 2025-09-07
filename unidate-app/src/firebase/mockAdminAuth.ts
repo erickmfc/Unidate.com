@@ -21,9 +21,45 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Credenciais mock para desenvolvimento
 const MOCK_ADMIN_CREDENTIALS = {
+  'admin1': {
+    password: 'admin123',
+    displayName: 'Admin UniDate',
+    role: 'super-admin' as const,
+    twoFactorSecret: '123456'
+  },
+  'admin': {
+    password: 'admin123',
+    displayName: 'Admin UniDate',
+    role: 'super-admin' as const,
+    twoFactorSecret: '123456'
+  },
   'admin@unidate.com': {
     password: 'admin123',
     displayName: 'Admin UniDate',
+    role: 'super-admin' as const,
+    twoFactorSecret: '123456'
+  },
+  'erick': {
+    password: 'admin123',
+    displayName: 'Erick Admin',
+    role: 'super-admin' as const,
+    twoFactorSecret: '123456'
+  },
+  'mathe': {
+    password: 'admin123',
+    displayName: 'Mathe Admin',
+    role: 'super-admin' as const,
+    twoFactorSecret: '123456'
+  },
+  'root': {
+    password: 'admin123',
+    displayName: 'Root Admin',
+    role: 'super-admin' as const,
+    twoFactorSecret: '123456'
+  },
+  'super': {
+    password: 'admin123',
+    displayName: 'Super Admin',
     role: 'super-admin' as const,
     twoFactorSecret: '123456'
   }

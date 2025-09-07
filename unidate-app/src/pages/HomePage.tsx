@@ -8,10 +8,8 @@ import {
   GraduationCap, 
   ArrowRight,
   Star,
-  MessageCircle,
-  Globe
+  MessageCircle
 } from 'lucide-react';
-import UniDateLogo from '../components/UI/UniDateLogo';
 
 const HomePage: React.FC = () => {
   const { isAuthenticated } = useAuth();
@@ -133,7 +131,6 @@ const HomePage: React.FC = () => {
                     {/* App Header */}
                     <div className="bg-gradient-to-r from-primary-500 to-accent-500 p-4 text-white">
                       <div className="flex items-center justify-between">
-                        <UniDateLogo size="sm" showText={false} />
                         <div className="flex space-x-1">
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                           <div className="w-2 h-2 bg-white/50 rounded-full"></div>

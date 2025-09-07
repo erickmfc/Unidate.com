@@ -52,18 +52,46 @@ service cloud.firestore {
       
       // Usuários podem criar posts
       allow create: if isAuthenticated() && 
-        request.auth.uid == request.resource.data.authorId;
+        request.auth.uid == request.resource.data.autorId;
       
       // Usuários podem atualizar apenas seus próprios posts
       allow update: if isAuthenticated() && 
-        request.auth.uid == resource.data.authorId;
+        request.auth.uid == resource.data.autorId;
       
       // Usuários podem deletar apenas seus próprios posts
       allow delete: if isAuthenticated() && 
-        request.auth.uid == resource.data.authorId;
+        request.auth.uid == resource.data.autorId;
+      
+      // Usuários podem curtir/descurtir posts (atualizar array curtidasPor)
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['curtidasPor', 'numeroComentarios']);
       
       // Admins podem fazer tudo
       allow read, write: if isAdmin();
+      
+      // ========================================
+      // REGRAS PARA COMENTÁRIOS (SUBSCOLEÇÃO)
+      // ========================================
+      
+      match /comentarios/{comentarioId} {
+        // Usuários autenticados podem ler comentários
+        allow read: if isAuthenticated();
+        
+        // Usuários podem criar comentários
+        allow create: if isAuthenticated() && 
+          request.auth.uid == request.resource.data.autorId;
+        
+        // Usuários podem atualizar apenas seus próprios comentários
+        allow update: if isAuthenticated() && 
+          request.auth.uid == resource.data.autorId;
+        
+        // Usuários podem deletar apenas seus próprios comentários
+        allow delete: if isAuthenticated() && 
+          request.auth.uid == resource.data.autorId;
+        
+        // Admins podem fazer tudo
+        allow read, write: if isAdmin();
+      }
     }
     
     // ========================================

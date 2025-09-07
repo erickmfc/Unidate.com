@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   Camera, 
   Smile, 
-  Heart, 
   Users, 
   MessageSquare,
   CheckCircle,
@@ -13,7 +12,6 @@ import {
   Upload,
   X
 } from 'lucide-react';
-import UniDateLogo from '../components/UI/UniDateLogo';
 
 const OnboardingComplete: React.FC = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -25,7 +23,7 @@ const OnboardingComplete: React.FC = () => {
     interests: [] as string[],
     nickname: ''
   });
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
 
   const interestOptions = [
@@ -270,7 +268,6 @@ const OnboardingComplete: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <UniDateLogo size="xl" showText={true} />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             Finalize seu Perfil

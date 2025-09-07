@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
-import UniDateLogo from '../../components/UI/UniDateLogo';
 import { Shield, Eye, EyeOff, AlertCircle, Key } from 'lucide-react';
 
 const AdminLogin: React.FC = () => {
@@ -13,7 +12,7 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showTwoFactor, setShowTwoFactor] = useState(false);
+  const [showTwoFactor, setShowTwoFactor] = useState(true);
   const { loginAdmin, verifyTwoFactor, adminSession } = useAdminAuth();
   const navigate = useNavigate();
 
@@ -31,23 +30,21 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      if (!showTwoFactor) {
-        // Primeiro login
-        await loginAdmin(formData.email, formData.password);
-        
-        if (adminSession?.requiresTwoFactor) {
-          setShowTwoFactor(true);
-        } else {
-          navigate('/admin/dashboard');
-        }
+      // Verificar se todos os campos estão preenchidos
+      if (!formData.email || !formData.password || !formData.twoFactorCode) {
+        setError('Por favor, preencha todos os campos');
+        return;
+      }
+
+      // Fazer login
+      await loginAdmin(formData.email, formData.password);
+      
+      // Verificar 2FA
+      const isValid = await verifyTwoFactor(formData.twoFactorCode);
+      if (isValid) {
+        navigate('/admin/dashboard');
       } else {
-        // Verificação 2FA
-        const isValid = await verifyTwoFactor(formData.twoFactorCode);
-        if (isValid) {
-          navigate('/admin/dashboard');
-        } else {
-          setError('Código 2FA inválido');
-        }
+        setError('Código 2FA inválido');
       }
     } catch (error: any) {
       setError(error.message || 'Erro na autenticação');
@@ -66,7 +63,6 @@ const AdminLogin: React.FC = () => {
               <Shield className="h-12 w-12 text-white" />
             </div>
           </div>
-          <UniDateLogo size="lg" showText={true} className="justify-center mb-4" />
           <h2 className="text-3xl font-bold text-white mb-2">
             Painel de Administração
           </h2>
@@ -93,17 +89,17 @@ const AdminLogin: React.FC = () => {
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-                E-mail de Administrador
+                Usuário de Administrador
               </label>
               <div className="relative">
                 <input
                   id="email"
                   name="email"
-                  type="email"
+                  type="text"
                   autoComplete="email"
                   required
                   className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-200"
-                  placeholder="admin@unidate.com"
+                  placeholder="admin1"
                   value={formData.email}
                   onChange={handleChange}
                 />
@@ -111,37 +107,35 @@ const AdminLogin: React.FC = () => {
             </div>
 
             {/* Password Field */}
-            {!showTwoFactor && (
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-                  Senha de Administrador
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    required
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-200 pr-12"
-                    placeholder="Digite sua senha"
-                    value={formData.password}
-                    onChange={handleChange}
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                    ) : (
-                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
-                    )}
-                  </button>
-                </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+                Senha de Administrador
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  required
+                  className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:border-red-500 focus:ring-4 focus:ring-red-500/20 transition-all duration-200 pr-12"
+                  placeholder="Digite sua senha"
+                  value={formData.password}
+                  onChange={handleChange}
+                />
+                <button
+                  type="button"
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+                  ) : (
+                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-300" />
+                  )}
+                </button>
               </div>
-            )}
+            </div>
 
             {/* 2FA Field */}
             {showTwoFactor && (
@@ -203,11 +197,22 @@ const AdminLogin: React.FC = () => {
 
         {/* Demo Credentials */}
         <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-4">
-          <h4 className="text-gray-300 font-medium mb-2">Credenciais de Demonstração:</h4>
+          <h4 className="text-gray-300 font-medium mb-2">Credenciais de Administração:</h4>
           <div className="text-sm text-gray-400 space-y-1">
-            <p><strong>E-mail:</strong> admin@unidate.com</p>
+            <p><strong>Usuário:</strong> admin1, admin, erick, mathe, root, super</p>
             <p><strong>Senha:</strong> admin123</p>
+            <p><strong>2FA:</strong> 123456</p>
           </div>
+        </div>
+
+        {/* Admin Instructions Link */}
+        <div className="text-center mb-4">
+          <Link 
+            to="/admin-instructions" 
+            className="text-blue-400 hover:text-blue-300 text-sm underline"
+          >
+            📋 Instruções de Acesso
+          </Link>
         </div>
 
         {/* Footer */}

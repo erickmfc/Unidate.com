@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
   Heart, 
   MessageCircle, 
@@ -40,12 +40,12 @@ interface Post {
 interface PostCardProps {
   post: Post;
   onLike: (postId: string) => void;
-  onComment: (postId: string) => void;
+  onComment: (postId: string, commentText: string) => void;
   onShare: (postId: string) => void;
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare }) => {
-  const [showComments, setShowComments] = useState(false);
+  // const [showComments, setShowComments] = useState(false);
 
   const formatTime = (timestamp: string) => {
     const now = new Date();
@@ -171,7 +171,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
           </button>
           
           <button
-            onClick={() => onComment(post.id)}
+            onClick={() => {
+              const commentText = prompt('Digite seu comentário:');
+              if (commentText) {
+                onComment(post.id, commentText);
+              }
+            }}
             className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors duration-200"
           >
             <MessageCircle className="h-5 w-5" />
@@ -194,7 +199,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
       </div>
 
       {/* Comments Section */}
-      {showComments && (
+      {false && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="space-y-3">
             <div className="flex items-start space-x-3">

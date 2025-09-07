@@ -9,6 +9,8 @@ import {
   Plus
 } from 'lucide-react';
 
+type PostType = 'text' | 'tevi' | 'poll';
+
 interface PostComposerProps {
   onSubmit: (post: any) => void;
   onClose?: () => void;
@@ -16,7 +18,7 @@ interface PostComposerProps {
 
 const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
   const [content, setContent] = useState('');
-  const [postType, setPostType] = useState<'text' | 'tevi' | 'poll'>('text');
+  const [postType, setPostType] = useState<PostType>('text');
   const [showTeViTemplate, setShowTeViTemplate] = useState(false);
   const [teViData, setTeViData] = useState({
     location: '',
@@ -301,7 +303,7 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
         <button
           onClick={() => setPostType('poll')}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-            postType === 'poll' 
+            (postType as string) === 'poll' 
               ? 'bg-primary-100 text-primary-700' 
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}

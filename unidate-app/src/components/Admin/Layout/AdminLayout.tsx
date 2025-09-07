@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAdminAuth } from '../../../contexts/AdminAuthContext';
-import UniDateLogo from '../../UI/UniDateLogo';
 import { 
   LayoutDashboard,
   Users,
@@ -12,7 +11,8 @@ import {
   Bell,
   Menu,
   X,
-  AlertTriangle
+  AlertTriangle,
+  MessageSquare
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -21,7 +21,7 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pendingReports] = useState(12); // Simulado
+  const [pendingReports] = useState(0); // Dados reais
   const { adminSession, logoutAdmin } = useAdminAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       name: 'Dashboard',
       href: '/admin/dashboard',
       icon: LayoutDashboard,
-      description: 'Visão geral e métricas'
+      description: 'Centro de comando'
     },
     {
       name: 'Usuários',
@@ -49,11 +49,23 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       description: 'Gerenciar membros'
     },
     {
+      name: 'Conteúdo',
+      href: '/admin/content',
+      icon: MessageSquare,
+      description: 'Feed e grupos'
+    },
+    {
       name: 'Moderação',
       href: '/admin/moderation',
       icon: Flag,
       description: 'Fila de denúncias',
       badge: pendingReports > 0 ? pendingReports : undefined
+    },
+    {
+      name: 'Funcionalidades',
+      href: '/admin/features',
+      icon: Settings,
+      description: 'Feature flags'
     },
     {
       name: 'Eventos',
@@ -79,7 +91,6 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       } lg:translate-x-0`}>
         <div className="flex items-center justify-between h-16 px-6 bg-gray-800">
           <div className="flex items-center space-x-3">
-            <UniDateLogo size="sm" showText={false} />
             <div>
               <h1 className="text-white font-bold text-lg">Backstage</h1>
               <p className="text-gray-400 text-xs">UniDate Admin</p>

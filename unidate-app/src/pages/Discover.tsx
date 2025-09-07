@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Heart, X, MessageCircle, Star, MapPin, GraduationCap, Calendar } from 'lucide-react';
+import { Heart, X, MessageCircle, MapPin, GraduationCap, Calendar } from 'lucide-react';
 
 interface User {
   id: string;
@@ -20,51 +20,22 @@ const Discover: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
 
-  // Mock data - em produção, isso viria de uma API
+  // Carregar usuários reais
   useEffect(() => {
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        name: 'Ana Silva',
-        age: 22,
-        course: 'Engenharia de Software',
-        university: 'USP',
-        year: 2021,
-        bio: 'Apaixonada por tecnologia e fotografia. Adoro viajar e conhecer novas culturas!',
-        interests: ['Fotografia', 'Viagem', 'Tecnologia', 'Música'],
-        photos: ['/api/placeholder/400/600'],
-        distance: 2.5
-      },
-      {
-        id: '2',
-        name: 'Carlos Santos',
-        age: 24,
-        course: 'Medicina',
-        university: 'UNICAMP',
-        year: 2020,
-        bio: 'Futuro médico, amante da natureza e esportes. Sempre disposto a ajudar!',
-        interests: ['Esportes', 'Natureza', 'Medicina', 'Leitura'],
-        photos: ['/api/placeholder/400/600'],
-        distance: 1.8
-      },
-      {
-        id: '3',
-        name: 'Mariana Costa',
-        age: 21,
-        course: 'Psicologia',
-        university: 'UFRJ',
-        year: 2022,
-        bio: 'Estudante de psicologia, apaixonada por arte e dança. Busco conexões genuínas!',
-        interests: ['Arte', 'Dança', 'Psicologia', 'Cinema'],
-        photos: ['/api/placeholder/400/600'],
-        distance: 3.2
+    const loadUsers = async () => {
+      try {
+        setLoading(true);
+        // TODO: Implementar carregamento de usuários reais do Firebase
+        // Por enquanto, deixar vazio para mostrar apenas usuários reais
+        setUsers([]);
+      } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+      } finally {
+        setLoading(false);
       }
-    ];
+    };
 
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setLoading(false);
-    }, 1000);
+    loadUsers();
   }, []);
 
   const handleSwipe = (direction: 'left' | 'right') => {
@@ -94,6 +65,28 @@ const Discover: React.FC = () => {
         <div className="text-center">
           <div className="spinner mb-4"></div>
           <p className="text-gray-600">Procurando pessoas incríveis...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (users.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-32 h-32 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Heart className="h-16 w-16 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Nenhum perfil disponível
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Ainda não há outros usuários cadastrados na sua universidade. 
+            Convide seus amigos para se juntarem ao UniDate!
+          </p>
+          <button className="btn-primary">
+            Convidar Amigos
+          </button>
         </div>
       </div>
     );
@@ -207,6 +200,8 @@ const Discover: React.FC = () => {
           <button
             onClick={handlePass}
             className="w-16 h-16 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 shadow-lg"
+            aria-label="Passar perfil"
+            title="Passar perfil"
           >
             <X className="h-8 w-8 text-gray-600" />
           </button>
@@ -214,27 +209,33 @@ const Discover: React.FC = () => {
           <button
             onClick={handleLike}
             className="w-16 h-16 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center hover:scale-110 transition-transform duration-200 shadow-lg"
+            aria-label="Curtir perfil"
+            title="Curtir perfil"
           >
             <Heart className="h-8 w-8 text-white" />
           </button>
           
-          <button className="w-16 h-16 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 shadow-lg">
+          <button 
+            className="w-16 h-16 bg-white border-2 border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors duration-200 shadow-lg"
+            aria-label="Enviar mensagem"
+            title="Enviar mensagem"
+          >
             <MessageCircle className="h-8 w-8 text-gray-600" />
           </button>
         </div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats - Dados reais */}
         <div className="mt-8 grid grid-cols-3 gap-4">
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">12</div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
             <div className="text-sm text-gray-600">Matches</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">8</div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
             <div className="text-sm text-gray-600">Likes</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-gray-900">24</div>
+            <div className="text-2xl font-bold text-gray-900">0</div>
             <div className="text-sm text-gray-600">Visualizações</div>
           </div>
         </div>

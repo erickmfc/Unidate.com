@@ -2,16 +2,12 @@ import React from 'react';
 import { 
   Heart, 
   Users, 
-  MessageCircle, 
   Shield, 
   Globe, 
-  Award,
-  Target,
   Lightbulb,
   CheckCircle,
   Star
 } from 'lucide-react';
-import UniDateLogo from '../components/UI/UniDateLogo';
 
 const About: React.FC = () => {
   const teamMembers = [
@@ -102,7 +98,6 @@ const About: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="flex justify-center mb-8">
-              <UniDateLogo size="xl" showText={true} className="animate-pulse" />
             </div>
             <h1 className="text-5xl font-bold text-gray-900 mb-6">
               Sobre o <span className="gradient-text">UniDate</span>

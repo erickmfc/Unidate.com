@@ -20,7 +20,6 @@ import {
   Smile,
   Search
 } from 'lucide-react';
-import UniDateLogo from '../UI/UniDateLogo';
 
 interface OnboardingData {
   displayName: string;
@@ -468,7 +467,6 @@ const ExpandedOnboardingFlow: React.FC = () => {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <UniDateLogo size="lg" showText={true} />
         </div>
 
         {/* Progress Bar */}

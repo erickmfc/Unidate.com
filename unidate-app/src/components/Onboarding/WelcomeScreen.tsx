@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import UniDateLogo from '../UI/UniDateLogo';
 import { ArrowRight, Heart, Users, BookOpen } from 'lucide-react';
 
 const WelcomeScreen: React.FC = () => {
@@ -29,7 +28,6 @@ const WelcomeScreen: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center">
           {/* Logo */}
           <div className="mb-12">
-            <UniDateLogo size="xl" showText={true} className="mx-auto" />
           </div>
 
           {/* Main Message */}

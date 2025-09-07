@@ -5,11 +5,8 @@ import {
   UserPlus, 
   Flag, 
   MessageSquare, 
-  TrendingUp,
   Activity,
   AlertTriangle,
-  Eye,
-  Heart,
   Calendar,
   BarChart3,
   ArrowUpRight,
@@ -52,65 +49,33 @@ const AdminDashboard: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Simular carregamento de dados
+  // Carregar dados reais do admin
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true);
       
-      // Simular delay de API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Dados simulados
-      setMetrics({
-        usersOnline: 1247,
-        newRegistrations24h: 23,
-        pendingReports: 12,
-        posts24h: 156,
-        totalUsers: 15420,
-        totalPosts: 89456,
-        engagementRate: 78.5,
-        growthRate: 12.3
-      });
+      try {
+        // TODO: Implementar carregamento de dados reais do Firebase
+        // Por enquanto, usar dados zerados para mostrar apenas informações reais
+        setMetrics({
+          usersOnline: 0,
+          newRegistrations24h: 0,
+          pendingReports: 0,
+          posts24h: 0,
+          totalUsers: 0,
+          totalPosts: 0,
+          engagementRate: 0,
+          growthRate: 0
+        });
 
-      setRecentActivity([
-        {
-          id: '1',
-          type: 'user_banned',
-          description: 'Usuário "joao123" foi banido por spam',
-          timestamp: new Date(Date.now() - 5 * 60 * 1000),
-          user: 'joao123',
-          severity: 'high'
-        },
-        {
-          id: '2',
-          type: 'content_removed',
-          description: 'Post removido por conteúdo inapropriado',
-          timestamp: new Date(Date.now() - 15 * 60 * 1000),
-          severity: 'medium'
-        },
-        {
-          id: '3',
-          type: 'group_created',
-          description: 'Novo grupo "Estudantes de Medicina" criado',
-          timestamp: new Date(Date.now() - 30 * 60 * 1000),
-          severity: 'low'
-        },
-        {
-          id: '4',
-          type: 'user_suspended',
-          description: 'Usuário "maria456" suspenso por 7 dias',
-          timestamp: new Date(Date.now() - 45 * 60 * 1000),
-          user: 'maria456',
-          severity: 'medium'
-        },
-        {
-          id: '5',
-          type: 'event_created',
-          description: 'Nova Batalha de Cursos: Engenharia vs Medicina',
-          timestamp: new Date(Date.now() - 60 * 60 * 1000),
-          severity: 'low'
-        }
-      ]);
+        // TODO: Implementar carregamento de atividades reais do Firebase
+        setRecentActivity([]);
+        
+      } catch (error) {
+        console.error('Erro ao carregar dados do admin:', error);
+      } finally {
+        setLoading(false);
+      }
 
       setLoading(false);
     };

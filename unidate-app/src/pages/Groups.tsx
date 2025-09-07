@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   Plus, 
@@ -9,21 +9,30 @@ import {
   Star,
   Filter,
   Grid,
-  List
+  List,
+  X,
+  Check,
+  AlertCircle
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { GroupsService, Group as FirebaseGroup } from '../services/groupsService';
 
+// Interface local para o componente (com members como number e lastActivity como string)
 interface Group {
   id: string;
   name: string;
   description: string;
-  members: number;
+  members: number; // Number para o componente
   maxMembers?: number;
   category: string;
   university: string;
   isJoined: boolean;
-  lastActivity: string;
+  lastActivity: string; // String para o componente
   image?: string;
   tags: string[];
+  createdBy: string;
+  isOwner: boolean;
+  isPublic: boolean;
   upcomingEvents?: {
     title: string;
     date: string;
@@ -35,79 +44,59 @@ const Groups: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [groups, setGroups] = useState<Group[]>([
-    {
-      id: '1',
-      name: 'Estudantes de Engenharia',
-      description: 'Grupo para estudantes de engenharia compartilharem experiências, dúvidas e oportunidades.',
-      members: 156,
-      maxMembers: 200,
-      category: 'Acadêmico',
-      university: 'USP',
-      isJoined: true,
-      lastActivity: '2 horas atrás',
-      tags: ['Engenharia', 'Estudos', 'Projetos'],
-      upcomingEvents: [
-        {
-          title: 'Workshop de Programação',
-          date: 'Sexta, 14:00',
-          attendees: 12
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Fotografia no Campus',
-      description: 'Apaixonados por fotografia se reúnem para capturar os melhores momentos da vida universitária.',
-      members: 89,
-      category: 'Hobby',
-      university: 'UNICAMP',
-      isJoined: false,
-      lastActivity: '1 dia atrás',
-      tags: ['Fotografia', 'Arte', 'Criatividade']
-    },
-    {
-      id: '3',
-      name: 'Grupo de Estudos - Medicina',
-      description: 'Estudantes de medicina organizando grupos de estudo para as principais disciplinas.',
-      members: 234,
-      maxMembers: 300,
-      category: 'Acadêmico',
-      university: 'UFRJ',
-      isJoined: true,
-      lastActivity: '30 min atrás',
-      tags: ['Medicina', 'Estudos', 'Anatomia'],
-      upcomingEvents: [
-        {
-          title: 'Revisão de Anatomia',
-          date: 'Amanhã, 16:00',
-          attendees: 25
-        }
-      ]
-    },
-    {
-      id: '4',
-      name: 'Esportes Universitários',
-      description: 'Grupo para praticar esportes e manter uma vida saudável durante a universidade.',
-      members: 67,
-      category: 'Esporte',
-      university: 'UFMG',
-      isJoined: false,
-      lastActivity: '3 horas atrás',
-      tags: ['Esportes', 'Saúde', 'Fitness']
-    },
-    {
-      id: '5',
-      name: 'Cinema e Discussão',
-      description: 'Assistimos filmes juntos e discutimos sobre cinema, arte e cultura.',
-      members: 45,
-      category: 'Cultura',
-      university: 'UNESP',
-      isJoined: false,
-      lastActivity: '5 horas atrás',
-      tags: ['Cinema', 'Cultura', 'Arte']
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [newGroup, setNewGroup] = useState({
+    name: '',
+    description: '',
+    category: '',
+    tags: [] as string[],
+    tagInput: ''
+  });
+  const { currentUser, userProfile } = useAuth();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar grupos reais do Firebase
+  useEffect(() => {
+    const loadGroups = async () => {
+      try {
+        setLoading(true);
+        
+        const firebaseGroups = await GroupsService.getGroups(50);
+        
+        // Converter grupos do Firebase para o formato esperado pelo componente
+        const convertedGroups: Group[] = firebaseGroups.map((group: FirebaseGroup) => ({
+          id: group.id,
+          name: group.name,
+          description: group.description,
+          members: group.members.length, // Converter array para número
+          maxMembers: group.maxMembers,
+          category: group.category,
+          university: group.university,
+          isJoined: group.members.includes(currentUser?.uid || ''),
+          lastActivity: group.lastActivity?.toDate?.() ? group.lastActivity.toDate().toISOString() : new Date().toISOString(),
+          image: group.image,
+          tags: group.tags,
+          createdBy: group.createdBy,
+          isOwner: group.createdBy === currentUser?.uid,
+          isPublic: group.isPublic,
+          upcomingEvents: group.upcomingEvents
+        }));
+        
+        setGroups(convertedGroups);
+        console.log(`✅ ${convertedGroups.length} grupos carregados do Firebase`);
+      } catch (error) {
+        console.error('❌ Erro ao carregar grupos:', error);
+        setGroups([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      loadGroups();
     }
-  ]);
+  }, [currentUser]);
 
   const categories = [
     { id: 'all', name: 'Todos' },
@@ -126,12 +115,132 @@ const Groups: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const handleJoinGroup = (groupId: string) => {
-    setGroups(groups.map(group => 
-      group.id === groupId 
-        ? { ...group, isJoined: !group.isJoined, members: group.isJoined ? group.members - 1 : group.members + 1 }
-        : group
-    ));
+  const handleJoinGroup = async (groupId: string) => {
+    if (!currentUser) {
+      alert('Usuário não autenticado');
+      return;
+    }
+
+    try {
+      const group = groups.find(g => g.id === groupId);
+      if (!group) return;
+
+      const isJoining = !group.isJoined;
+      
+      // Atualizar no Firebase
+      await GroupsService.toggleGroupMembership(groupId, currentUser.uid, isJoining);
+      
+      // Atualizar estado local
+      setGroups(groups.map(g => 
+        g.id === groupId 
+          ? { 
+              ...g, 
+              isJoined: !g.isJoined, 
+              members: g.isJoined ? g.members - 1 : g.members + 1 
+            }
+          : g
+      ));
+      
+      console.log(`✅ Usuário ${isJoining ? 'entrou' : 'saiu'} do grupo`);
+    } catch (error) {
+      console.error('❌ Erro ao atualizar membro do grupo:', error);
+      alert('Erro ao atualizar grupo. Tente novamente.');
+    }
+  };
+
+  const [hasCreatedGroup, setHasCreatedGroup] = useState(false);
+
+  // Verificar se usuário já criou um grupo
+  useEffect(() => {
+    const checkUserGroups = async () => {
+      if (currentUser) {
+        const hasCreated = await GroupsService.hasUserCreatedGroup(currentUser.uid);
+        setHasCreatedGroup(hasCreated);
+      }
+    };
+    checkUserGroups();
+  }, [currentUser]);
+
+  const handleCreateGroup = () => {
+    if (hasCreatedGroup) {
+      alert('Você já criou um grupo. Cada usuário pode criar apenas um grupo.');
+      return;
+    }
+    setShowCreateModal(true);
+  };
+
+  const handleSubmitGroup = async () => {
+    if (!currentUser || !userProfile) {
+      alert('Usuário não autenticado');
+      return;
+    }
+
+    if (!newGroup.name.trim() || !newGroup.description.trim() || !newGroup.category) {
+      alert('Preencha todos os campos obrigatórios');
+      return;
+    }
+
+    try {
+      const groupToSave = {
+        name: newGroup.name.trim(),
+        description: newGroup.description.trim(),
+        category: newGroup.category,
+        university: userProfile.university || 'Universidade não informada',
+        tags: newGroup.tags,
+        createdBy: currentUser.uid,
+        isPublic: true,
+        maxMembers: 100
+      };
+
+      const groupId = await GroupsService.createGroup(groupToSave);
+      
+      // Atualizar estado local
+      const newGroupLocal: Group = {
+        id: groupId,
+        name: groupToSave.name,
+        description: groupToSave.description,
+        members: 1, // Criador é automaticamente membro
+        maxMembers: groupToSave.maxMembers,
+        category: groupToSave.category,
+        university: groupToSave.university,
+        isJoined: true,
+        lastActivity: new Date().toISOString(),
+        tags: groupToSave.tags,
+        createdBy: groupToSave.createdBy,
+        isOwner: true,
+        isPublic: groupToSave.isPublic
+      };
+
+      setGroups([newGroupLocal, ...groups]);
+      setHasCreatedGroup(true);
+      setShowCreateModal(false);
+      setNewGroup({ name: '', description: '', category: '', tags: [], tagInput: '' });
+      
+      console.log('✅ Grupo criado no Firebase:', groupId);
+      alert('Grupo criado com sucesso!');
+    } catch (error) {
+      console.error('❌ Erro ao criar grupo:', error);
+      alert('Erro ao criar grupo. Tente novamente.');
+    }
+  };
+
+  // Função handleSubmitGroup já implementada acima
+
+  const addTag = () => {
+    if (newGroup.tagInput.trim() && !newGroup.tags.includes(newGroup.tagInput.trim())) {
+      setNewGroup({
+        ...newGroup,
+        tags: [...newGroup.tags, newGroup.tagInput.trim()],
+        tagInput: ''
+      });
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setNewGroup({
+      ...newGroup,
+      tags: newGroup.tags.filter(tag => tag !== tagToRemove)
+    });
   };
 
   return (
@@ -196,9 +305,16 @@ const Groups: React.FC = () => {
               </div>
 
               {/* Create Group Button */}
-              <button className="btn-primary flex items-center space-x-2">
+              <button 
+                onClick={handleCreateGroup}
+                className={`btn-primary flex items-center space-x-2 ${
+                  hasCreatedGroup ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+                disabled={hasCreatedGroup}
+                title={hasCreatedGroup ? 'Você já criou um grupo' : 'Criar novo grupo'}
+              >
                 <Plus className="h-4 w-4" />
-                <span>Criar Grupo</span>
+                <span>{hasCreatedGroup ? 'Grupo Criado' : 'Criar Grupo'}</span>
               </button>
             </div>
           </div>
@@ -335,9 +451,156 @@ const Groups: React.FC = () => {
             <p className="text-gray-600 mb-6">
               Tente ajustar seus filtros ou criar um novo grupo.
             </p>
-            <button className="btn-primary">
+            <button 
+              onClick={handleCreateGroup}
+              className="btn-primary"
+              disabled={hasCreatedGroup}
+            >
               Criar Primeiro Grupo
             </button>
+          </div>
+        )}
+
+        {/* Create Group Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Criar Novo Grupo</h2>
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Group Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Nome do Grupo *
+                    </label>
+                    <input
+                      type="text"
+                      value={newGroup.name}
+                      onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
+                      className="input-field"
+                      placeholder="Ex: Estudantes de Engenharia"
+                      maxLength={50}
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Descrição *
+                    </label>
+                    <textarea
+                      value={newGroup.description}
+                      onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
+                      className="input-field h-24 resize-none"
+                      placeholder="Descreva o propósito e objetivos do grupo..."
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      {newGroup.description.length}/200 caracteres
+                    </p>
+                  </div>
+
+                  {/* Category */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Categoria *
+                    </label>
+                    <select
+                      value={newGroup.category}
+                      onChange={(e) => setNewGroup({ ...newGroup, category: e.target.value })}
+                      className="input-field"
+                    >
+                      <option value="">Selecione uma categoria</option>
+                      {categories.filter(cat => cat.id !== 'all').map(category => (
+                        <option key={category.id} value={category.id}>
+                          {category.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tags
+                    </label>
+                    <div className="flex space-x-2 mb-2">
+                      <input
+                        type="text"
+                        value={newGroup.tagInput}
+                        onChange={(e) => setNewGroup({ ...newGroup, tagInput: e.target.value })}
+                        onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                        className="input-field flex-1"
+                        placeholder="Adicionar tag..."
+                      />
+                      <button
+                        onClick={addTag}
+                        className="btn-secondary px-3"
+                        type="button"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {newGroup.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center space-x-1 bg-primary-100 text-primary-700 px-2 py-1 rounded-full text-sm"
+                        >
+                          <span>#{tag}</span>
+                          <button
+                            onClick={() => removeTag(tag)}
+                            className="text-primary-500 hover:text-primary-700"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start space-x-2">
+                      <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
+                      <div className="text-sm text-blue-700">
+                        <p className="font-medium mb-1">Importante:</p>
+                        <ul className="space-y-1 text-xs">
+                          <li>• Cada usuário pode criar apenas um grupo</li>
+                          <li>• Todos os grupos são públicos por enquanto</li>
+                          <li>• Grupos privados estarão disponíveis em breve</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3 mt-6">
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="btn-ghost flex-1"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSubmitGroup}
+                    className="btn-primary flex-1 flex items-center justify-center space-x-2"
+                  >
+                    <Check className="h-4 w-4" />
+                    <span>Criar Grupo</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

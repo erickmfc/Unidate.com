@@ -8,7 +8,6 @@ import {
   Users,
   MessageSquare
 } from 'lucide-react';
-import UniDateLogo from '../UI/UniDateLogo';
 
 const RegisterForm: React.FC = () => {
   return (
@@ -17,7 +16,6 @@ const RegisterForm: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <UniDateLogo size="xl" showText={true} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Junte-se ao UniDate!

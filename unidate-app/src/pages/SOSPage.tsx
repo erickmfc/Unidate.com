@@ -29,7 +29,7 @@ interface HelpPost {
 }
 
 const SOSPage: React.FC = () => {
-  const { } = useAuth();
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'ask' | 'help' | 'my-posts'>('ask');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');

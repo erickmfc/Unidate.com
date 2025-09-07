@@ -50,42 +50,12 @@ const Dashboard: React.FC = () => {
     }
   ];
 
-  const recentActivity = [
-    {
-      type: 'match',
-      message: 'Você tem um novo match com Maria Santos!',
-      time: '2 horas atrás',
-      icon: Heart,
-      color: 'text-pink-500'
-    },
-    {
-      type: 'post',
-      message: 'Ana Silva curtiu seu post no UniVerso',
-      time: '4 horas atrás',
-      icon: Newspaper,
-      color: 'text-blue-500'
-    },
-    {
-      type: 'group',
-      message: 'Você foi adicionado ao grupo "Estudantes de Engenharia"',
-      time: '1 dia atrás',
-      icon: Users,
-      color: 'text-green-500'
-    },
-    {
-      type: 'message',
-      message: 'Carlos enviou uma mensagem',
-      time: '2 dias atrás',
-      icon: MessageCircle,
-      color: 'text-purple-500'
-    }
-  ];
-
+  const recentActivity: any[] = [];
   const stats = [
-    { label: 'Matches', value: '12', change: '+3', positive: true },
-    { label: 'Posts', value: '8', change: '+1', positive: true },
-    { label: 'Grupos', value: '5', change: '0', positive: false },
-    { label: 'Mensagens', value: '24', change: '+7', positive: true }
+    { label: 'Matches', value: '0', change: '0', positive: false },
+    { label: 'Posts', value: '0', change: '0', positive: false },
+    { label: 'Grupos', value: '0', change: '0', positive: false },
+    { label: 'Mensagens', value: '0', change: '0', positive: false }
   ];
 
   return (

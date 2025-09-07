@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Search, 
   MoreVertical, 
@@ -32,108 +32,69 @@ interface Chat {
   messages: Message[];
 }
 
-const Chat: React.FC = () => {
+const ChatPage: React.FC = () => {
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const [chats, setChats] = useState<Chat[]>([
-    {
-      id: '1',
-      name: 'Ana Silva',
-      lastMessage: 'Oi! Como foi a prova de ontem?',
-      timestamp: '2 min',
-      unreadCount: 2,
-      isOnline: true,
-      avatar: '/api/placeholder/40/40',
-      messages: [
-        {
-          id: '1',
-          text: 'Oi! Como foi a prova de ontem?',
-          timestamp: '14:30',
-          isOwn: false,
-          isRead: true,
-          type: 'text'
-        },
-        {
-          id: '2',
-          text: 'Foi bem! Consegui resolver a maioria das questões. E você?',
-          timestamp: '14:32',
-          isOwn: true,
-          isRead: true,
-          type: 'text'
-        },
-        {
-          id: '3',
-          text: 'Também foi ok, mas a última questão me pegou 😅',
-          timestamp: '14:35',
-          isOwn: false,
-          isRead: true,
-          type: 'text'
-        },
-        {
-          id: '4',
-          text: 'Quer estudar juntos para a próxima?',
-          timestamp: '14:36',
-          isOwn: false,
-          isRead: false,
-          type: 'text'
-        }
-      ]
-    },
-    {
-      id: '2',
-      name: 'Carlos Santos',
-      lastMessage: 'Obrigado pela ajuda com o projeto!',
-      timestamp: '1 hora',
-      unreadCount: 0,
-      isOnline: false,
-      avatar: '/api/placeholder/40/40',
-      messages: [
-        {
-          id: '1',
-          text: 'Obrigado pela ajuda com o projeto!',
-          timestamp: '13:45',
-          isOwn: false,
-          isRead: true,
-          type: 'text'
-        },
-        {
-          id: '2',
-          text: 'De nada! Foi um prazer ajudar. Se precisar de mais alguma coisa, é só chamar!',
-          timestamp: '13:47',
-          isOwn: true,
-          isRead: true,
-          type: 'text'
-        }
-      ]
-    },
-    {
-      id: '3',
-      name: 'Grupo de Estudos - Engenharia',
-      lastMessage: 'Mariana: Próxima reunião será na sexta às 16h',
-      timestamp: '3 horas',
-      unreadCount: 5,
-      isOnline: false,
-      avatar: '/api/placeholder/40/40',
-      messages: [
-        {
-          id: '1',
-          text: 'Próxima reunião será na sexta às 16h',
-          timestamp: '11:30',
-          isOwn: false,
-          isRead: false,
-          type: 'text'
-        }
-      ]
-    }
-  ]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Carregar chats reais
+  useEffect(() => {
+    const loadChats = async () => {
+      try {
+        setLoading(true);
+        // TODO: Implementar carregamento de chats reais do Firebase
+        // Por enquanto, deixar vazio para mostrar apenas chats reais
+        setChats([]);
+      } catch (error) {
+        console.error('Erro ao carregar chats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadChats();
+  }, []);
 
   const filteredChats = chats.filter(chat =>
     chat.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const currentChat = chats.find(chat => chat.id === selectedChat);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto"></div>
+          <p className="text-gray-500 mt-2">Carregando conversas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (chats.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-32 h-32 bg-gradient-to-br from-primary-500 to-accent-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <MessageCircle className="h-16 w-16 text-white" />
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            Nenhuma conversa ainda
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Você ainda não tem conversas. Faça matches na seção Descoberta para começar a conversar!
+          </p>
+          <button className="btn-primary">
+            Descobrir Pessoas
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,19 +123,6 @@ const Chat: React.FC = () => {
     setNewMessage('');
   };
 
-  const formatTime = (timestamp: string) => {
-    const now = new Date();
-    const messageTime = new Date(timestamp);
-    const diffInHours = (now.getTime() - messageTime.getTime()) / (1000 * 60 * 60);
-    
-    if (diffInHours < 24) {
-      return timestamp;
-    } else if (diffInHours < 48) {
-      return 'Ontem';
-    } else {
-      return messageTime.toLocaleDateString('pt-BR');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -366,4 +314,4 @@ const Chat: React.FC = () => {
   );
 };
 
-export default Chat;
+export default ChatPage;

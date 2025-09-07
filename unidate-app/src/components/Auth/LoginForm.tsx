@@ -11,7 +11,6 @@ import {
   Hash,
   LogIn
 } from 'lucide-react';
-import UniDateLogo from '../UI/UniDateLogo';
 import GoogleSignInButton from './GoogleSignInButton';
 
 const LoginForm: React.FC = () => {
@@ -66,7 +65,6 @@ const LoginForm: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <UniDateLogo size="xl" showText={true} />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Bem-vindo de volta!
@@ -128,10 +126,11 @@ const LoginForm: React.FC = () => {
                   placeholder={loginMethod === 'registration' ? 'Ex: 2023123456' : 'seu.email@email.com'}
                   value={loginMethod === 'registration' ? formData.registrationNumber : formData.email}
                   onChange={handleChange}
+                  aria-describedby={loginMethod === 'registration' ? 'registration-help' : undefined}
                 />
               </div>
               {loginMethod === 'registration' && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p id="registration-help" className="text-xs text-gray-500 mt-1">
                   Use apenas o número da sua matrícula
                 </p>
               )}

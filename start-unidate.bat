@@ -1,4 +1,4 @@
-@echo off
+o menum@echo off
 echo ========================================
 echo    UNIDATE - INICIANDO SERVIDOR
 echo ========================================
@@ -27,6 +27,8 @@ echo    URL: http://localhost:3000
 echo ========================================
 echo.
 echo Pressione Ctrl+C para parar o servidor
-echo.
-
+echo
 npm start
+
+
+
