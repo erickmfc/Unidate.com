@@ -43,13 +43,17 @@ class BasicFirestoreService {
     tipo?: 'texto' | 'imagem' | 'poll' | 'tev';
   }): Promise<string> {
     try {
+      console.log('🔄 [FIRESTORE] Iniciando adição de post...');
+      console.log('🔄 [FIRESTORE] Dados recebidos:', postData);
+
       if (!db) {
+        console.error('❌ [FIRESTORE] Firestore não está disponível');
         throw new Error('Firestore não está disponível');
       }
 
-      console.log('🔄 Adicionando novo post ao Firestore...', postData);
-
+      console.log('🔄 [FIRESTORE] Firestore disponível, criando coleção...');
       const postsCollection = collection(db, 'posts');
+      console.log('🔄 [FIRESTORE] Coleção criada:', postsCollection);
       
       const novoPostData = {
         titulo: postData.titulo,
@@ -66,12 +70,19 @@ class BasicFirestoreService {
         tipo: postData.tipo || 'texto'
       };
 
+      console.log('🔄 [FIRESTORE] Dados do post preparados:', novoPostData);
+      console.log('🔄 [FIRESTORE] Enviando para Firestore...');
+
       const docRef = await addDoc(postsCollection, novoPostData);
       
-      console.log('✅ Post adicionado com sucesso! ID:', docRef.id);
+      console.log('✅ [FIRESTORE] Post adicionado com sucesso!');
+      console.log('✅ [FIRESTORE] ID do documento:', docRef.id);
+      console.log('✅ [FIRESTORE] Caminho do documento:', docRef.path);
+      
       return docRef.id;
-    } catch (error) {
-      console.error('❌ Erro ao adicionar post:', error);
+    } catch (error: any) {
+      console.error('❌ [FIRESTORE] Erro ao adicionar post:', error);
+      console.error('❌ [FIRESTORE] Detalhes do erro:', error.message);
       throw error;
     }
   }
@@ -82,12 +93,14 @@ class BasicFirestoreService {
     onError?: (error: Error) => void
   ): () => void {
     try {
+      console.log('🔄 [FIRESTORE] Configurando listener de posts em tempo real...');
+
       if (!db) {
+        console.error('❌ [FIRESTORE] Firestore não está disponível');
         throw new Error('Firestore não está disponível');
       }
 
-      console.log('🔄 Configurando listener de posts em tempo real...');
-
+      console.log('🔄 [FIRESTORE] Firestore disponível, criando query...');
       const postsCollection = collection(db, 'posts');
       const q = query(
         postsCollection,
@@ -95,13 +108,17 @@ class BasicFirestoreService {
         limit(50)
       );
 
+      console.log('🔄 [FIRESTORE] Query criada, configurando listener...');
       const unsubscribe = onSnapshot(q, 
         (snapshot) => {
+          console.log('📱 [FIRESTORE] Snapshot recebido:', snapshot.size, 'documentos');
           const posts: BasicPost[] = [];
           
           snapshot.forEach((doc) => {
             const postData = doc.data();
-            posts.push({
+            console.log('🔄 [FIRESTORE] Processando documento:', doc.id, postData);
+            
+            const post: BasicPost = {
               id: doc.id,
               titulo: postData.titulo || '',
               conteudo: postData.conteudo || '',
@@ -115,23 +132,29 @@ class BasicFirestoreService {
               numeroComentarios: postData.numeroComentarios || 0,
               hashtags: postData.hashtags || [],
               tipo: postData.tipo || 'texto'
-            });
+            };
+            
+            posts.push(post);
+            console.log('✅ [FIRESTORE] Post processado:', post);
           });
 
-          console.log(`📱 Timeline atualizada! ${posts.length} posts carregados`);
+          console.log(`📱 [FIRESTORE] Timeline atualizada! ${posts.length} posts carregados`);
+          console.log('📱 [FIRESTORE] Posts finais:', posts);
           onPostsUpdate(posts);
         },
-        (error) => {
-          console.error('❌ Erro ao carregar posts:', error);
+        (error: any) => {
+          console.error('❌ [FIRESTORE] Erro no listener de posts:', error);
+          console.error('❌ [FIRESTORE] Detalhes do erro:', error.message);
           if (onError) {
             onError(error);
           }
         }
       );
 
+      console.log('✅ [FIRESTORE] Listener configurado com sucesso');
       return unsubscribe;
-    } catch (error) {
-      console.error('❌ Erro ao configurar listener de posts:', error);
+    } catch (error: any) {
+      console.error('❌ [FIRESTORE] Erro ao configurar listener de posts:', error);
       throw error;
     }
   }

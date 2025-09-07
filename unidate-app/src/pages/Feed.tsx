@@ -79,48 +79,71 @@ const Feed: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Carregar posts reais do Firebase com serviço aprimorado
+  // Carregar posts reais do Firebase com verificação completa
   useEffect(() => {
     const loadPosts = async () => {
       try {
         setLoading(true);
-        console.log('🔄 Carregando posts com serviço aprimorado...');
+        console.log('🔄 [FEED] Iniciando carregamento de posts...');
+        console.log('🔄 [FEED] Usuário atual:', currentUser?.uid);
+        
+        // Verificar se o serviço está disponível
+        if (!basicFirestoreService) {
+          throw new Error('Serviço Firestore não está disponível');
+        }
         
         // Usar o serviço simplificado com listener em tempo real
         const unsubscribe = basicFirestoreService.carregarPosts(
           (firestorePosts) => {
-            console.log('📱 Posts carregados em tempo real:', firestorePosts.length);
+            console.log('📱 [FEED] Posts recebidos do Firestore:', firestorePosts.length);
+            console.log('📱 [FEED] Dados dos posts:', firestorePosts);
+            
+            if (firestorePosts.length === 0) {
+              console.log('⚠️ [FEED] Nenhum post encontrado no Firestore');
+              setPosts([]);
+              setLoading(false);
+              return;
+            }
             
             // Converter posts para formato local
-            const convertedPosts: Post[] = firestorePosts.map(post => ({
-              id: post.id,
-              author: {
-                uid: post.autorId,
-                name: post.autorNome || 'Usuário',
-                course: post.autorCurso || 'Curso não informado',
-                university: post.autorUniversidade || 'Universidade não informada',
-                avatar: post.autorAvatar || '/api/placeholder/40/40'
-              },
-              content: post.conteudo,
-              type: post.tipo === 'texto' ? 'text' : post.tipo === 'imagem' ? 'image' : post.tipo === 'poll' ? 'poll' : 'tevi',
-              image: undefined,
-              timestamp: post.dataCriacao?.toDate?.() ? post.dataCriacao.toDate().toISOString() : new Date().toISOString(),
-              likes: post.curtidasPor.length,
-              comments: post.numeroComentarios,
-              isLiked: currentUser ? post.curtidasPor.includes(currentUser.uid) : false,
-              location: undefined,
-              teviData: undefined,
-              pollData: undefined,
-              event: undefined,
-              hashtags: post.hashtags || []
-            }));
+            const convertedPosts: Post[] = firestorePosts.map((post, index) => {
+              console.log(`🔄 [FEED] Convertendo post ${index + 1}:`, post);
+              
+              const convertedPost = {
+                id: post.id,
+                author: {
+                  uid: post.autorId,
+                  name: post.autorNome || 'Usuário',
+                  course: post.autorCurso || 'Curso não informado',
+                  university: post.autorUniversidade || 'Universidade não informada',
+                  avatar: post.autorAvatar || '/api/placeholder/40/40'
+                },
+                content: post.conteudo,
+                type: (post.tipo === 'texto' ? 'text' : post.tipo === 'imagem' ? 'image' : post.tipo === 'poll' ? 'poll' : 'tevi') as 'text' | 'image' | 'poll' | 'tevi',
+                image: undefined,
+                timestamp: post.dataCriacao?.toDate?.() ? post.dataCriacao.toDate().toISOString() : new Date().toISOString(),
+                likes: post.curtidasPor?.length || 0,
+                comments: post.numeroComentarios || 0,
+                isLiked: currentUser ? (post.curtidasPor?.includes(currentUser.uid) || false) : false,
+                location: undefined,
+                teviData: undefined,
+                pollData: undefined,
+                event: undefined,
+                hashtags: post.hashtags || []
+              };
+              
+              console.log(`✅ [FEED] Post ${index + 1} convertido:`, convertedPost);
+              return convertedPost;
+            });
             
+            console.log('📱 [FEED] Todos os posts convertidos:', convertedPosts);
             setPosts(convertedPosts);
             setLoading(false);
-            console.log(`✅ ${convertedPosts.length} posts carregados do Firebase em tempo real`);
+            console.log(`✅ [FEED] ${convertedPosts.length} posts carregados e exibidos com sucesso!`);
           },
           (error) => {
-            console.error('❌ Erro ao carregar posts:', error);
+            console.error('❌ [FEED] Erro ao carregar posts:', error);
+            console.error('❌ [FEED] Detalhes do erro:', error.message);
             setPosts([]);
             setLoading(false);
           }
@@ -128,8 +151,9 @@ const Feed: React.FC = () => {
 
         // Armazenar função de unsubscribe para limpeza
         setUnsubscribePosts(unsubscribe);
+        console.log('✅ [FEED] Listener de posts configurado com sucesso');
       } catch (error) {
-        console.error('❌ Erro ao configurar carregamento de posts:', error);
+        console.error('❌ [FEED] Erro ao configurar carregamento de posts:', error);
         setPosts([]);
         setLoading(false);
       }
@@ -140,6 +164,7 @@ const Feed: React.FC = () => {
     // Cleanup function para parar o listener quando o componente for desmontado
     return () => {
       if (unsubscribePosts) {
+        console.log('🔄 [FEED] Parando listener de posts...');
         unsubscribePosts();
       }
     };
@@ -231,17 +256,49 @@ const Feed: React.FC = () => {
 
 
   const handleNewPost = async (postData: any) => {
+    console.log('🔄 [POST] Iniciando criação de novo post...');
+    console.log('🔄 [POST] Dados recebidos:', postData);
+    console.log('🔄 [POST] Usuário atual:', currentUser?.uid);
+    console.log('🔄 [POST] Perfil do usuário:', userProfile);
+
     if (!currentUser || !userProfile) {
-      console.error('Usuário não autenticado');
+      console.error('❌ [POST] Usuário não autenticado ou perfil não encontrado');
+      alert('Erro: Usuário não autenticado. Faça login novamente.');
       return;
     }
 
     try {
       // Extrair hashtags do conteúdo
       const hashtags = postData.content.match(/#\w+/g) || [];
+      console.log('🔄 [POST] Hashtags extraídas:', hashtags);
 
-      // Criar post no Firebase (filtrando campos undefined)
-      const postToSave: any = {
+      // Preparar dados para o Firestore
+      const firestoreData = {
+        titulo: postData.content.substring(0, 100) + (postData.content.length > 100 ? '...' : ''),
+        conteudo: postData.content,
+        autorId: currentUser.uid,
+        autorNome: userProfile.displayName || currentUser.displayName || 'Usuário',
+        autorAvatar: userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40',
+        autorCurso: userProfile.course || 'Curso não informado',
+        autorUniversidade: userProfile.university || 'Universidade não informada',
+        tipo: (postData.type === 'text' ? 'texto' : postData.type === 'image' ? 'imagem' : postData.type === 'poll' ? 'poll' : 'tev') as 'texto' | 'imagem' | 'poll' | 'tev'
+      };
+
+      console.log('🔄 [POST] Dados preparados para Firestore:', firestoreData);
+
+      // Verificar se o serviço está disponível
+      if (!basicFirestoreService) {
+        throw new Error('Serviço Firestore não está disponível');
+      }
+
+      // Criar post no Firestore
+      console.log('🔄 [POST] Enviando post para o Firestore...');
+      const postId = await basicFirestoreService.adicionarPost(firestoreData);
+      console.log('✅ [POST] Post criado no Firestore com ID:', postId);
+
+      // Criar post local para atualização imediata da UI (opcional, pois o listener vai atualizar)
+      const newPost: Post = {
+        id: postId,
         author: {
           uid: currentUser.uid,
           name: userProfile.displayName || currentUser.displayName || 'Usuário',
@@ -251,63 +308,37 @@ const Feed: React.FC = () => {
         },
         content: postData.content,
         type: postData.type,
+        image: postData.image,
+        timestamp: new Date().toISOString(),
         likes: 0,
         comments: 0,
         isLiked: false,
+        location: postData.location,
+        teviData: postData.teviData,
+        pollData: postData.pollData,
+        event: postData.event,
         hashtags: hashtags
       };
 
-      // Adicionar campos opcionais apenas se existirem
-      if (postData.teviData && Object.keys(postData.teviData).length > 0) {
-        postToSave.teviData = postData.teviData;
-      }
-      if (postData.pollData && Object.keys(postData.pollData).length > 0) {
-        postToSave.pollData = postData.pollData;
-      }
-      if (postData.image) {
-        postToSave.image = postData.image;
-      }
-      if (postData.location) {
-        postToSave.location = postData.location;
-      }
+      console.log('🔄 [POST] Post local criado:', newPost);
 
-      const postId = await basicFirestoreService.adicionarPost({
-        titulo: postData.content.substring(0, 100) + (postData.content.length > 100 ? '...' : ''),
-        conteudo: postData.content,
-        autorId: currentUser.uid,
-        autorNome: userProfile.displayName || currentUser.displayName || 'Usuário',
-        autorAvatar: userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40',
-        autorCurso: userProfile.course || 'Curso não informado',
-        autorUniversidade: userProfile.university || 'Universidade não informada',
-        tipo: postData.type === 'text' ? 'texto' : postData.type === 'image' ? 'imagem' : postData.type === 'poll' ? 'poll' : 'tev'
+      // Adicionar post ao início da lista local (temporário até o listener atualizar)
+      setPosts(prevPosts => {
+        console.log('🔄 [POST] Posts anteriores:', prevPosts.length);
+        const updatedPosts = [newPost, ...prevPosts];
+        console.log('🔄 [POST] Posts atualizados:', updatedPosts.length);
+        return updatedPosts;
       });
       
-      // Criar post local para atualização imediata da UI
-      const newPost: Post = {
-        id: postId,
-        author: postToSave.author,
-        content: postToSave.content,
-        type: postToSave.type,
-        timestamp: new Date().toISOString(),
-        likes: postToSave.likes,
-        comments: postToSave.comments,
-        isLiked: postToSave.isLiked,
-        teviData: postToSave.teviData,
-        pollData: postToSave.pollData,
-        hashtags: postToSave.hashtags
-    };
-
-    setPosts([newPost, ...posts]);
-      console.log('✅ Post salvo no Firebase:', postId);
+      console.log('✅ [POST] Post criado e adicionado com sucesso!');
+      alert('✅ Post criado com sucesso!');
     } catch (error: any) {
-      console.error('❌ Erro ao salvar post:', error);
-      
-      // Mostrar erro específico para o usuário
-      const errorMessage = error.message || 'Erro desconhecido ao salvar post';
-      alert(`❌ ${errorMessage}`);
+      console.error('❌ [POST] Erro ao criar post:', error);
+      console.error('❌ [POST] Detalhes do erro:', error.message);
+      alert('❌ Erro ao criar post. Verifique o console para mais detalhes.');
       
       // Log detalhado para debug
-      console.error('Detalhes do erro:', {
+      console.error('❌ [POST] Detalhes completos do erro:', {
         error,
         postData,
         currentUser: currentUser?.uid,
@@ -537,6 +568,28 @@ const Feed: React.FC = () => {
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">UniVerso</h1>
               <p className="text-gray-600">A voz do campus • Não é sobre seguir, é sobre pertencer</p>
+            </div>
+
+            {/* Botão de teste temporário */}
+            <div className="mb-4 p-4 bg-blue-100 border border-blue-300 rounded-lg">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">🧪 Teste do Sistema de Posts</h3>
+              <p className="text-blue-700 mb-3">Clique no botão abaixo para testar a criação de um post:</p>
+              <button
+                onClick={() => {
+                  const testPost = {
+                    content: `Teste do sistema de posts - ${new Date().toLocaleString()} #teste #unidate`,
+                    type: 'text'
+                  };
+                  handleNewPost(testPost);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Criar Post de Teste
+              </button>
+              <div className="mt-2 text-sm text-blue-600">
+                <p>Posts carregados: {posts.length}</p>
+                <p>Status: {loading ? 'Carregando...' : 'Pronto'}</p>
+              </div>
             </div>
 
             {/* Create Post */}
