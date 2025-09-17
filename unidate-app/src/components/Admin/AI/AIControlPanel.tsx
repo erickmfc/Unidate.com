@@ -101,79 +101,23 @@ const AIControlPanel: React.FC = () => {
   }, []);
 
   const loadPersonas = async () => {
-    // Mock data - em produção viria do Firebase
-    const mockPersonas: AIPersona[] = [
-      {
-        id: '1',
-        name: 'Carla Silva',
-        nickname: 'Carla',
-        course: 'Jornalismo',
-        period: 6,
-        avatar: '/api/placeholder/40/40',
-        bio: 'Observadora crítica do cotidiano universitário',
-        status: 'active',
-        postsCount: 24,
-        interactionsCount: 156,
-        lastActivity: '2 horas atrás',
-        postingFrequency: { postsPerDay: 2, intervalHours: 12 },
-        contentDirective: 'Você é a Carla, aluna de Jornalismo. Seus posts são observações inteligentes e críticas sobre o cotidiano da faculdade. Use um tom sarcástico, mas amigável.',
-        interactionDirective: 'Seu objetivo é ser um conector. Responda a perguntas, mas sempre termine sugerindo um grupo real ou funcionalidade do site.',
-        enablePrivateChat: true,
-        enableComments: true,
-        engagementLevel: 'engaged',
-        temporaryTopics: [
-          { topic: 'Falar positivamente sobre a semana de calouros', validUntil: '2025-09-15' }
-        ],
-        widgets: {
-          bookshelf: ['1984', 'O Jornalista e o Assassino'],
-          astralMap: { sun: 'Jornalismo', hell: 'Matemática' },
-          survivalKit: ['Café', 'Notebook', 'Câmera']
-        }
-      },
-      {
-        id: '2',
-        name: 'Pedro Santos',
-        nickname: 'Pedro',
-        course: 'Engenharia',
-        period: 4,
-        avatar: '/api/placeholder/40/40',
-        bio: 'Engenheiro em formação, apaixonado por tecnologia',
-        status: 'active',
-        postsCount: 18,
-        interactionsCount: 89,
-        lastActivity: '1 hora atrás',
-        postingFrequency: { postsPerDay: 1, intervalHours: 24 },
-        contentDirective: 'Você é o Pedro, estudante de Engenharia. Foque em tecnologia, inovação e dicas de estudo. Seja prático e objetivo.',
-        interactionDirective: 'Seja prestativo com dúvidas técnicas. Sempre ofereça ajuda com estudos e projetos.',
-        enablePrivateChat: true,
-        enableComments: true,
-        engagementLevel: 'neutral',
-        temporaryTopics: [],
-        widgets: {
-          bookshelf: ['Clean Code', 'The Pragmatic Programmer'],
-          astralMap: { sun: 'Programação', hell: 'Cálculo' },
-          survivalKit: ['Laptop', 'Café', 'Calculadora']
-        }
-      }
-    ];
-    setPersonas(mockPersonas);
+    try {
+      // TODO: Implementar carregamento real do Firebase
+      // Por enquanto, array vazio até implementarmos a funcionalidade
+      setPersonas([]);
+    } catch (error) {
+      console.error('Erro ao carregar personas:', error);
+    }
   };
 
   const loadCampaigns = async () => {
-    // Mock data
-    const mockCampaigns: AICampaign[] = [
-      {
-        id: '1',
-        name: 'Aquecimento para as Férias',
-        centralTopic: 'Planos para as férias, dicas de viagem barata, como relaxar depois das provas',
-        participatingPersonas: ['1', '2'],
-        startDate: '2025-01-15',
-        endDate: '2025-02-15',
-        status: 'active',
-        postsGenerated: 8
-      }
-    ];
-    setCampaigns(mockCampaigns);
+    try {
+      // TODO: Implementar carregamento real do Firebase
+      // Por enquanto, array vazio até implementarmos a funcionalidade
+      setCampaigns([]);
+    } catch (error) {
+      console.error('Erro ao carregar campanhas:', error);
+    }
   };
 
   const toggleSystemStatus = () => {

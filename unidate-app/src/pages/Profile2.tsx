@@ -155,7 +155,7 @@ const Profile2: React.FC = () => {
     {
       id: 'timeline',
       type: 'timeline',
-      title: 'Linha do Tempo',
+      title: 'Linha do Campus',
       position: { x: 2, y: 3 },
       size: { width: 2, height: 2 },
       data: { events: [] },

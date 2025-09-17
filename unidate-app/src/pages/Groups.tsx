@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Search, 
   Plus, 
@@ -12,10 +13,14 @@ import {
   List,
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  Shield,
+  ArrowRight
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GroupsService, Group as FirebaseGroup } from '../services/groupsService';
+import GroupEditorsModal from '../components/Groups/GroupEditorsModal';
+import { useUniDateToast } from '../components/UI/Toast';
 
 // Interface local para o componente (com members como number e lastActivity como string)
 interface Group {
@@ -32,6 +37,8 @@ interface Group {
   tags: string[];
   createdBy: string;
   isOwner: boolean;
+  isEditor: boolean;
+  editors?: string[]; // Array de UIDs dos editores
   isPublic: boolean;
   upcomingEvents?: {
     title: string;
@@ -41,10 +48,13 @@ interface Group {
 }
 
 const Groups: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditorsModal, setShowEditorsModal] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [newGroup, setNewGroup] = useState({
     name: '',
     description: '',
@@ -53,6 +63,7 @@ const Groups: React.FC = () => {
     tagInput: ''
   });
   const { currentUser, userProfile } = useAuth();
+  const { showSuccess, showError, showInfo, showGroupJoined } = useUniDateToast();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -79,6 +90,7 @@ const Groups: React.FC = () => {
           tags: group.tags,
           createdBy: group.createdBy,
           isOwner: group.createdBy === currentUser?.uid,
+          isEditor: group.editors?.includes(currentUser?.uid || '') || false,
           isPublic: group.isPublic,
           upcomingEvents: group.upcomingEvents
         }));
@@ -117,7 +129,7 @@ const Groups: React.FC = () => {
 
   const handleJoinGroup = async (groupId: string) => {
     if (!currentUser) {
-      alert('Usuário não autenticado');
+      showError('Você precisa estar logado para fazer parte de grupos');
       return;
     }
 
@@ -130,21 +142,73 @@ const Groups: React.FC = () => {
       // Atualizar no Firebase
       await GroupsService.toggleGroupMembership(groupId, currentUser.uid, isJoining);
       
-      // Atualizar estado local
-      setGroups(groups.map(g => 
-        g.id === groupId 
-          ? { 
-              ...g, 
-              isJoined: !g.isJoined, 
-              members: g.isJoined ? g.members - 1 : g.members + 1 
-            }
-          : g
-      ));
+      // Atualizar estado local imediatamente para melhor UX
+      setGroups(prevGroups => 
+        prevGroups.map(g => 
+          g.id === groupId 
+            ? { 
+                ...g, 
+                isJoined: isJoining,
+                members: isJoining ? g.members + 1 : Math.max(0, g.members - 1)
+              }
+            : g
+        )
+      );
       
       console.log(`✅ Usuário ${isJoining ? 'entrou' : 'saiu'} do grupo`);
-    } catch (error) {
+      
+      // Mostrar notificação moderna
+      if (isJoining) {
+        showGroupJoined(group.name);
+        // Navegar para o grupo após um pequeno delay para mostrar a notificação
+        setTimeout(() => {
+          navigate(`/groups/${groupId}`);
+        }, 1000);
+      } else {
+        showSuccess(`Você saiu do grupo "${group.name}"`);
+      }
+    } catch (error: any) {
       console.error('❌ Erro ao atualizar membro do grupo:', error);
-      alert('Erro ao atualizar grupo. Tente novamente.');
+      const group = groups.find(g => g.id === groupId);
+      console.error('❌ Detalhes do erro:', {
+        groupId,
+        userId: currentUser.uid,
+        isJoining: group ? !group.isJoined : false,
+        error: error.message,
+        stack: error.stack
+      });
+      
+      // Mostrar erro mais amigável
+      let errorMessage = 'Ops! Não conseguimos atualizar o grupo. Tente novamente.';
+      
+      if (error.message.includes('Firebase não inicializado')) {
+        errorMessage = 'Problema de conexão. Verifique sua internet.';
+      } else if (error.message.includes('Grupo não encontrado')) {
+        errorMessage = 'Este grupo não existe mais.';
+      } else if (error.message.includes('permission')) {
+        errorMessage = 'Você não tem permissão para esta ação.';
+      }
+      
+      showError(errorMessage);
+    }
+  };
+
+  const handleManageEditors = (group: Group) => {
+    setSelectedGroup(group);
+    setShowEditorsModal(true);
+  };
+
+  const handleEditorsUpdated = (editors: string[]) => {
+    if (selectedGroup) {
+      // Atualizar o grupo selecionado com os novos editores
+      setSelectedGroup(prev => prev ? { ...prev, editors } : null);
+      
+      // Atualizar a lista de grupos
+      setGroups(prev => prev.map(group => 
+        group.id === selectedGroup.id 
+          ? { ...group, editors }
+          : group
+      ));
     }
   };
 
@@ -171,12 +235,12 @@ const Groups: React.FC = () => {
 
   const handleSubmitGroup = async () => {
     if (!currentUser || !userProfile) {
-      alert('Usuário não autenticado');
+      showError('Você precisa estar logado para criar grupos');
       return;
     }
 
     if (!newGroup.name.trim() || !newGroup.description.trim() || !newGroup.category) {
-      alert('Preencha todos os campos obrigatórios');
+      showError('Por favor, preencha todos os campos obrigatórios');
       return;
     }
 
@@ -189,7 +253,11 @@ const Groups: React.FC = () => {
         tags: newGroup.tags,
         createdBy: currentUser.uid,
         isPublic: true,
-        maxMembers: 100
+        members: [currentUser.uid], // O criador é automaticamente membro
+        editors: [currentUser.uid], // O criador é automaticamente editor
+        maxMembers: 100,
+        lastActivity: new Date(),
+        upcomingEvents: []
       };
 
       const groupId = await GroupsService.createGroup(groupToSave);
@@ -203,12 +271,15 @@ const Groups: React.FC = () => {
         maxMembers: groupToSave.maxMembers,
         category: groupToSave.category,
         university: groupToSave.university,
-        isJoined: true,
+        isJoined: true, // Criador já está no grupo
         lastActivity: new Date().toISOString(),
         tags: groupToSave.tags,
         createdBy: groupToSave.createdBy,
         isOwner: true,
-        isPublic: groupToSave.isPublic
+        isEditor: true, // Criador é automaticamente editor
+        editors: [currentUser.uid],
+        isPublic: groupToSave.isPublic,
+        upcomingEvents: []
       };
 
       setGroups([newGroupLocal, ...groups]);
@@ -217,10 +288,18 @@ const Groups: React.FC = () => {
       setNewGroup({ name: '', description: '', category: '', tags: [], tagInput: '' });
       
       console.log('✅ Grupo criado no Firebase:', groupId);
-      alert('Grupo criado com sucesso!');
+      
+      // Mostrar notificação de sucesso
+      showSuccess(`Grupo "${groupToSave.name}" criado com sucesso! 🎉`);
+      
+      // Navegar automaticamente para o grupo criado após 1.5 segundos
+      setTimeout(() => {
+        navigate(`/groups/${groupId}`);
+      }, 1500);
+
     } catch (error) {
       console.error('❌ Erro ao criar grupo:', error);
-      alert('Erro ao criar grupo. Tente novamente.');
+      showError('Ops! Não conseguimos criar o grupo. Tente novamente.');
     }
   };
 
@@ -320,19 +399,64 @@ const Groups: React.FC = () => {
           </div>
         </div>
 
+        {/* Debug Info */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Debug:</strong> {groups.length} grupos carregados, {filteredGroups.length} filtrados
+            </p>
+            <p className="text-sm text-blue-800">
+              <strong>Usuário:</strong> {currentUser?.uid ? 'Logado' : 'Não logado'}
+            </p>
+            <p className="text-sm text-blue-800">
+              <strong>Loading:</strong> {loading ? 'Sim' : 'Não'}
+            </p>
+          </div>
+        )}
+
         {/* Groups Grid/List */}
-        <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}>
-          {filteredGroups.map((group) => (
-            <div key={group.id} className={`card group hover:shadow-lg transition-all duration-300 ${
-              viewMode === 'list' ? 'flex flex-row' : ''
-            }`}>
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="spinner mx-auto mb-4"></div>
+            <p className="text-gray-600">Carregando grupos...</p>
+          </div>
+        ) : filteredGroups.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhum grupo encontrado</h3>
+            <p className="text-gray-600 mb-4">
+              {groups.length === 0 
+                ? 'Não há grupos disponíveis no momento.' 
+                : 'Tente ajustar os filtros de busca.'}
+            </p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn-primary"
+            >
+              Criar Primeiro Grupo
+            </button>
+          </div>
+        ) : (
+          <div className={viewMode === 'grid' ? 'grid md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-6'}>
+            {filteredGroups.map((group) => (
+            <div 
+              key={group.id} 
+              className={`card group hover:shadow-lg transition-all duration-300 cursor-pointer ${
+                viewMode === 'list' ? 'flex flex-row' : ''
+              }`}
+              onClick={() => navigate(`/groups/${group.id}`)}
+            >
               {viewMode === 'list' ? (
                 <>
                   {/* List View */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-4">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">{group.name}</h3>
+                        <h3 
+                          className="text-xl font-bold text-gray-900 mb-2 hover:text-purple-600 transition-colors"
+                        >
+                          {group.name}
+                        </h3>
                         <p className="text-gray-600 mb-3">{group.description}</p>
                         <div className="flex items-center space-x-4 text-sm text-gray-500">
                           <div className="flex items-center space-x-1">
@@ -346,16 +470,47 @@ const Groups: React.FC = () => {
                           <span>• {group.lastActivity}</span>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleJoinGroup(group.id)}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200 ${
-                          group.isJoined
-                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            : 'bg-primary-500 text-white hover:bg-primary-600'
-                        }`}
-                      >
-                        {group.isJoined ? 'Sair' : 'Entrar'}
-                      </button>
+                      <div className="flex items-center space-x-2">
+                        {/* Editor Button - Only for owners and editors */}
+                        {(group.isOwner || group.isEditor) && (
+                          <button
+                            onClick={() => handleManageEditors(group)}
+                            className="px-3 py-2 rounded-lg font-medium bg-purple-500 text-white hover:bg-purple-600 transition-colors duration-200"
+                            title="Gerenciar Editores"
+                          >
+                            <Shield className="h-4 w-4" />
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => handleJoinGroup(group.id)}
+                          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 ${
+                            group.isJoined
+                              ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                              : 'bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:from-primary-600 hover:to-accent-600 shadow-lg hover:shadow-xl'
+                          }`}
+                        >
+                          {group.isJoined ? (
+                            <>
+                              <X className="h-4 w-4" />
+                              <span>Sair</span>
+                            </>
+                          ) : (
+                            <>
+                              <Users className="h-4 w-4" />
+                              <span>Fazer Parte</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {/* Click indicator for list view */}
+                    <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100">
+                      <div className="flex items-center space-x-1 text-sm text-gray-500">
+                        <span>Clique para ver mais</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
                     </div>
                   </div>
                 </>
@@ -376,18 +531,43 @@ const Groups: React.FC = () => {
                     {/* Join Button */}
                     <button
                       onClick={() => handleJoinGroup(group.id)}
-                      className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium transition-colors duration-200 ${
+                      className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${
                         group.isJoined
                           ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                          : 'bg-primary-500 text-white hover:bg-primary-600'
+                          : 'bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:from-primary-600 hover:to-accent-600 shadow-lg hover:shadow-xl'
                       }`}
                     >
-                      {group.isJoined ? 'Sair' : 'Entrar'}
+                      {group.isJoined ? (
+                        <>
+                          <X className="h-3 w-3" />
+                          <span>Sair</span>
+                        </>
+                      ) : (
+                        <>
+                          <Users className="h-3 w-3" />
+                          <span>Entrar</span>
+                        </>
+                      )}
                     </button>
+
+                    {/* Editor Button - Only for owners and editors */}
+                    {(group.isOwner || group.isEditor) && (
+                      <button
+                        onClick={() => handleManageEditors(group)}
+                        className="absolute top-4 right-20 px-3 py-1 rounded-full text-sm font-medium bg-purple-500 text-white hover:bg-purple-600 transition-colors duration-200"
+                        title="Gerenciar Editores"
+                      >
+                        <Shield className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
 
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{group.name}</h3>
+                    <h3 
+                      className="text-xl font-bold text-gray-900 mb-2 hover:text-purple-600 transition-colors"
+                    >
+                      {group.name}
+                    </h3>
                     <p className="text-gray-600 mb-4 line-clamp-2">{group.description}</p>
 
                     {/* Group Stats */}
@@ -436,28 +616,19 @@ const Groups: React.FC = () => {
                         </div>
                       </div>
                     )}
+                    
+                    {/* Click indicator */}
+                    <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100">
+                      <div className="flex items-center space-x-1 text-sm text-gray-500">
+                        <span>Clique para ver mais</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </div>
                   </div>
                 </>
               )}
             </div>
           ))}
-        </div>
-
-        {/* Empty State */}
-        {filteredGroups.length === 0 && (
-          <div className="text-center py-12">
-            <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Nenhum grupo encontrado</h3>
-            <p className="text-gray-600 mb-6">
-              Tente ajustar seus filtros ou criar um novo grupo.
-            </p>
-            <button 
-              onClick={handleCreateGroup}
-              className="btn-primary"
-              disabled={hasCreatedGroup}
-            >
-              Criar Primeiro Grupo
-            </button>
           </div>
         )}
 
@@ -602,6 +773,21 @@ const Groups: React.FC = () => {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Modal de Gerenciar Editores */}
+        {selectedGroup && (
+          <GroupEditorsModal
+            isOpen={showEditorsModal}
+            onClose={() => {
+              setShowEditorsModal(false);
+              setSelectedGroup(null);
+            }}
+            groupId={selectedGroup.id}
+            groupName={selectedGroup.name}
+            currentEditors={selectedGroup.editors || []}
+            onEditorsUpdated={handleEditorsUpdated}
+          />
         )}
       </div>
     </div>

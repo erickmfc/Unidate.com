@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import PostLoginNavbar from '../components/Navigation/PostLoginNavbar';
+import Navbar from '../components/Layout/Navbar';
 import { 
   HelpCircle, 
   BookOpen, 
@@ -34,41 +34,8 @@ const SOSPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
 
-  // Mock data - em produção viria do Firebase
-  const [helpPosts] = useState<HelpPost[]>([
-    {
-      id: '1',
-      title: 'Preciso de ajuda com Cálculo 2',
-      description: 'Estou com dificuldade na integração por partes. Alguém pode me explicar?',
-      subject: 'Cálculo 2',
-      author: {
-        name: 'João Silva',
-        course: 'Engenharia',
-        photoURL: undefined
-      },
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
-      replies: 3,
-      likes: 5,
-      isResolved: false,
-      tags: ['matemática', 'cálculo', 'integração']
-    },
-    {
-      id: '2',
-      title: 'Dúvida sobre Física 1',
-      description: 'Não entendi o conceito de momento linear. Pode alguém me ajudar?',
-      subject: 'Física 1',
-      author: {
-        name: 'Maria Santos',
-        course: 'Física',
-        photoURL: undefined
-      },
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 horas atrás
-      replies: 2,
-      likes: 3,
-      isResolved: true,
-      tags: ['física', 'momento', 'mecânica']
-    }
-  ]);
+  // Posts de ajuda reais - carregados do Firebase
+  const [helpPosts, setHelpPosts] = useState<HelpPost[]>([]);
 
   const [newPost, setNewPost] = useState({
     title: '',
@@ -82,6 +49,21 @@ const SOSPage: React.FC = () => {
     'Português', 'Inglês', 'Filosofia', 'Sociologia', 'Economia', 'Direito',
     'Medicina', 'Engenharia', 'Computação', 'Psicologia', 'Outro'
   ];
+
+  // Carregar posts de ajuda reais do Firebase
+  useEffect(() => {
+    const loadHelpPosts = async () => {
+      try {
+        // TODO: Implementar carregamento real do Firebase
+        // Por enquanto, array vazio até implementarmos a funcionalidade
+        setHelpPosts([]);
+      } catch (error) {
+        console.error('Erro ao carregar posts de ajuda:', error);
+      }
+    };
+
+    loadHelpPosts();
+  }, []);
 
   const handleSubmitPost = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,7 +91,7 @@ const SOSPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PostLoginNavbar />
+      <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}

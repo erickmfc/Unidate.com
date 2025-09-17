@@ -3,6 +3,7 @@ import {
   doc, 
   addDoc, 
   getDocs, 
+  getDoc,
   updateDoc, 
   deleteDoc, 
   query, 
@@ -21,6 +22,7 @@ export interface Group {
   name: string;
   description: string;
   members: string[]; // Array de UIDs dos membros
+  editors: string[]; // Array de UIDs dos editores/moderadores
   maxMembers?: number;
   category: string;
   university: string;
@@ -30,6 +32,7 @@ export interface Group {
   tags: string[];
   createdBy: string; // UID do criador
   isOwner: boolean;
+  isEditor: boolean; // Se o usuário atual é editor
   isPublic: boolean;
   upcomingEvents?: {
     title: string;
@@ -42,7 +45,7 @@ export interface Group {
 
 export class GroupsService {
   // Criar novo grupo
-  static async createGroup(groupData: Omit<Group, 'id' | 'members' | 'isJoined' | 'isOwner' | 'lastActivity' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  static async createGroup(groupData: Omit<Group, 'id' | 'members' | 'editors' | 'isJoined' | 'isOwner' | 'isEditor' | 'lastActivity' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
       if (!db) {
         throw new Error('Firebase não inicializado');
@@ -51,8 +54,10 @@ export class GroupsService {
       const groupRef = await addDoc(collection(db, 'groups'), {
         ...groupData,
         members: [groupData.createdBy], // Criador é automaticamente membro
+        editors: [groupData.createdBy], // Criador é automaticamente editor
         isJoined: false, // Será atualizado pelo frontend
         isOwner: false, // Será atualizado pelo frontend
+        isEditor: false, // Será atualizado pelo frontend
         lastActivity: serverTimestamp(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
@@ -136,14 +141,81 @@ export class GroupsService {
     }
   }
 
+  // Atualizar foto do grupo (qualquer membro pode fazer)
+  static async updateGroupImage(groupId: string, userId: string, imageUrl: string): Promise<void> {
+    try {
+      if (!db) {
+        console.error('❌ Firebase não inicializado');
+        throw new Error('Firebase não inicializado');
+      }
+
+      console.log(`🖼️ Atualizando foto do grupo ${groupId} por usuário ${userId}`);
+
+      const groupRef = doc(db, 'groups', groupId);
+      
+      // Verificar se o documento existe
+      const groupDoc = await getDoc(groupRef);
+      if (!groupDoc.exists()) {
+        throw new Error('Grupo não encontrado');
+      }
+
+      const groupData = groupDoc.data();
+      
+      // Verificar se o usuário é membro do grupo
+      if (!groupData.members.includes(userId)) {
+        throw new Error('Apenas membros do grupo podem alterar a foto');
+      }
+
+      // Atualizar a foto
+      await updateDoc(groupRef, {
+        image: imageUrl,
+        updatedAt: serverTimestamp()
+      });
+
+      console.log(`✅ Foto do grupo ${groupId} atualizada com sucesso`);
+    } catch (error) {
+      console.error('❌ Erro ao atualizar foto do grupo:', error);
+      throw error;
+    }
+  }
+
   // Entrar/sair de um grupo
   static async toggleGroupMembership(groupId: string, userId: string, isJoining: boolean): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.error('❌ Firebase não inicializado');
+        throw new Error('Firebase não está disponível. Verifique sua conexão.');
       }
 
+      if (!userId) {
+        throw new Error('ID do usuário é obrigatório');
+      }
+
+      console.log(`🔄 Tentando ${isJoining ? 'entrar' : 'sair'} do grupo ${groupId} para usuário ${userId}`);
+
       const groupRef = doc(db, 'groups', groupId);
+      
+      // Verificar se o documento existe
+      const groupDoc = await getDoc(groupRef);
+      if (!groupDoc.exists()) {
+        throw new Error('Grupo não encontrado');
+      }
+
+      const groupData = groupDoc.data();
+      console.log('📋 Dados do grupo:', groupData);
+      
+      // Verificar se o usuário já é membro (para evitar duplicação)
+      const isAlreadyMember = groupData.members?.includes(userId) || false;
+      
+      if (isJoining && isAlreadyMember) {
+        console.log('⚠️ Usuário já é membro do grupo');
+        return; // Não fazer nada se já é membro
+      }
+      
+      if (!isJoining && !isAlreadyMember) {
+        console.log('⚠️ Usuário não é membro do grupo');
+        return; // Não fazer nada se não é membro
+      }
       
       if (isJoining) {
         await updateDoc(groupRef, {
@@ -151,17 +223,36 @@ export class GroupsService {
           lastActivity: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+        console.log(`✅ Usuário ${userId} entrou no grupo ${groupId}`);
       } else {
         await updateDoc(groupRef, {
           members: arrayRemove(userId),
           lastActivity: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+        console.log(`✅ Usuário ${userId} saiu do grupo ${groupId}`);
       }
-
-      console.log(`✅ Usuário ${isJoining ? 'entrou' : 'saiu'} do grupo`);
     } catch (error) {
       console.error('❌ Erro ao atualizar membro do grupo:', error);
+      console.error('❌ Detalhes do erro:', {
+        groupId,
+        userId,
+        isJoining,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
+      
+      // Tratar erros específicos
+      if (error instanceof Error) {
+        if (error.message.includes('permission-denied')) {
+          throw new Error('Você não tem permissão para esta ação');
+        } else if (error.message.includes('not-found')) {
+          throw new Error('Grupo não encontrado');
+        } else if (error.message.includes('unavailable')) {
+          throw new Error('Serviço temporariamente indisponível. Tente novamente.');
+        }
+      }
+      
       throw error;
     }
   }
@@ -253,6 +344,68 @@ export class GroupsService {
     } catch (error) {
       console.error('❌ Erro ao deletar grupo:', error);
       throw error;
+    }
+  }
+
+  // Adicionar editor ao grupo
+  static async addEditor(groupId: string, userId: string): Promise<void> {
+    try {
+      if (!db) {
+        throw new Error('Firebase não inicializado');
+      }
+
+      const groupRef = doc(db, 'groups', groupId);
+      await updateDoc(groupRef, {
+        editors: arrayUnion(userId),
+        updatedAt: serverTimestamp()
+      });
+
+      console.log('✅ Editor adicionado ao grupo:', groupId);
+    } catch (error) {
+      console.error('❌ Erro ao adicionar editor ao grupo:', error);
+      throw error;
+    }
+  }
+
+  // Remover editor do grupo
+  static async removeEditor(groupId: string, userId: string): Promise<void> {
+    try {
+      if (!db) {
+        throw new Error('Firebase não inicializado');
+      }
+
+      const groupRef = doc(db, 'groups', groupId);
+      await updateDoc(groupRef, {
+        editors: arrayRemove(userId),
+        updatedAt: serverTimestamp()
+      });
+
+      console.log('✅ Editor removido do grupo:', groupId);
+    } catch (error) {
+      console.error('❌ Erro ao remover editor do grupo:', error);
+      throw error;
+    }
+  }
+
+  // Verificar se usuário é editor do grupo
+  static async isEditor(groupId: string, userId: string): Promise<boolean> {
+    try {
+      if (!db) {
+        throw new Error('Firebase não inicializado');
+      }
+
+      const groupRef = doc(db, 'groups', groupId);
+      const groupDoc = await getDoc(groupRef);
+      
+      if (groupDoc.exists()) {
+        const groupData = groupDoc.data();
+        return groupData.editors?.includes(userId) || false;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('❌ Erro ao verificar se usuário é editor:', error);
+      return false;
     }
   }
 }

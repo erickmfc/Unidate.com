@@ -20,6 +20,8 @@ import {
 import PostComposer from '../components/Feed/PostComposer';
 import PostCard from '../components/Feed/PostCard';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../hooks/useToast';
+import ToastContainer from '../components/UI/ModernToast';
 import { PostsService, Post as FirebasePost } from '../services/postsService';
 import { basicFirestoreService } from '../services/basicFirestoreService';
 
@@ -61,6 +63,7 @@ interface Post {
 
 const Feed: React.FC = () => {
   const { currentUser, userProfile } = useAuth();
+  const { toasts, success, error, removeToast } = useToast();
   const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,7 +137,7 @@ const Feed: React.FC = () => {
                   university: post.autorUniversidade || 'Universidade não informada',
                   avatar: post.autorAvatar || '/api/placeholder/40/40'
                 },
-                content: post.titulo || post.conteudo,
+                content: post.conteudo || post.titulo,
                 type: (post.tipo === 'texto' ? 'text' : post.tipo === 'imagem' ? 'image' : post.tipo === 'poll' ? 'poll' : 'tevi') as 'text' | 'image' | 'poll' | 'tevi',
                 image: undefined,
                 timestamp: (() => {
@@ -242,7 +245,7 @@ const Feed: React.FC = () => {
       // Fazer a chamada para o Firebase
       await basicFirestoreService.toggleLike(postId, currentUser.uid, post.isLiked);
     } catch (error) {
-      console.error('❌ Erro ao curtir/descurtir post:', error);
+      console.error('❌ Erro ao apoiar/desapoiar post:', error);
       // Reverter mudança em caso de erro
       setPosts(posts.map(p => 
         p.id === postId 
@@ -257,23 +260,45 @@ const Feed: React.FC = () => {
   };
 
   const handleComment = async (postId: string, commentText: string) => {
-    if (!currentUser || !userProfile || !commentText.trim()) return;
-
-    try {
-      console.log('🔄 Adicionando comentário...');
-      
-      // TODO: Implementar comentários com o serviço simplificado
-      console.log('Comentário:', commentText.trim(), 'para post:', postId);
-
-      console.log('✅ Comentário adicionado com sucesso!');
-    } catch (error) {
-      console.error('❌ Erro ao adicionar comentário:', error);
-    }
+    // Esta função não é mais usada - os comentários são gerenciados diretamente no PostCard
+    console.log('🔄 [FEED] handleComment chamado (não usado):', postId, commentText);
   };
 
   const handleShare = (postId: string) => {
     // Implementar lógica de compartilhamento
     console.log('Compartilhando post:', postId);
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    if (!currentUser) {
+      error('Acesso Negado', 'Você precisa estar logado para deletar posts');
+      return;
+    }
+
+    try {
+      console.log('🗑️ Deletando post:', postId);
+      
+      // Deletar no Firebase
+      await PostsService.deletePost(postId, currentUser.uid);
+      
+      // Atualizar estado local
+      setPosts(posts.filter(post => post.id !== postId));
+      
+      console.log('✅ Post deletado com sucesso');
+      success('Post Deletado', 'Post removido com sucesso!');
+    } catch (error: any) {
+      console.error('❌ Erro ao deletar post:', error);
+      
+      let errorMessage = 'Erro ao deletar post. Tente novamente.';
+      
+      if (error.message.includes('não tem permissão')) {
+        errorMessage = 'Você não tem permissão para deletar este post.';
+      } else if (error.message.includes('não encontrado')) {
+        errorMessage = 'Post não encontrado.';
+      }
+      
+      error('Erro ao Deletar', errorMessage);
+    }
   };
 
   // Handlers para botões mobile
@@ -285,9 +310,11 @@ const Feed: React.FC = () => {
   };
 
   const handleUniverseClick = () => {
-    console.log('🌍 Botão UniVerso clicado');
-    // Botão central - pode abrir modal de criar post ou navegar
-    // TODO: Implementar modal de criar post ou navegação
+    console.log('🌍 Botão UniVerso clicado - já estamos no UniVerso!');
+    // Já estamos na página do UniVerso, então apenas scroll para o topo
+    if (feedRef.current) {
+      feedRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   const handleGroupsClick = () => {
@@ -305,6 +332,20 @@ const Feed: React.FC = () => {
     navigate('/chat');
   };
 
+  const formatTime = (timestamp: string) => {
+    const now = new Date();
+    const postTime = new Date(timestamp);
+    const diffInHours = (now.getTime() - postTime.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      return 'Agora há pouco';
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h atrás`;
+    } else {
+      return postTime.toLocaleDateString('pt-BR');
+    }
+  };
+
 
   const handleNewPost = async (postData: any) => {
     console.log('🔄 [POST] Iniciando criação de novo post...');
@@ -314,7 +355,7 @@ const Feed: React.FC = () => {
 
     if (!currentUser || !userProfile) {
       console.error('❌ [POST] Usuário não autenticado ou perfil não encontrado');
-      alert('Erro: Usuário não autenticado. Faça login novamente.');
+      error('Acesso Negado', 'Você precisa estar logado para criar posts');
       return;
     }
 
@@ -382,11 +423,12 @@ const Feed: React.FC = () => {
       });
       
       console.log('✅ [POST] Post criado e adicionado com sucesso!');
+      success('Post Criado', 'Seu post foi publicado com sucesso!');
             // Post criado com sucesso - o listener vai atualizar automaticamente
     } catch (error: any) {
       console.error('❌ [POST] Erro ao criar post:', error);
       console.error('❌ [POST] Detalhes do erro:', error.message);
-      alert('❌ Erro ao criar post. Verifique o console para mais detalhes.');
+      error('Erro ao Criar Post', 'Ops! Não conseguimos criar seu post. Tente novamente.');
       
       // Log detalhado para debug
       console.error('❌ [POST] Detalhes completos do erro:', {
@@ -412,11 +454,22 @@ const Feed: React.FC = () => {
         const trending = await PostsService.getTrendingHashtags();
         setTrendingHashtags(trending);
         
-        // Estatísticas básicas
+        // Estatísticas reais baseadas nos posts
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const postsToday = posts.filter(p => {
+          const postDate = new Date(p.timestamp);
+          postDate.setHours(0, 0, 0, 0);
+          return postDate.getTime() === today.getTime();
+        });
+
+        const teviPosts = posts.filter(p => p.type === 'tevi');
+        
         setCampusStats({
-          postsToday: posts.length,
-          teviPosts: posts.filter(p => p.type === 'tevi').length,
-          peopleOnline: Math.floor(Math.random() * 50) + 10 // Mock por enquanto
+          postsToday: postsToday.length,
+          teviPosts: teviPosts.length,
+          peopleOnline: 0 // Será implementado quando tivermos sistema de presença
         });
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
@@ -506,7 +559,7 @@ const Feed: React.FC = () => {
                           <span className="text-gray-500 text-xs">•</span>
                           <span className="text-gray-500 text-xs">{post.author.course}</span>
                         </div>
-                        <p className="text-gray-400 text-xs">{post.timestamp}</p>
+                        <p className="text-gray-400 text-xs">{formatTime(post.timestamp)}</p>
                       </div>
                     </div>
 
@@ -571,8 +624,8 @@ const Feed: React.FC = () => {
                 className="flex flex-col items-center py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer touch-manipulation"
                 type="button"
               >
-                <Home className="h-6 w-6 text-purple-600" />
-                <span className="text-xs text-purple-600 mt-1 font-medium">Início</span>
+                <Home className="h-6 w-6 text-gray-400" />
+                <span className="text-xs text-gray-400 mt-1">Início</span>
               </button>
               
               {/* U - Feed (UniVerso) - Botão central como publicar do Instagram */}
@@ -581,10 +634,10 @@ const Feed: React.FC = () => {
                 className="flex flex-col items-center py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer touch-manipulation"
                 type="button"
               >
-                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center shadow-lg hover:shadow-xl transition-shadow ring-4 ring-purple-200">
                   <span className="text-white font-bold text-lg">U</span>
                 </div>
-                <span className="text-xs text-gray-400 mt-1">UniVerso</span>
+                <span className="text-xs text-purple-600 mt-1 font-medium">UniVerso</span>
               </button>
               
               {/* 👥 Grupos */}
@@ -618,7 +671,7 @@ const Feed: React.FC = () => {
             {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">UniVerso</h1>
-              <p className="text-gray-600">A voz do campus • Não é sobre seguir, é sobre pertencer</p>
+              <p className="text-gray-600">A voz do campus • Não é sobre conectar, é sobre pertencer</p>
               
             </div>
 
@@ -652,6 +705,8 @@ const Feed: React.FC = () => {
                   onLike={handleLike}
                   onComment={handleComment}
                   onShare={handleShare}
+                  onDelete={handleDeletePost}
+                  currentUserId={currentUser?.uid}
                 />
                   ))
                 )}
@@ -740,6 +795,9 @@ const Feed: React.FC = () => {
         </div>
       </div>
       )}
+
+      {/* Toast Container */}
+      <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );
 };

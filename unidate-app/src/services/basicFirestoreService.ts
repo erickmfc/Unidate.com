@@ -190,7 +190,7 @@ class BasicFirestoreService {
                 console.log('✅ [FIRESTORE] Post processado:', post);
               });
 
-              console.log(`📱 [FIRESTORE] ===== TIMELINE ATUALIZADA =====`);
+              console.log(`📱 [FIRESTORE] ===== LINHA DO CAMPUS ATUALIZADA =====`);
               console.log(`📱 [FIRESTORE] Total de posts: ${posts.length}`);
               console.log('📱 [FIRESTORE] Posts finais:', posts);
               onPostsUpdate(posts);
@@ -229,7 +229,7 @@ class BasicFirestoreService {
   }
 
   // 3. FUNCIONALIDADE DE LIKES
-  async curtirPost(postId: string, userId: string): Promise<void> {
+  async apoiarPost(postId: string, userId: string): Promise<void> {
     try {
       if (!db) {
         throw new Error('Firestore não está disponível');
@@ -243,14 +243,14 @@ class BasicFirestoreService {
         curtidasPor: arrayUnion(userId)
       });
 
-      console.log('✅ Post curtido com sucesso!');
+      console.log('✅ Post apoiado com sucesso!');
     } catch (error) {
-      console.error('❌ Erro ao curtir post:', error);
+      console.error('❌ Erro ao apoiar post:', error);
       throw error;
     }
   }
 
-  async descurtirPost(postId: string, userId: string): Promise<void> {
+  async desapoiarPost(postId: string, userId: string): Promise<void> {
     try {
       if (!db) {
         throw new Error('Firestore não está disponível');
@@ -264,18 +264,18 @@ class BasicFirestoreService {
         curtidasPor: arrayRemove(userId)
       });
 
-      console.log('✅ Post descurtido com sucesso!');
+      console.log('✅ Post desapoiado com sucesso!');
     } catch (error) {
-      console.error('❌ Erro ao descurtir post:', error);
+      console.error('❌ Erro ao desapoiar post:', error);
       throw error;
     }
   }
 
   async toggleLike(postId: string, userId: string, isLiked: boolean): Promise<void> {
     if (isLiked) {
-      await this.descurtirPost(postId, userId);
+      await this.desapoiarPost(postId, userId);
     } else {
-      await this.curtirPost(postId, userId);
+      await this.apoiarPost(postId, userId);
     }
   }
 

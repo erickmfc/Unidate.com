@@ -46,12 +46,9 @@ const LoginForm: React.FC = () => {
         await loginUser(formData.email, formData.password);
       }
 
-      // Verificar se o onboarding foi completado
-      if (userProfile?.onboardingCompleted) {
-        navigate('/dashboard');
-      } else {
-        navigate('/onboarding-complete');
-      }
+      // O redirecionamento será feito automaticamente pelo ProtectedRoute
+      // baseado no status do onboarding do usuário
+      navigate('/dashboard');
     } catch (error: any) {
       setError(error.message);
     } finally {
@@ -208,7 +205,7 @@ const LoginForm: React.FC = () => {
             <GoogleSignInButton
               onSuccess={(result) => {
                 console.log('Login com Google bem-sucedido:', result);
-                // Aqui você pode redirecionar ou fazer outras ações
+                // O redirecionamento será feito automaticamente pelo ProtectedRoute
                 navigate('/dashboard');
               }}
               onError={(error) => {

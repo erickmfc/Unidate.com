@@ -3,6 +3,7 @@ import {
   doc, 
   addDoc, 
   getDocs, 
+  getDoc,
   updateDoc, 
   deleteDoc, 
   query, 
@@ -228,18 +229,60 @@ export class PostsService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Por enquanto, retornar hashtags mockadas
-      // TODO: Implementar lógica real de trending
-      return [
-        { tag: '#UFRJ', posts: 45 },
-        { tag: '#Engenharia', posts: 32 },
-        { tag: '#Campus', posts: 28 },
-        { tag: '#Estudos', posts: 25 },
-        { tag: '#Festa', posts: 20 }
-      ];
+      // Buscar todas as hashtags dos posts reais
+      const postsSnapshot = await getDocs(collection(db, 'posts'));
+      const hashtagCount: {[key: string]: number} = {};
+
+      postsSnapshot.forEach((doc) => {
+        const post = doc.data();
+        if (post.hashtags && Array.isArray(post.hashtags)) {
+          post.hashtags.forEach((hashtag: string) => {
+            const tag = hashtag.toLowerCase();
+            hashtagCount[tag] = (hashtagCount[tag] || 0) + 1;
+          });
+        }
+      });
+
+      // Converter para array e ordenar por quantidade
+      const trending = Object.entries(hashtagCount)
+        .map(([tag, posts]) => ({ tag: `#${tag}`, posts }))
+        .sort((a, b) => b.posts - a.posts)
+        .slice(0, 5); // Top 5
+
+      return trending;
     } catch (error) {
       console.error('❌ Erro ao buscar hashtags trending:', error);
       return [];
+    }
+  }
+
+  // Deletar post
+  static async deletePost(postId: string, userId: string): Promise<void> {
+    try {
+      if (!db) {
+        throw new Error('Firebase não inicializado');
+      }
+
+      const postRef = doc(db, 'posts', postId);
+      
+      // Verificar se o post existe e se o usuário é o autor
+      const postDoc = await getDoc(postRef);
+      if (!postDoc.exists()) {
+        throw new Error('Post não encontrado');
+      }
+
+      const postData = postDoc.data();
+      if (postData.autorId !== userId) {
+        throw new Error('Você não tem permissão para deletar este post');
+      }
+
+      // Deletar o post
+      await deleteDoc(postRef);
+      
+      console.log('✅ Post deletado com sucesso:', postId);
+    } catch (error) {
+      console.error('❌ Erro ao deletar post:', error);
+      throw error;
     }
   }
 }

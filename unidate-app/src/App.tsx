@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
+import { ToastProvider } from './components/UI/Toast';
 import Navbar from './components/Layout/Navbar';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 import Footer from './components/UI/Footer';
@@ -19,6 +20,8 @@ const Profile2 = lazy(() => import('./pages/Profile2'));
 const Discover = lazy(() => import('./pages/Discover'));
 const Feed = lazy(() => import('./pages/Feed'));
 const Groups = lazy(() => import('./pages/Groups'));
+const GroupDetails = lazy(() => import('./pages/GroupDetails'));
+const UserProfile = lazy(() => import('./pages/UserProfile'));
 const Chat = lazy(() => import('./pages/Chat'));
 const Settings = lazy(() => import('./pages/Settings'));
 const OnboardingFlow = lazy(() => import('./components/Onboarding/OnboardingFlow'));
@@ -42,17 +45,29 @@ const AnonymousWallPage = lazy(() => import('./pages/AnonymousWallPage'));
 const Events = lazy(() => import('./pages/Events'));
 const CampusGuide = lazy(() => import('./pages/CampusGuide'));
 const Achievements = lazy(() => import('./pages/Achievements'));
+const Materials = lazy(() => import('./pages/Materials'));
+const MaterialDetails = lazy(() => import('./pages/MaterialDetails'));
+const UserAnalytics = lazy(() => import('./pages/UserAnalytics'));
 const AdminInstructions = lazy(() => import('./components/Admin/AdminInstructions'));
 
 // Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, userProfile } = useAuth();
 
   if (loading) {
     return <LoadingSpinner />;
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  // Se o usuário está logado mas não completou o onboarding, redireciona
+  if (userProfile && !userProfile.onboardingCompleted) {
+    return <Navigate to="/onboarding-complete" />;
+  }
+
+  return <>{children}</>;
 };
 
 // Componente principal da aplicação
@@ -129,6 +144,22 @@ const AppContent: React.FC = () => {
               </ProtectedRoute>
             } 
           />
+          <Route
+            path="/groups/:groupId"
+            element={
+              <ProtectedRoute>
+                <GroupDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/profile/:userId"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
+              </ProtectedRoute>
+            }
+          />
           <Route 
             path="/chat" 
             element={
@@ -166,6 +197,30 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Achievements />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/materials" 
+            element={
+              <ProtectedRoute>
+                <Materials />
+              </ProtectedRoute>
+            } 
+          />
+          <Route
+            path="/materials/:materialId"
+            element={
+              <ProtectedRoute>
+                <MaterialDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/my-analytics" 
+            element={
+              <ProtectedRoute>
+                <UserAnalytics />
               </ProtectedRoute>
             } 
           />
@@ -324,9 +379,11 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <AdminAuthProvider>
-        <Router>
-          <AppContent />
-        </Router>
+        <ToastProvider>
+          <Router>
+            <AppContent />
+          </Router>
+        </ToastProvider>
       </AdminAuthProvider>
     </AuthProvider>
   );

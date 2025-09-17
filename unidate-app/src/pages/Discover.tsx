@@ -106,7 +106,7 @@ const Discover: React.FC = () => {
             Volte amanhã para descobrir mais pessoas incríveis da sua universidade.
           </p>
           <button className="btn-primary">
-            Ver Matches
+            Ver Sintonias
           </button>
         </div>
       </div>
@@ -228,7 +228,7 @@ const Discover: React.FC = () => {
         <div className="mt-8 grid grid-cols-3 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900">0</div>
-            <div className="text-sm text-gray-600">Matches</div>
+            <div className="text-sm text-gray-600">Sintonias</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-gray-900">0</div>

@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import PostLoginNavbar from '../components/Navigation/PostLoginNavbar';
+import React, { useState, useEffect } from 'react';
+import Navbar from '../components/Layout/Navbar';
 import { 
   MessageSquare, 
   Send, 
@@ -26,45 +26,8 @@ const AnonymousWallPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showNewPost, setShowNewPost] = useState(false);
 
-  // Mock data - em produção viria do Firebase
-  const [posts, setPosts] = useState<AnonymousPost[]>([
-    {
-      id: '1',
-      content: 'Estou me sentindo muito sobrecarregado com as provas. Parece que não consigo dar conta de tudo...',
-      category: 'academic',
-      likes: 12,
-      comments: 5,
-      createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // 1 hora atrás
-      isLiked: false
-    },
-    {
-      id: '2',
-      content: 'Finalmente consegui fazer amigos na faculdade! Estava me sentindo muito sozinho no primeiro semestre.',
-      category: 'social',
-      likes: 8,
-      comments: 3,
-      createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 horas atrás
-      isLiked: true
-    },
-    {
-      id: '3',
-      content: 'Minha família não entende a pressão que é estar na faculdade. Eles acham que é só "estudar um pouco".',
-      category: 'personal',
-      likes: 15,
-      comments: 7,
-      createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 horas atrás
-      isLiked: false
-    },
-    {
-      id: '4',
-      content: 'Hoje foi um dia difícil, mas consegui entregar o trabalho que estava procrastinando há semanas!',
-      category: 'general',
-      likes: 6,
-      comments: 2,
-      createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 horas atrás
-      isLiked: false
-    }
-  ]);
+  // Posts reais - carregados do Firebase
+  const [posts, setPosts] = useState<AnonymousPost[]>([]);
 
   const categories = [
     { value: 'all', label: 'Todos', icon: '📝' },
@@ -73,6 +36,21 @@ const AnonymousWallPage: React.FC = () => {
     { value: 'social', label: 'Social', icon: '👥' },
     { value: 'general', label: 'Geral', icon: '💬' }
   ];
+
+  // Carregar posts reais do Firebase
+  useEffect(() => {
+    const loadPosts = async () => {
+      try {
+        // TODO: Implementar carregamento real do Firebase
+        // Por enquanto, array vazio até implementarmos a funcionalidade
+        setPosts([]);
+      } catch (error) {
+        console.error('Erro ao carregar posts anônimos:', error);
+      }
+    };
+
+    loadPosts();
+  }, []);
 
   const handleSubmitPost = (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,7 +108,7 @@ const AnonymousWallPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <PostLoginNavbar />
+      <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}

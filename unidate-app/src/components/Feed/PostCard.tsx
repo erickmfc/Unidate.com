@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Heart, 
   MessageCircle, 
@@ -7,12 +8,20 @@ import {
   Eye,
   MapPin,
   Clock,
-  User
+  User,
+  Trash2,
+  User as UserIcon
 } from 'lucide-react';
+import PostComments from './PostComments';
+import InlineComments from './InlineComments';
+import InlineConfirmation from '../UI/InlineConfirmation';
+import { CommentsService, Comment } from '../../services/commentsService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Post {
   id: string;
   author: {
+    uid: string;
     name: string;
     course: string;
     university: string;
@@ -42,10 +51,124 @@ interface PostCardProps {
   onLike: (postId: string) => void;
   onComment: (postId: string, commentText: string) => void;
   onShare: (postId: string) => void;
+  onDelete?: (postId: string) => void;
+  currentUserId?: string;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare }) => {
-  // const [showComments, setShowComments] = useState(false);
+const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, onDelete, currentUserId }) => {
+  const navigate = useNavigate();
+  const { currentUser, userProfile } = useAuth();
+  const [showMenu, setShowMenu] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [unsubscribeComments, setUnsubscribeComments] = useState<(() => void) | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const isOwner = currentUserId && post.author.uid === currentUserId;
+
+  // Fechar menu quando clicar fora
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Carregar os 2 últimos comentários automaticamente
+  useEffect(() => {
+    if (!unsubscribeComments) {
+      setLoadingComments(true);
+      console.log('🔄 [POSTCARD] Carregando últimos comentários para post:', post.id);
+      
+      const unsubscribe = CommentsService.loadPostComments(
+        post.id,
+        (loadedComments) => {
+          console.log('📱 [POSTCARD] Comentários carregados:', loadedComments.length);
+          // Pegar apenas os 2 últimos comentários
+          const lastTwoComments = loadedComments.slice(-2);
+          setComments(lastTwoComments);
+          setLoadingComments(false);
+        },
+        (error) => {
+          console.error('❌ [POSTCARD] Erro ao carregar comentários:', error);
+          setLoadingComments(false);
+        },
+        2 // Carregar apenas 2 comentários para evitar duplicação
+      );
+      
+      setUnsubscribeComments(() => unsubscribe);
+    }
+
+    // Cleanup quando o componente for desmontado
+    return () => {
+      if (unsubscribeComments) {
+        unsubscribeComments();
+      }
+    };
+  }, [post.id]);
+
+  const handleProfileClick = () => {
+    navigate(`/profile/${post.author.uid}`);
+  };
+
+  const handleDeletePost = async () => {
+    if (!onDelete) return;
+    
+    try {
+      await onDelete(post.id);
+    } catch (error) {
+      console.error('Erro ao deletar post:', error);
+    }
+  };
+
+  const handleAddComment = async (postId: string, content: string) => {
+    if (!currentUser || !userProfile) {
+      throw new Error('Usuário não autenticado');
+    }
+
+    try {
+      console.log('🔄 [POSTCARD] Adicionando comentário...', { postId, content });
+      
+      await CommentsService.addComment(
+        postId,
+        currentUser.uid,
+        userProfile.displayName || currentUser.displayName || 'Usuário',
+        userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40',
+        content
+      );
+      
+      console.log('✅ [POSTCARD] Comentário adicionado com sucesso!');
+      // O listener vai atualizar automaticamente os comentários
+    } catch (error) {
+      console.error('❌ [POSTCARD] Erro ao adicionar comentário:', error);
+      throw error;
+    }
+  };
+
+  const handleLikeComment = async (commentId: string) => {
+    if (!currentUser) return;
+
+    try {
+      const comment = comments.find(c => c.id === commentId);
+      if (!comment) return;
+
+      const isLiked = comment.likedBy.includes(currentUser.uid);
+      
+      await CommentsService.toggleCommentLike(commentId, currentUser.uid, isLiked);
+      
+      console.log('✅ [POSTCARD] Like do comentário atualizado');
+      // O listener vai atualizar automaticamente
+    } catch (error) {
+      console.error('❌ [POSTCARD] Erro ao curtir comentário:', error);
+    }
+  };
 
   const formatTime = (timestamp: string) => {
     const now = new Date();
@@ -83,14 +206,19 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
     <div className={`card ${post.type === 'tevi' ? 'border-l-4 border-l-pink-500 bg-gradient-to-r from-pink-50 to-white' : ''}`}>
       {/* Post Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-3">
+        <div 
+          className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors duration-200"
+          onClick={handleProfileClick}
+        >
           <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
             <span className="text-white font-semibold">
               {post.author.name.charAt(0)}
             </span>
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">{post.author.name}</h3>
+            <h3 className="font-semibold text-gray-900 hover:text-purple-600 transition-colors">
+              {post.author.name}
+            </h3>
             <p className="text-sm text-gray-600">
               {post.author.course} • {post.author.university}
             </p>
@@ -104,9 +232,44 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
               <span>#TeVi</span>
             </div>
           )}
-          <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200">
-            <MoreHorizontal className="h-5 w-5 text-gray-600" />
-          </button>
+          <div className="relative" ref={menuRef}>
+            <button 
+              onClick={() => setShowMenu(!showMenu)}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            >
+              <MoreHorizontal className="h-5 w-5 text-gray-600" />
+            </button>
+            
+            {/* Menu de Opções */}
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+                <div className="py-1">
+                  <button
+                    onClick={handleProfileClick}
+                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  >
+                    <UserIcon className="h-4 w-4" />
+                    <span>Ver Perfil</span>
+                  </button>
+                  
+                  {isOwner && onDelete && (
+                    <InlineConfirmation
+                      onConfirm={handleDeletePost}
+                      type="danger"
+                      confirmText="Deletar"
+                      size="sm"
+                      className="w-full"
+                    >
+                      <div className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2">
+                        <Trash2 className="h-4 w-4" />
+                        <span>Deletar Post</span>
+                      </div>
+                    </InlineConfirmation>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -171,13 +334,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
           </button>
           
           <button
-            onClick={() => {
-              const commentText = prompt('Digite seu comentário:');
-              if (commentText) {
-                onComment(post.id, commentText);
-              }
-            }}
-            className="flex items-center space-x-2 text-gray-600 hover:text-blue-500 transition-colors duration-200"
+            onClick={() => setShowComments(!showComments)}
+            className={`flex items-center space-x-2 transition-colors duration-200 ${
+              showComments 
+                ? 'text-blue-500' 
+                : 'text-gray-600 hover:text-blue-500'
+            }`}
           >
             <MessageCircle className="h-5 w-5" />
             <span>{post.comments}</span>
@@ -188,7 +350,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
             className="flex items-center space-x-2 text-gray-600 hover:text-green-500 transition-colors duration-200"
           >
             <Share2 className="h-5 w-5" />
-            <span>Compartilhar</span>
+            <span>Divulgar</span>
           </button>
         </div>
         
@@ -198,37 +360,28 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare })
         </div>
       </div>
 
-      {/* Comments Section */}
-      {false && (
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <div className="space-y-3">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="bg-gray-100 rounded-lg p-3">
-                  <p className="text-sm text-gray-800">Que legal! Também vi essa pessoa na biblioteca hoje! 📚</p>
-                </div>
-                <p className="text-xs text-gray-500 mt-1">Ana Silva • 2h atrás</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="mt-4 flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs font-semibold">V</span>
-            </div>
-            <div className="flex-1">
-              <input
-                type="text"
-                placeholder="Escreva um comentário..."
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all duration-200"
-              />
-            </div>
-          </div>
-        </div>
+      {/* Comentários Inline - Mostra os 2 últimos */}
+      <InlineComments
+        postId={post.id}
+        comments={comments}
+        loading={loadingComments}
+        onShowAllComments={() => setShowComments(true)}
+        onAddComment={handleAddComment}
+        onLikeComment={handleLikeComment}
+      />
+
+      {/* Comentários Completos - Modal expandido */}
+      {showComments && (
+        <PostComments
+          postId={post.id}
+          comments={comments} // Usar os comentários já carregados
+          isOpen={showComments}
+          onClose={() => setShowComments(false)}
+          onAddComment={handleAddComment}
+          onLikeComment={handleLikeComment}
+        />
       )}
+
     </div>
   );
 };

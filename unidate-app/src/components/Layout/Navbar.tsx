@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { logoutUser } from '../../firebase/auth';
 import { 
   Menu, 
   X, 
@@ -9,14 +8,15 @@ import {
   UserPlus, 
   User,
   Settings,
-  LogOut,
   Heart,
   MessageCircle,
   Users,
   Newspaper,
   Calendar,
   MapPin,
-  Award
+  Award,
+  BookOpen,
+  BarChart3
 } from 'lucide-react';
 
 const Navbar: React.FC = () => {
@@ -25,6 +25,7 @@ const Navbar: React.FC = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { currentUser, userProfile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -49,14 +50,10 @@ const Navbar: React.FC = () => {
     };
   }, [isUserMenuOpen]);
 
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-      navigate('/');
-      setIsUserMenuOpen(false);
-    } catch (error) {
-      console.error('Erro ao fazer logout:', error);
-    }
+
+  // Função para detectar se uma rota está ativa
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
   };
 
   // Menu para usuários não autenticados
@@ -70,6 +67,7 @@ const Navbar: React.FC = () => {
   const authenticatedNavLinks = [
     { name: 'Descoberta', href: '/discover', icon: Heart },
     { name: 'UniVerso', href: '/feed', icon: Newspaper, isHighlighted: true },
+    { name: 'Materiais', href: '/materials', icon: BookOpen, isNew: true },
     { name: 'Grupos', href: '/groups', icon: Users },
     { name: 'Bate-papo', href: '/chat', icon: MessageCircle },
     { name: 'Eventos', href: '/events', icon: Calendar, isNew: true },
@@ -79,6 +77,7 @@ const Navbar: React.FC = () => {
   // Menu suspenso do usuário
   const userDropdownItems = [
     { name: 'Meu Perfil', href: '/profile', icon: User },
+    { name: 'Minhas Métricas', href: '/my-analytics', icon: BarChart3, isNew: true },
     { name: 'Configurações', href: '/settings', icon: Settings },
     { name: 'Minhas Conquistas', href: '/achievements', icon: Award, isNew: true },
   ];
@@ -178,14 +177,6 @@ const Navbar: React.FC = () => {
                         )}
                       </Link>
                     ))}
-                    <hr className="my-2 border-gray-200" />
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left transition-colors duration-200"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Sair</span>
-                    </button>
                   </div>
                 )}
               </div>
@@ -243,38 +234,43 @@ const Navbar: React.FC = () => {
                     </span>
                   </div>
                   
-                  {authenticatedNavLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      to={link.href}
-                      className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-colors duration-200 ${
-                        link.isHighlighted 
-                          ? 'text-pink-600 font-bold text-lg' 
-                          : 'text-gray-600 hover:text-indigo-500 hover:bg-gray-50'
-                      }`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {link.icon && <link.icon className={`h-4 w-4 ${link.isHighlighted ? 'text-pink-500' : ''}`} />}
-                      <span className="relative">
-                        {link.name}
-                        {link.isNew && (
-                          <span className="ml-2 text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-0.5 rounded-full">
-                            NOVO
-                          </span>
+                  {authenticatedNavLinks.map((link) => {
+                    const isActive = isActiveRoute(link.href);
+                    return (
+                      <Link
+                        key={link.name}
+                        to={link.href}
+                        className={`flex items-center space-x-3 px-4 py-2 rounded-lg transition-all duration-200 ${
+                          isActive
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md transform scale-105'
+                            : link.isHighlighted 
+                              ? 'text-pink-600 font-bold text-lg hover:bg-pink-50' 
+                              : 'text-gray-600 hover:text-indigo-500 hover:bg-gray-50'
+                        }`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        {link.icon && (
+                          <link.icon className={`h-4 w-4 ${
+                            isActive 
+                              ? 'text-white' 
+                              : link.isHighlighted 
+                                ? 'text-pink-500' 
+                                : 'text-gray-500'
+                          }`} />
                         )}
-                      </span>
-                    </Link>
-                  ))}
+                        <span className="relative">
+                          {link.name}
+                          {link.isNew && !isActive && (
+                            <span className="ml-2 text-xs bg-gradient-to-r from-pink-500 to-purple-500 text-white px-2 py-0.5 rounded-full">
+                              NOVO
+                            </span>
+                          )}
+                        </span>
+                      </Link>
+                    );
+                  })}
                   
                   <hr className="my-4 border-gray-200" />
-                  
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 w-full text-left rounded-lg transition-colors duration-200"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    <span>Sair</span>
-                  </button>
                 </>
               ) : (
                 // Menu para usuários não autenticados
