@@ -8,7 +8,6 @@ import LoadingSpinner from './components/UI/LoadingSpinner';
 import Footer from './components/UI/Footer';
 import ModernAdminLayout from './components/Admin/Layout/SimpleAdminLayout';
 
-// Lazy load components for better performance
 const LoginForm = lazy(() => import('./components/Auth/LoginForm'));
 const RegisterForm = lazy(() => import('./components/Auth/RegisterForm'));
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -50,7 +49,6 @@ const MaterialDetails = lazy(() => import('./pages/MaterialDetails'));
 const UserAnalytics = lazy(() => import('./pages/UserAnalytics'));
 const AdminInstructions = lazy(() => import('./components/Admin/AdminInstructions'));
 
-// Componente para rotas protegidas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated, loading, userProfile } = useAuth();
 
@@ -62,7 +60,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     return <Navigate to="/login" />;
   }
 
-  // Se o usuário está logado mas não completou o onboarding, redireciona
   if (userProfile && !userProfile.onboardingCompleted) {
     return <Navigate to="/onboarding-complete" />;
   }
@@ -70,7 +67,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   return <>{children}</>;
 };
 
-// Componente principal da aplicação
 const AppContent: React.FC = () => {
   const { loading } = useAuth();
   const location = useLocation();
@@ -85,7 +81,6 @@ const AppContent: React.FC = () => {
       <main className={location.pathname.startsWith('/admin') ? '' : 'pt-16'}>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
-          {/* Rotas públicas */}
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
@@ -95,7 +90,6 @@ const AppContent: React.FC = () => {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/onboarding-complete" element={<OnboardingComplete />} />
           
-          {/* Rotas protegidas */}
           <Route 
             path="/dashboard" 
             element={
@@ -229,7 +223,6 @@ const AppContent: React.FC = () => {
             element={<AdminInstructions />} 
           />
           
-          {/* New Features Routes */}
           <Route 
             path="/sos" 
             element={
@@ -247,7 +240,6 @@ const AppContent: React.FC = () => {
             } 
           />
           
-          {/* Admin Routes */}
           <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route 
@@ -365,7 +357,6 @@ const AppContent: React.FC = () => {
             } 
           />
           
-          {/* Rota padrão */}
           <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </Suspense>

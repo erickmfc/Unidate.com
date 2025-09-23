@@ -1,5 +1,3 @@
-// Tipos para o sistema de materiais educacionais
-
 export type MaterialType = 'resumo' | 'livro' | 'video' | 'link' | 'exercicio' | 'prova';
 
 export type MaterialFormat = 'pdf' | 'doc' | 'txt' | 'epub' | 'mp4' | 'avi' | 'url' | 'jpg' | 'png';
@@ -31,7 +29,7 @@ export type MaterialCategory =
 
 export interface MaterialRating {
   userId: string;
-  rating: number; // 1-5 estrelas
+  rating: number;
   comment?: string;
   createdAt: Date;
 }
@@ -52,41 +50,33 @@ export interface EducationalMaterial {
   difficulty: DifficultyLevel;
   tags: string[];
   
-  // Informações do arquivo
-  fileUrl?: string; // Para arquivos físicos
-  fileSize?: number; // Em bytes
+  fileUrl?: string;
+  fileSize?: number;
   fileName?: string;
   
-  // Para links externos
   externalUrl?: string;
   
-  // Metadados
   authorId: string;
   authorName: string;
   university?: string;
   course?: string;
   
-  // Sistema de avaliação
   ratings: MaterialRating[];
   averageRating: number;
   totalRatings: number;
   
-  // Estatísticas
   downloads: MaterialDownload[];
   totalDownloads: number;
   views: number;
   shares: number;
   
-  // Status e moderação
   isApproved: boolean;
   isPublic: boolean;
   reportedCount: number;
   
-  // Timestamps
   createdAt: Date;
   updatedAt: Date;
   
-  // Informações adicionais
   thumbnailUrl?: string;
   previewText?: string;
   language: string;
@@ -129,7 +119,6 @@ export interface MaterialStats {
   totalViews: number;
 }
 
-// Constantes para os tipos de materiais
 export const MATERIAL_TYPES = {
   RESUMO: 'resumo' as MaterialType,
   LIVRO: 'livro' as MaterialType,
@@ -182,7 +171,6 @@ export const MATERIAL_CATEGORIES = {
   LINKS: 'links' as MaterialCategory,
 } as const;
 
-// Mapeamento de labels para exibição
 export const MATERIAL_TYPE_LABELS: Record<MaterialType, string> = {
   resumo: '📝 Resumos e Anotações',
   livro: '📖 Livros e E-books',

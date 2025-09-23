@@ -53,7 +53,6 @@ export interface Post {
 }
 
 export class PostsService {
-  // Criar novo post
   static async createPost(postData: Omit<Post, 'id' | 'timestamp' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
       if (!db) {
@@ -63,7 +62,6 @@ export class PostsService {
 
       console.log('🔄 Tentando criar post no Firebase...', postData);
 
-      // Filtrar campos undefined para evitar erro no Firebase
       const cleanPostData: any = {
         author: postData.author,
         authorId: postData.author.uid,
@@ -78,7 +76,6 @@ export class PostsService {
         updatedAt: serverTimestamp()
       };
 
-      // Adicionar campos opcionais apenas se não forem undefined
       if (postData.image) cleanPostData.image = postData.image;
       if (postData.location) cleanPostData.location = postData.location;
       if (postData.teviData) cleanPostData.teviData = postData.teviData;
@@ -92,7 +89,6 @@ export class PostsService {
     } catch (error: any) {
       console.error('❌ Erro detalhado ao criar post:', error);
       
-      // Tratar erros específicos
       if (error.code === 'permission-denied') {
         throw new Error('Permissão negada. Verifique as regras do Firestore.');
       } else if (error.code === 'unavailable') {
@@ -105,7 +101,6 @@ export class PostsService {
     }
   }
 
-  // Buscar posts
   static async getPosts(limitCount: number = 50): Promise<Post[]> {
     try {
       if (!db) {
@@ -140,7 +135,6 @@ export class PostsService {
     }
   }
 
-  // Curtir/descurtir post
   static async toggleLike(postId: string, userId: string, isLiked: boolean): Promise<void> {
     try {
       if (!db) {
@@ -150,7 +144,7 @@ export class PostsService {
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, {
         isLiked: !isLiked,
-        likes: isLiked ? -1 : 1, // Incremento/decremento
+        likes: isLiked ? -1 : 1,
         updatedAt: serverTimestamp()
       });
 
@@ -161,7 +155,6 @@ export class PostsService {
     }
   }
 
-  // Adicionar comentário
   static async addComment(postId: string, commentData: any): Promise<void> {
     try {
       if (!db) {
@@ -170,11 +163,10 @@ export class PostsService {
 
       const postRef = doc(db, 'posts', postId);
       await updateDoc(postRef, {
-        comments: 1, // Incremento
+        comments: 1,
         updatedAt: serverTimestamp()
       });
 
-      // Adicionar comentário na subcoleção
       await addDoc(collection(db, 'posts', postId, 'comments'), {
         ...commentData,
         timestamp: serverTimestamp()
@@ -187,7 +179,6 @@ export class PostsService {
     }
   }
 
-  // Buscar posts por hashtag
   static async getPostsByHashtag(hashtag: string): Promise<Post[]> {
     try {
       if (!db) {
@@ -222,14 +213,12 @@ export class PostsService {
     }
   }
 
-  // Buscar hashtags em trending
   static async getTrendingHashtags(): Promise<{tag: string, posts: number}[]> {
     try {
       if (!db) {
         throw new Error('Firebase não inicializado');
       }
 
-      // Buscar todas as hashtags dos posts reais
       const postsSnapshot = await getDocs(collection(db, 'posts'));
       const hashtagCount: {[key: string]: number} = {};
 
@@ -243,11 +232,10 @@ export class PostsService {
         }
       });
 
-      // Converter para array e ordenar por quantidade
       const trending = Object.entries(hashtagCount)
         .map(([tag, posts]) => ({ tag: `#${tag}`, posts }))
         .sort((a, b) => b.posts - a.posts)
-        .slice(0, 5); // Top 5
+        .slice(0, 5);
 
       return trending;
     } catch (error) {
@@ -256,7 +244,6 @@ export class PostsService {
     }
   }
 
-  // Deletar post
   static async deletePost(postId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -265,7 +252,6 @@ export class PostsService {
 
       const postRef = doc(db, 'posts', postId);
       
-      // Verificar se o post existe e se o usuário é o autor
       const postDoc = await getDoc(postRef);
       if (!postDoc.exists()) {
         throw new Error('Post não encontrado');
@@ -276,7 +262,6 @@ export class PostsService {
         throw new Error('Você não tem permissão para deletar este post');
       }
 
-      // Deletar o post
       await deleteDoc(postRef);
       
       console.log('✅ Post deletado com sucesso:', postId);

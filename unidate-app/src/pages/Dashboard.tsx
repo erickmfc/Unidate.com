@@ -183,7 +183,6 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 shadow-xl border border-white/20">
             <div className="flex items-center space-x-4 mb-4">
@@ -202,7 +201,6 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             
-            {/* Status Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
               <StatusCard
                 icon={Users}
@@ -226,7 +224,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatCard
                 label="Sintonias"
@@ -255,7 +252,6 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Quick Actions */}
           <div className="lg:col-span-2">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Ações Rápidas</h2>
             <div className="grid md:grid-cols-2 gap-6">
@@ -283,7 +279,6 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Recent Activity */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Atividade Recente</h2>
             <div className="space-y-4">
@@ -312,7 +307,6 @@ const Dashboard: React.FC = () => {
               )}
             </div>
 
-            {/* Upcoming Events */}
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Próximos Eventos</h3>
               <div className="space-y-3">
@@ -340,7 +334,6 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Tips */}
         <div className="mt-12 bg-gradient-to-r from-primary-500 to-accent-500 rounded-2xl p-8 text-white">
           <div className="flex items-center space-x-3 mb-4">
             <Bell className="h-6 w-6" />

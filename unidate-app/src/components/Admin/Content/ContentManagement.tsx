@@ -397,7 +397,6 @@ const ContentManagement: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Gerenciamento de Conteúdo</h1>
@@ -405,7 +404,6 @@ const ContentManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {[
@@ -432,7 +430,6 @@ const ContentManagement: React.FC = () => {
         </nav>
       </div>
 
-      {/* Filtros */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -485,7 +482,6 @@ const ContentManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Conteúdo */}
       {loading ? (
         <div className="animate-pulse space-y-4">
           {[...Array(3)].map((_, i) => (

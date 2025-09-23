@@ -16,14 +16,15 @@ import {
   MapPin,
   Award,
   BookOpen,
-  BarChart3
+  BarChart3,
+  LogOut
 } from 'lucide-react';
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const { currentUser, userProfile, isAuthenticated } = useAuth();
+  const { currentUser, userProfile, isAuthenticated, logoutUser } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -81,6 +82,15 @@ const Navbar: React.FC = () => {
     { name: 'Configurações', href: '/settings', icon: Settings },
     { name: 'Minhas Conquistas', href: '/achievements', icon: Award, isNew: true },
   ];
+  
+  const handleLogout = async () => {
+    try {
+      await logoutUser();
+      navigate('/');
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
 
 
   return (
@@ -177,6 +187,17 @@ const Navbar: React.FC = () => {
                         )}
                       </Link>
                     ))}
+                    <hr className="my-2 border-gray-200" />
+                    <button
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 transition-colors duration-200 w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sair</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -271,6 +292,17 @@ const Navbar: React.FC = () => {
                   })}
                   
                   <hr className="my-4 border-gray-200" />
+                  
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center space-x-3 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200 w-full text-left"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sair</span>
+                  </button>
                 </>
               ) : (
                 // Menu para usuários não autenticados

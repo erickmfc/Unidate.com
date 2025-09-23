@@ -216,7 +216,6 @@ const NotificationSystem: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Sistema de Notificações</h1>
@@ -248,7 +247,6 @@ const NotificationSystem: React.FC = () => {
         </div>
       </div>
 
-      {/* Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
           <div className="flex items-center justify-between">
@@ -299,7 +297,6 @@ const NotificationSystem: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtros e Busca */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1">
@@ -471,7 +468,6 @@ const NotificationSystem: React.FC = () => {
         )}
       </div>
 
-      {/* Configurações */}
       {showSettings && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">

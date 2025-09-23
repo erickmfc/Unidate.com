@@ -65,16 +65,13 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Overlay */}
       <div 
         className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
         onClick={onClose}
       />
       
-      {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div className="relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-xl transition-all">
-          {/* Header */}
           <div className={`px-6 py-4 border-b ${styles.border}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -93,7 +90,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </div>
           </div>
 
-          {/* Content */}
           <div className="px-6 py-4">
             <p className="text-gray-700 leading-relaxed">
               {message}

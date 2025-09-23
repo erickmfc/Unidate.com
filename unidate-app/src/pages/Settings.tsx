@@ -418,7 +418,6 @@ const Settings: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Sidebar */}
           <div className="lg:col-span-1">
             <div className="card">
               <div className="space-y-2">
@@ -450,7 +449,6 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-          {/* Main Content */}
           <div className="lg:col-span-3">
             <div className="card">
               {renderTabContent()}

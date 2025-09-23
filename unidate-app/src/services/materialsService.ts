@@ -36,7 +36,6 @@ const MATERIALS_COLLECTION = 'materials';
 const STORAGE_PATH = 'materials';
 
 export class MaterialsService {
-  // Upload de arquivo para o Storage
   private static async uploadFile(file: File, materialId: string): Promise<string> {
     if (!storage) {
       throw new Error('Firebase Storage não está disponível');
@@ -50,7 +49,6 @@ export class MaterialsService {
     return await getDownloadURL(snapshot.ref);
   }
 
-  // Criar novo material
   static async createMaterial(
     materialData: MaterialUploadData, 
     authorId: string, 
@@ -61,7 +59,6 @@ export class MaterialsService {
         throw new Error('Firebase não está disponível');
       }
       
-      // Criar documento inicial
       const materialRef = await addDoc(collection(db, MATERIALS_COLLECTION), {
         title: materialData.title,
         description: materialData.description,
@@ -77,34 +74,28 @@ export class MaterialsService {
         authorId,
         authorName,
         
-        // Sistema de avaliação
         ratings: [],
         averageRating: 0,
         totalRatings: 0,
         
-        // Estatísticas
         downloads: [],
         totalDownloads: 0,
         views: 0,
         shares: 0,
         
-        // Status
-        isApproved: false, // Requer aprovação manual
+        isApproved: false,
         isPublic: true,
         reportedCount: 0,
         
-        // Timestamps
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         
-        // URLs
         fileUrl: '',
         externalUrl: materialData.externalUrl || '',
       });
 
       const materialId = materialRef.id;
 
-      // Upload do arquivo se fornecido
       if (materialData.file) {
         const fileUrl = await this.uploadFile(materialData.file, materialId);
         await updateDoc(materialRef, {
@@ -121,7 +112,6 @@ export class MaterialsService {
     }
   }
 
-  // Buscar materiais com filtros
   static async getMaterials(
     filter: MaterialFilter = {},
     pageSize: number = 20,
@@ -134,7 +124,6 @@ export class MaterialsService {
       
       let q = query(collection(db, MATERIALS_COLLECTION));
 
-      // Aplicar filtros
       if (filter.type && filter.type.length > 0) {
         q = query(q, where('type', 'in', filter.type));
       }
@@ -163,14 +152,11 @@ export class MaterialsService {
         q = query(q, where('course', '==', filter.course));
       }
 
-      // Apenas materiais aprovados e públicos
       q = query(q, where('isApproved', '==', true));
       q = query(q, where('isPublic', '==', true));
 
-      // Ordenação
       q = query(q, orderBy('createdAt', 'desc'));
 
-      // Paginação
       if (lastDoc) {
         q = query(q, startAfter(lastDoc));
       }
@@ -206,7 +192,6 @@ export class MaterialsService {
     }
   }
 
-  // Buscar material por ID
   static async getMaterialById(materialId: string): Promise<EducationalMaterial | null> {
     try {
       if (!db) {
@@ -241,7 +226,6 @@ export class MaterialsService {
     }
   }
 
-  // Incrementar visualizações
   static async incrementViews(materialId: string): Promise<void> {
     try {
       if (!db) {
@@ -253,7 +237,6 @@ export class MaterialsService {
         views: increment(1),
       });
 
-      // Atualizar métricas do usuário
       const material = await this.getMaterialById(materialId);
       if (material) {
         const { UserMetricsService } = await import('./userMetricsService');
@@ -264,7 +247,6 @@ export class MaterialsService {
     }
   }
 
-  // Adicionar download
   static async addDownload(materialId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -282,7 +264,6 @@ export class MaterialsService {
         totalDownloads: increment(1),
       });
 
-      // Atualizar métricas do usuário
       const material = await this.getMaterialById(materialId);
       if (material) {
         const { UserMetricsService } = await import('./userMetricsService');
@@ -294,7 +275,6 @@ export class MaterialsService {
     }
   }
 
-  // Adicionar avaliação
   static async addRating(
     materialId: string, 
     userId: string, 
@@ -313,7 +293,6 @@ export class MaterialsService {
         throw new Error('Material não encontrado');
       }
 
-      // Remover avaliação anterior do usuário se existir
       const existingRatings = material.ratings.filter(r => r.userId !== userId);
       const newRating: MaterialRating = {
         userId,
@@ -327,12 +306,11 @@ export class MaterialsService {
 
       await updateDoc(materialRef, {
         ratings: allRatings,
-        averageRating: Math.round(averageRating * 10) / 10, // Arredondar para 1 casa decimal
+        averageRating: Math.round(averageRating * 10) / 10,
         totalRatings: allRatings.length,
         updatedAt: serverTimestamp(),
       });
 
-      // Atualizar métricas do usuário
       await this.updateUserMetricsOnRating(material.authorId);
     } catch (error) {
       console.error('Erro ao adicionar avaliação:', error);
@@ -340,7 +318,6 @@ export class MaterialsService {
     }
   }
 
-  // Adicionar compartilhamento
   static async addShare(materialId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -353,7 +330,6 @@ export class MaterialsService {
         updatedAt: serverTimestamp(),
       });
 
-      // Atualizar métricas do usuário
       const material = await this.getMaterialById(materialId);
       if (material) {
         const { UserMetricsService } = await import('./userMetricsService');
@@ -365,7 +341,6 @@ export class MaterialsService {
     }
   }
 
-  // Atualizar métricas do usuário após avaliação
   private static async updateUserMetricsOnRating(authorId: string): Promise<void> {
     try {
       const { UserMetricsService } = await import('./userMetricsService');
@@ -375,7 +350,6 @@ export class MaterialsService {
     }
   }
 
-  // Buscar materiais por usuário
   static async getMaterialsByUser(userId: string): Promise<EducationalMaterial[]> {
     try {
       if (!db) {
@@ -416,7 +390,6 @@ export class MaterialsService {
     }
   }
 
-  // Buscar materiais populares
   static async getPopularMaterials(limitCount: number = 10): Promise<EducationalMaterial[]> {
     try {
       if (!db) {
@@ -459,15 +432,12 @@ export class MaterialsService {
     }
   }
 
-  // Buscar materiais por tags
   static async searchMaterialsByTags(tags: string[]): Promise<EducationalMaterial[]> {
     try {
       if (!db) {
         throw new Error('Firebase não está disponível');
       }
       
-      // Firestore não suporta busca por array-contains-any diretamente
-      // Vamos buscar todos os materiais aprovados e filtrar no cliente
       const q = query(
         collection(db, MATERIALS_COLLECTION),
         where('isApproved', '==', true),
@@ -482,7 +452,6 @@ export class MaterialsService {
         const data = doc.data();
         const materialTags = data.tags || [];
         
-        // Verificar se pelo menos uma tag corresponde
         const hasMatchingTag = tags.some(tag => 
           materialTags.some((materialTag: string) => 
             materialTag.toLowerCase().includes(tag.toLowerCase())
@@ -514,7 +483,6 @@ export class MaterialsService {
     }
   }
 
-  // Atualizar material
   static async updateMaterial(
     materialId: string, 
     updates: Partial<MaterialUploadData>
@@ -531,7 +499,6 @@ export class MaterialsService {
         updatedAt: serverTimestamp(),
       };
 
-      // Upload de novo arquivo se fornecido
       if (updates.file) {
         const fileUrl = await this.uploadFile(updates.file, materialId);
         updateData.fileUrl = fileUrl;
@@ -546,7 +513,6 @@ export class MaterialsService {
     }
   }
 
-  // Deletar material
   static async deleteMaterial(materialId: string): Promise<void> {
     try {
       if (!db || !storage) {
@@ -556,12 +522,10 @@ export class MaterialsService {
       const material = await this.getMaterialById(materialId);
       
       if (material?.fileUrl) {
-        // Deletar arquivo do Storage
         const fileRef = ref(storage, material.fileUrl);
         await deleteObject(fileRef);
       }
 
-      // Deletar documento do Firestore
       const materialRef = doc(db, MATERIALS_COLLECTION, materialId);
       await deleteDoc(materialRef);
     } catch (error) {
@@ -570,7 +534,6 @@ export class MaterialsService {
     }
   }
 
-  // Obter estatísticas gerais
   static async getMaterialStats(): Promise<MaterialStats> {
     try {
       if (!db) {
@@ -597,23 +560,18 @@ export class MaterialsService {
         const data = doc.data();
         stats.totalMaterials++;
 
-        // Contar por tipo
         const type = data.type as MaterialType;
         stats.materialsByType[type] = (stats.materialsByType[type] || 0) + 1;
 
-        // Contar por matéria
         const subject = data.subject as Subject;
         stats.materialsBySubject[subject] = (stats.materialsBySubject[subject] || 0) + 1;
 
-        // Contar por dificuldade
         const difficulty = data.difficulty as DifficultyLevel;
         stats.materialsByDifficulty[difficulty] = (stats.materialsByDifficulty[difficulty] || 0) + 1;
 
-        // Somar downloads e visualizações
         stats.totalDownloads += data.totalDownloads || 0;
         stats.totalViews += data.views || 0;
 
-        // Calcular média de avaliações
         if (data.averageRating > 0) {
           totalRatingSum += data.averageRating;
           materialsWithRatings++;

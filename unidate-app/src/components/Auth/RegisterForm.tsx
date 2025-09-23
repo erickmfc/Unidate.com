@@ -13,7 +13,6 @@ const RegisterForm: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
           </div>
@@ -25,7 +24,6 @@ const RegisterForm: React.FC = () => {
           </p>
         </div>
 
-        {/* Features */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-purple-100 to-pink-100 rounded-lg flex items-center justify-center">
@@ -58,7 +56,6 @@ const RegisterForm: React.FC = () => {
           </div>
         </div>
 
-        {/* CTA */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="text-center space-y-4">
             <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto">
@@ -85,7 +82,6 @@ const RegisterForm: React.FC = () => {
           </div>
         </div>
 
-        {/* Login Link */}
         <div className="text-center">
           <p className="text-sm text-gray-600">
             Já tem uma conta?{' '}

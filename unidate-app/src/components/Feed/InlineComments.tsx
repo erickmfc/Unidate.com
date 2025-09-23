@@ -87,7 +87,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
 
   return (
     <div className="mt-3 pt-3 border-t border-gray-100">
-      {/* Header dos Comentários */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
           <MessageCircle className="h-4 w-4 text-gray-500" />
@@ -106,7 +105,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
         )}
       </div>
 
-      {/* Lista de Comentários (máximo 2) */}
       {loading ? (
         <div className="flex items-center justify-center py-4">
           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
@@ -121,14 +119,12 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
         <div className="space-y-2">
           {comments.slice(-2).map((comment) => (
             <div key={comment.id} className="flex space-x-2">
-              {/* Avatar do Comentador */}
               <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                 <span className="text-white text-xs font-semibold">
                   {comment.userName.charAt(0).toUpperCase()}
                 </span>
               </div>
 
-              {/* Conteúdo do Comentário */}
               <div className="flex-1 min-w-0">
                 <div className="bg-gray-50 rounded-2xl px-3 py-2">
                   <div className="flex items-center space-x-2 mb-1">
@@ -142,7 +138,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
                   <p className="text-sm text-gray-800 leading-relaxed">{comment.content}</p>
                 </div>
 
-                {/* Ações do Comentário */}
                 <div className="flex items-center space-x-3 mt-1 ml-3">
                   <button
                     onClick={() => handleLikeComment(comment.id)}
@@ -162,7 +157,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
         </div>
       )}
 
-      {/* Input de Novo Comentário */}
       <div className="mt-3">
         {!showInput ? (
           <button
@@ -176,7 +170,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
           </button>
         ) : (
           <form onSubmit={handleSubmitComment} className="flex items-center space-x-2">
-            {/* Avatar do Usuário Atual */}
             <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
               <span className="text-white text-xs font-semibold">
                 {currentUser?.displayName?.charAt(0) || 'U'}

@@ -22,23 +22,22 @@ import { GroupsService, Group as FirebaseGroup } from '../services/groupsService
 import GroupEditorsModal from '../components/Groups/GroupEditorsModal';
 import { useUniDateToast } from '../components/UI/Toast';
 
-// Interface local para o componente (com members como number e lastActivity como string)
 interface Group {
   id: string;
   name: string;
   description: string;
-  members: number; // Number para o componente
+  members: number;
   maxMembers?: number;
   category: string;
   university: string;
   isJoined: boolean;
-  lastActivity: string; // String para o componente
+  lastActivity: string;
   image?: string;
   tags: string[];
   createdBy: string;
   isOwner: boolean;
   isEditor: boolean;
-  editors?: string[]; // Array de UIDs dos editores
+  editors?: string[];
   isPublic: boolean;
   upcomingEvents?: {
     title: string;
@@ -200,10 +199,8 @@ const Groups: React.FC = () => {
 
   const handleEditorsUpdated = (editors: string[]) => {
     if (selectedGroup) {
-      // Atualizar o grupo selecionado com os novos editores
       setSelectedGroup(prev => prev ? { ...prev, editors } : null);
       
-      // Atualizar a lista de grupos
       setGroups(prev => prev.map(group => 
         group.id === selectedGroup.id 
           ? { ...group, editors }
@@ -214,7 +211,6 @@ const Groups: React.FC = () => {
 
   const [hasCreatedGroup, setHasCreatedGroup] = useState(false);
 
-  // Verificar se usuário já criou um grupo
   useEffect(() => {
     const checkUserGroups = async () => {
       if (currentUser) {
@@ -253,8 +249,8 @@ const Groups: React.FC = () => {
         tags: newGroup.tags,
         createdBy: currentUser.uid,
         isPublic: true,
-        members: [currentUser.uid], // O criador é automaticamente membro
-        editors: [currentUser.uid], // O criador é automaticamente editor
+        members: [currentUser.uid],
+        editors: [currentUser.uid],
         maxMembers: 100,
         lastActivity: new Date(),
         upcomingEvents: []
@@ -267,16 +263,16 @@ const Groups: React.FC = () => {
         id: groupId,
         name: groupToSave.name,
         description: groupToSave.description,
-        members: 1, // Criador é automaticamente membro
+        members: 1,
         maxMembers: groupToSave.maxMembers,
         category: groupToSave.category,
         university: groupToSave.university,
-        isJoined: true, // Criador já está no grupo
+        isJoined: true,
         lastActivity: new Date().toISOString(),
         tags: groupToSave.tags,
         createdBy: groupToSave.createdBy,
         isOwner: true,
-        isEditor: true, // Criador é automaticamente editor
+        isEditor: true,
         editors: [currentUser.uid],
         isPublic: groupToSave.isPublic,
         upcomingEvents: []
@@ -303,8 +299,6 @@ const Groups: React.FC = () => {
     }
   };
 
-  // Função handleSubmitGroup já implementada acima
-
   const addTag = () => {
     if (newGroup.tagInput.trim() && !newGroup.tags.includes(newGroup.tagInput.trim())) {
       setNewGroup({
@@ -325,16 +319,13 @@ const Groups: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Grupos</h1>
           <p className="text-gray-600">Conecte-se com pessoas que compartilham seus interesses</p>
         </div>
 
-        {/* Search and Filters */}
         <div className="card mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
-            {/* Search */}
             <div className="relative flex-1 max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -348,9 +339,7 @@ const Groups: React.FC = () => {
               />
             </div>
 
-            {/* Filters */}
             <div className="flex items-center space-x-4">
-              {/* Category Filter */}
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
@@ -363,7 +352,6 @@ const Groups: React.FC = () => {
                 ))}
               </select>
 
-              {/* View Mode */}
               <div className="flex items-center space-x-2">
                 <button
                   onClick={() => setViewMode('grid')}
@@ -383,7 +371,6 @@ const Groups: React.FC = () => {
                 </button>
               </div>
 
-              {/* Create Group Button */}
               <button 
                 onClick={handleCreateGroup}
                 className={`btn-primary flex items-center space-x-2 ${
@@ -399,11 +386,10 @@ const Groups: React.FC = () => {
           </div>
         </div>
 
-        {/* Debug Info */}
         {process.env.NODE_ENV === 'development' && (
           <div className="mb-4 p-4 bg-blue-50 rounded-lg">
             <p className="text-sm text-blue-800">
-              <strong>Debug:</strong> {groups.length} grupos carregados, {filteredGroups.length} filtrados
+              <strong>Debug:</strong> {groups.length} grupo{groups.length !== 1 ? 's' : ''} carregados, {filteredGroups.length} filtrado{filteredGroups.length !== 1 ? 's' : ''}
             </p>
             <p className="text-sm text-blue-800">
               <strong>Usuário:</strong> {currentUser?.uid ? 'Logado' : 'Não logado'}
@@ -414,7 +400,6 @@ const Groups: React.FC = () => {
           </div>
         )}
 
-        {/* Groups Grid/List */}
         {loading ? (
           <div className="text-center py-12">
             <div className="spinner mx-auto mb-4"></div>
@@ -448,7 +433,6 @@ const Groups: React.FC = () => {
             >
               {viewMode === 'list' ? (
                 <>
-                  {/* List View */}
                   <div className="flex-1">
                     <div className="flex items-start justify-between mb-4">
                       <div>
@@ -471,7 +455,6 @@ const Groups: React.FC = () => {
                         </div>
                       </div>
                       <div className="flex items-center space-x-2">
-                        {/* Editor Button - Only for owners and editors */}
                         {(group.isOwner || group.isEditor) && (
                           <button
                             onClick={() => handleManageEditors(group)}
@@ -505,7 +488,6 @@ const Groups: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* Click indicator for list view */}
                     <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100">
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
                         <span>Clique para ver mais</span>
@@ -516,19 +498,15 @@ const Groups: React.FC = () => {
                 </>
               ) : (
                 <>
-                  {/* Grid View */}
                   <div className="relative">
-                    {/* Group Image/Icon */}
                     <div className="w-full h-48 bg-gradient-to-br from-primary-500 to-accent-500 rounded-xl mb-4 flex items-center justify-center">
                       <Users className="h-16 w-16 text-white" />
                     </div>
 
-                    {/* Category Badge */}
                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
                       <span className="text-sm font-medium text-gray-700">{group.category}</span>
                     </div>
 
-                    {/* Join Button */}
                     <button
                       onClick={() => handleJoinGroup(group.id)}
                       className={`absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 flex items-center space-x-1 ${
@@ -550,7 +528,6 @@ const Groups: React.FC = () => {
                       )}
                     </button>
 
-                    {/* Editor Button - Only for owners and editors */}
                     {(group.isOwner || group.isEditor) && (
                       <button
                         onClick={() => handleManageEditors(group)}
@@ -570,7 +547,6 @@ const Groups: React.FC = () => {
                     </h3>
                     <p className="text-gray-600 mb-4 line-clamp-2">{group.description}</p>
 
-                    {/* Group Stats */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-4 text-sm text-gray-500">
                         <div className="flex items-center space-x-1">
@@ -585,7 +561,6 @@ const Groups: React.FC = () => {
                       <span className="text-sm text-gray-500">{group.lastActivity}</span>
                     </div>
 
-                    {/* Tags */}
                     <div className="flex flex-wrap gap-2 mb-4">
                       {group.tags.map((tag, index) => (
                         <span
@@ -597,7 +572,6 @@ const Groups: React.FC = () => {
                       ))}
                     </div>
 
-                    {/* Upcoming Events */}
                     {group.upcomingEvents && group.upcomingEvents.length > 0 && (
                       <div className="bg-primary-50 border border-primary-200 rounded-lg p-3">
                         <div className="flex items-center space-x-2 mb-2">
@@ -617,7 +591,6 @@ const Groups: React.FC = () => {
                       </div>
                     )}
                     
-                    {/* Click indicator */}
                     <div className="flex items-center justify-end mt-4 pt-4 border-t border-gray-100">
                       <div className="flex items-center space-x-1 text-sm text-gray-500">
                         <span>Clique para ver mais</span>
@@ -632,7 +605,6 @@ const Groups: React.FC = () => {
           </div>
         )}
 
-        {/* Create Group Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -648,7 +620,6 @@ const Groups: React.FC = () => {
                 </div>
 
                 <div className="space-y-4">
-                  {/* Group Name */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Nome do Grupo *
@@ -663,7 +634,6 @@ const Groups: React.FC = () => {
                     />
                   </div>
 
-                  {/* Description */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Descrição *
@@ -680,7 +650,6 @@ const Groups: React.FC = () => {
                     </p>
                   </div>
 
-                  {/* Category */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Categoria *
@@ -699,7 +668,6 @@ const Groups: React.FC = () => {
                     </select>
                   </div>
 
-                  {/* Tags */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       Tags
@@ -739,7 +707,6 @@ const Groups: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Info */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex items-start space-x-2">
                       <AlertCircle className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -775,7 +742,6 @@ const Groups: React.FC = () => {
           </div>
         )}
 
-        {/* Modal de Gerenciar Editores */}
         {selectedGroup && (
           <GroupEditorsModal
             isOpen={showEditorsModal}

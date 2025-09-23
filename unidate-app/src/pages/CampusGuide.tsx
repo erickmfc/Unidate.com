@@ -88,13 +88,10 @@ const CampusGuide: React.FC = () => {
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Carregar lugares reais
   useEffect(() => {
     const loadPlaces = async () => {
       try {
         setLoading(true);
-        // TODO: Implementar carregamento de lugares reais do Firebase
-        // Por enquanto, deixar vazio para mostrar apenas lugares reais
         setPlaces([]);
       } catch (error) {
         console.error('Erro ao carregar lugares:', error);

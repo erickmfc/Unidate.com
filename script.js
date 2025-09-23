@@ -1,7 +1,5 @@
-// UniDate - JavaScript para Interatividade
 document.addEventListener('DOMContentLoaded', function() {
     
-    // Elementos do DOM
     const navbar = document.querySelector('.navbar');
     const hamburger = document.getElementById('hamburger');
     const navMenu = document.getElementById('nav-menu');
@@ -16,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const heroRegisterBtn = document.getElementById('heroRegisterBtn');
     const heroLearnBtn = document.getElementById('heroLearnBtn');
     
-    // Navbar Scroll Effect
     window.addEventListener('scroll', function() {
         if (window.scrollY > 50) {
             navbar.classList.add('scrolled');
@@ -25,12 +22,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Mobile Menu Toggle
     hamburger.addEventListener('click', function() {
         hamburger.classList.toggle('active');
         navMenu.classList.toggle('active');
         
-        // Prevent body scroll when menu is open
         if (navMenu.classList.contains('active')) {
             document.body.style.overflow = 'hidden';
         } else {
@@ -38,7 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Close mobile menu when clicking on a link
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', function() {
             hamburger.classList.remove('active');
@@ -47,7 +41,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Modal Functions
     function openModal(modal) {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -58,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = 'auto';
     }
     
-    // Login Modal Events
     loginBtn.addEventListener('click', function() {
         openModal(loginModal);
     });
@@ -75,12 +67,10 @@ document.addEventListener('DOMContentLoaded', function() {
         closeModal(registerModal);
     });
     
-    // Register Modal Events
     registerBtn.addEventListener('click', function() {
         openModal(registerModal);
     });
     
-    // Switch between Login and Register modals
     switchToRegister.addEventListener('click', function(e) {
         e.preventDefault();
         closeModal(loginModal);
@@ -93,7 +83,6 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => openModal(loginModal), 150);
     });
     
-    // Close modals when clicking outside
     [loginModal, registerModal].forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
@@ -102,7 +91,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             if (loginModal.classList.contains('active')) {
@@ -114,41 +102,33 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Form Validation and Submission
     const loginForm = document.querySelector('.login-form');
     const registerForm = document.querySelector('.register-form');
     
-    // Login Form
     loginForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         
-        // Basic validation
         if (!email || !password) {
             showNotification('Por favor, preencha todos os campos.', 'error');
             return;
         }
         
-        // Email validation for institutional email
         if (!email.includes('@') || !email.includes('.edu.br')) {
             showNotification('Por favor, use seu e-mail institucional.', 'error');
             return;
         }
         
-        // Simulate login process
         showNotification('Entrando...', 'info');
         
         setTimeout(() => {
             showNotification('Login realizado com sucesso!', 'success');
             closeModal(loginModal);
-            // Here you would redirect to the dashboard
-            // window.location.href = 'dashboard.html';
         }, 1500);
     });
     
-    // Register Form
     registerForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -157,49 +137,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const password = document.getElementById('regPassword').value;
         const confirmPassword = document.getElementById('regConfirmPassword').value;
         
-        // Basic validation
         if (!name || !email || !password || !confirmPassword) {
             showNotification('Por favor, preencha todos os campos.', 'error');
             return;
         }
         
-        // Email validation for institutional email
         if (!email.includes('@') || !email.includes('.edu.br')) {
             showNotification('Por favor, use seu e-mail institucional.', 'error');
             return;
         }
         
-        // Password validation
         if (password.length < 8) {
             showNotification('A senha deve ter pelo menos 8 caracteres.', 'error');
             return;
         }
         
-        // Password confirmation
         if (password !== confirmPassword) {
             showNotification('As senhas não coincidem.', 'error');
             return;
         }
         
-        // Simulate registration process
         showNotification('Criando conta...', 'info');
         
         setTimeout(() => {
             showNotification('Conta criada com sucesso! Verifique seu e-mail.', 'success');
             closeModal(registerModal);
-            // Here you would redirect to email verification or dashboard
         }, 2000);
     });
     
-    // Notification System
     function showNotification(message, type = 'info') {
-        // Remove existing notifications
         const existingNotification = document.querySelector('.notification');
         if (existingNotification) {
             existingNotification.remove();
         }
         
-        // Create notification element
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.innerHTML = `
@@ -209,7 +180,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
         
-        // Add styles
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -228,12 +198,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.body.appendChild(notification);
         
-        // Animate in
         setTimeout(() => {
             notification.style.transform = 'translateX(0)';
         }, 100);
         
-        // Auto remove after 4 seconds
         setTimeout(() => {
             notification.style.transform = 'translateX(400px)';
             setTimeout(() => {
@@ -264,7 +232,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return colors[type] || colors.info;
     }
     
-    // Smooth scrolling for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -278,7 +245,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Hero Learn More Button
     heroLearnBtn.addEventListener('click', function() {
         const featuresSection = document.getElementById('features');
         if (featuresSection) {
@@ -289,7 +255,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Add loading animation to buttons
     function addLoadingState(button, text = 'Carregando...') {
         const originalText = button.innerHTML;
         button.innerHTML = `
@@ -304,7 +269,6 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
     
-    // Intersection Observer for animations
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -319,7 +283,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
     
-    // Observe feature cards for animation
     document.querySelectorAll('.feature-card').forEach(card => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(30px)';
@@ -327,7 +290,6 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(card);
     });
     
-    // Add parallax effect to floating elements
     window.addEventListener('scroll', function() {
         const scrolled = window.pageYOffset;
         const parallaxElements = document.querySelectorAll('.floating-icon');
@@ -339,7 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Add hover effects to feature cards
     document.querySelectorAll('.feature-card').forEach(card => {
         card.addEventListener('mouseenter', function() {
             this.style.transform = 'translateY(-10px) scale(1.02)';
@@ -350,7 +311,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Initialize tooltips for better UX
     function initTooltips() {
         const tooltipElements = document.querySelectorAll('[data-tooltip]');
         
@@ -394,12 +354,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize tooltips
     initTooltips();
     
-    // Add keyboard navigation support
     document.addEventListener('keydown', function(e) {
-        // Tab navigation for modals
         if (loginModal.classList.contains('active') || registerModal.classList.contains('active')) {
             const focusableElements = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
             const modal = loginModal.classList.contains('active') ? loginModal : registerModal;

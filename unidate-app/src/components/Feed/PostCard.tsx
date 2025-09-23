@@ -67,7 +67,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
   const menuRef = useRef<HTMLDivElement>(null);
   const isOwner = currentUserId && post.author.uid === currentUserId;
 
-  // Fechar menu quando clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -81,7 +80,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
     };
   }, []);
 
-  // Carregar os 2 últimos comentários automaticamente
   useEffect(() => {
     if (!unsubscribeComments) {
       setLoadingComments(true);
@@ -91,7 +89,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
         post.id,
         (loadedComments) => {
           console.log('📱 [POSTCARD] Comentários carregados:', loadedComments.length);
-          // Pegar apenas os 2 últimos comentários
           const lastTwoComments = loadedComments.slice(-2);
           setComments(lastTwoComments);
           setLoadingComments(false);
@@ -100,13 +97,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
           console.error('❌ [POSTCARD] Erro ao carregar comentários:', error);
           setLoadingComments(false);
         },
-        2 // Carregar apenas 2 comentários para evitar duplicação
+        2
       );
       
       setUnsubscribeComments(() => unsubscribe);
     }
 
-    // Cleanup quando o componente for desmontado
     return () => {
       if (unsubscribeComments) {
         unsubscribeComments();
@@ -145,7 +141,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
       );
       
       console.log('✅ [POSTCARD] Comentário adicionado com sucesso!');
-      // O listener vai atualizar automaticamente os comentários
     } catch (error) {
       console.error('❌ [POSTCARD] Erro ao adicionar comentário:', error);
       throw error;
@@ -164,7 +159,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
       await CommentsService.toggleCommentLike(commentId, currentUser.uid, isLiked);
       
       console.log('✅ [POSTCARD] Like do comentário atualizado');
-      // O listener vai atualizar automaticamente
     } catch (error) {
       console.error('❌ [POSTCARD] Erro ao curtir comentário:', error);
     }
@@ -194,7 +188,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
     const hashtags = extractHashtags(post.content);
     let content = post.content;
 
-    // Replace hashtags with styled spans
     hashtags.forEach(hashtag => {
       content = content.replace(hashtag, `<span class="text-primary-600 font-medium">${hashtag}</span>`);
     });
@@ -204,7 +197,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
 
   return (
     <div className={`card ${post.type === 'tevi' ? 'border-l-4 border-l-pink-500 bg-gradient-to-r from-pink-50 to-white' : ''}`}>
-      {/* Post Header */}
       <div className="flex items-center justify-between mb-4">
         <div 
           className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors duration-200"
@@ -240,7 +232,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
               <MoreHorizontal className="h-5 w-5 text-gray-600" />
             </button>
             
-            {/* Menu de Opções */}
             {showMenu && (
               <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
                 <div className="py-1">
@@ -273,7 +264,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
         </div>
       </div>
 
-      {/* Post Content */}
       <div className="mb-4">
         <div 
           className="text-gray-900 mb-3"
@@ -320,7 +310,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
         )}
       </div>
 
-      {/* Post Actions */}
       <div className="flex items-center justify-between pt-4 border-t border-gray-200">
         <div className="flex items-center space-x-6">
           <button
@@ -360,7 +349,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
         </div>
       </div>
 
-      {/* Comentários Inline - Mostra os 2 últimos */}
       <InlineComments
         postId={post.id}
         comments={comments}
@@ -370,11 +358,10 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
         onLikeComment={handleLikeComment}
       />
 
-      {/* Comentários Completos - Modal expandido */}
       {showComments && (
         <PostComments
           postId={post.id}
-          comments={comments} // Usar os comentários já carregados
+          comments={comments}
           isOpen={showComments}
           onClose={() => setShowComments(false)}
           onAddComment={handleAddComment}
@@ -387,4 +374,3 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
 };
 
 export default PostCard;
-

@@ -36,6 +36,7 @@ UniDate é uma plataforma social hiperlocal e exclusiva para estudantes universi
 - **Analytics:** Firebase Analytics
 - **Icons:** Lucide React
 - **Routing:** React Router
+- **PWA:** Service Worker para funcionalidades offline e instalação
 
 ## 📦 Instalação
 
@@ -97,6 +98,11 @@ const firebaseConfig = {
 - ✅ Chat em tempo real
 - ✅ Feed público do campus
 - ✅ Grupos e comunidades
+- ✅ Suporte a PWA (Progressive Web App)
+  - Instalação no dispositivo
+  - Funcionamento offline
+  - Notificações push
+  - Atalhos rápidos para principais funcionalidades
 
 ### Para Administradores
 - ✅ Dashboard com KPIs

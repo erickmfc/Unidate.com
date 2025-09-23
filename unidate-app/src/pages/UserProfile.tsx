@@ -153,7 +153,6 @@ const UserProfile: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center space-x-4 mb-6">
@@ -169,16 +168,13 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
 
-          {/* Profile Info */}
           <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
-            {/* Avatar */}
             <div className="w-32 h-32 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
               <span className="text-white text-4xl font-bold">
                 {userProfile.name.charAt(0).toUpperCase()}
               </span>
             </div>
 
-            {/* User Info */}
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
                 <h2 className="text-3xl font-bold text-gray-900">{userProfile.name}</h2>
@@ -201,7 +197,6 @@ const UserProfile: React.FC = () => {
                 <p className="text-gray-700 mb-4">{userProfile.bio}</p>
               )}
 
-              {/* Stats */}
               <div className="flex items-center space-x-6 text-sm text-gray-600">
                 <div className="flex items-center space-x-2">
                   <BookOpen className="h-4 w-4" />
@@ -218,7 +213,6 @@ const UserProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col space-y-3">
               <button
                 onClick={handleSendMessage}
@@ -242,12 +236,9 @@ const UserProfile: React.FC = () => {
         </div>
       </div>
 
-      {/* Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="md:col-span-2 space-y-6">
-            {/* Posts */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Posts Recentes</h3>
               {userPosts.length === 0 ? (
@@ -294,9 +285,7 @@ const UserProfile: React.FC = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* About */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Sobre</h3>
               <div className="space-y-3">
@@ -323,7 +312,6 @@ const UserProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Friends */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Colegas Universitários</h3>
               <div className="text-center py-4">

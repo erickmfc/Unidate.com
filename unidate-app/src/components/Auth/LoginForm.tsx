@@ -12,6 +12,7 @@ import {
   LogIn
 } from 'lucide-react';
 import GoogleSignInButton from './GoogleSignInButton';
+import LoginStats from './LoginStats';
 
 const LoginForm: React.FC = () => {
   const [loginMethod, setLoginMethod] = useState<'email' | 'registration'>('registration');
@@ -58,7 +59,7 @@ const LoginForm: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full space-y-6">
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
@@ -71,6 +72,9 @@ const LoginForm: React.FC = () => {
           </p>
         </div>
 
+        {/* Estatísticas */}
+        <LoginStats className="mb-6" />
+        
         {/* Login Method Toggle */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1">
           <div className="flex">
@@ -176,7 +180,7 @@ const LoginForm: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center space-x-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl hover:opacity-90 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>
@@ -186,7 +190,7 @@ const LoginForm: React.FC = () => {
               ) : (
                 <>
                   <LogIn className="h-5 w-5" />
-                  <span>Entrar</span>
+                  <span>Fazer Login</span>
                 </>
               )}
             </button>

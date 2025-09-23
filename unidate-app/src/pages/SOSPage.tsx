@@ -94,7 +94,6 @@ const SOSPage: React.FC = () => {
       <Navbar />
       
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <HelpCircle className="w-8 h-8 text-red-500" />
@@ -105,7 +104,6 @@ const SOSPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Tabs */}
         <div className="flex justify-center mb-8">
           <div className="bg-white rounded-lg p-1 shadow-sm">
             <button
@@ -141,7 +139,6 @@ const SOSPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Content */}
         {activeTab === 'ask' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl shadow-sm p-6">
@@ -220,7 +217,6 @@ const SOSPage: React.FC = () => {
 
         {activeTab === 'help' && (
           <div>
-            {/* Filters */}
             <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
@@ -250,7 +246,6 @@ const SOSPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Posts */}
             <div className="space-y-4">
               {filteredPosts.map((post) => (
                 <div key={post.id} className="bg-white rounded-xl shadow-sm p-6">

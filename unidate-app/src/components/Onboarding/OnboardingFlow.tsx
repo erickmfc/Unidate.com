@@ -49,10 +49,26 @@ const OnboardingFlow: React.FC = () => {
   });
 
   const universities = [
+    
+    'UFRJ - Universidade Federal do Rio de Janeiro',
+    'UFF - Universidade Federal Fluminense',
+    'UERJ - Universidade do Estado do Rio de Janeiro',
+    'UFRRJ - Universidade Federal Rural do Rio de Janeiro',
+    'UNIRIO - Universidade Federal do Estado do Rio de Janeiro',
+    'PUC-Rio - Pontifícia Universidade Católica do Rio de Janeiro',
+    'UVA - Universidade Veiga de Almeida',
+    'UNESA - Universidade Estácio de Sá',
+    'UCAM - Universidade Cândido Mendes',
+    'UNIVERSO - Universidade Salgado de Oliveira',
+    'UCB - Universidade Castelo Branco',
+    'UNIG - Universidade Iguaçu',
+    '✨ UNIFAA - Universidade de Vassouras ✨',
+    'UNIFOA - Centro Universitário de Volta Redonda',
+    
+    
     'USP - Universidade de São Paulo',
     'UNICAMP - Universidade Estadual de Campinas',
     'UFMG - Universidade Federal de Minas Gerais',
-    'UFRJ - Universidade Federal do Rio de Janeiro',
     'UFRGS - Universidade Federal do Rio Grande do Sul',
     'UFPR - Universidade Federal do Paraná',
     'UFSC - Universidade Federal de Santa Catarina',
@@ -70,7 +86,6 @@ const OnboardingFlow: React.FC = () => {
     'UFPB - Universidade Federal da Paraíba',
     'UFPI - Universidade Federal do Piauí',
     'PUC-SP - Pontifícia Universidade Católica de São Paulo',
-    'PUC-Rio - Pontifícia Universidade Católica do Rio de Janeiro',
     'PUC-RS - Pontifícia Universidade Católica do Rio Grande do Sul',
     'PUC-MG - Pontifícia Universidade Católica de Minas Gerais',
     'PUC-PR - Pontifícia Universidade Católica do Paraná',
@@ -236,7 +251,6 @@ const OnboardingFlow: React.FC = () => {
         formData.period
       );
 
-      // Redirecionar para verificação de e-mail
       navigate('/verify-email', { 
         state: { email: formData.email } 
       });
@@ -396,7 +410,7 @@ const OnboardingFlow: React.FC = () => {
                     onChange={(e) => handleInputChange('period', parseInt(e.target.value))}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent appearance-none bg-white"
                   >
-                    {[1, 2].map((period) => (
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((period) => (
                       <option key={period} value={period}>{period}º período</option>
                     ))}
                   </select>
@@ -492,7 +506,6 @@ const OnboardingFlow: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
           </div>
@@ -504,7 +517,6 @@ const OnboardingFlow: React.FC = () => {
           </p>
         </div>
 
-        {/* Progress Bar */}
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div 
             className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
@@ -512,7 +524,6 @@ const OnboardingFlow: React.FC = () => {
           ></div>
         </div>
 
-        {/* Step Indicator */}
         <div className="flex justify-center space-x-2">
           {[1, 2, 3, 4].map((step) => (
             <div
@@ -528,11 +539,9 @@ const OnboardingFlow: React.FC = () => {
           ))}
         </div>
 
-        {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {renderStep()}
 
-          {/* Error Message */}
           {error && (
             <div className="mt-6 flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
               <AlertCircle className="h-5 w-5 text-red-500" />
@@ -540,7 +549,6 @@ const OnboardingFlow: React.FC = () => {
             </div>
           )}
 
-          {/* Navigation Buttons */}
           <div className="mt-8 flex justify-between">
             <button
               onClick={handlePrevious}
@@ -581,7 +589,6 @@ const OnboardingFlow: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="text-center">
           <p className="text-sm text-gray-500">
             Já tem uma conta?{' '}

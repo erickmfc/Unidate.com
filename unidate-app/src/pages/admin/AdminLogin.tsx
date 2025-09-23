@@ -56,7 +56,6 @@ const AdminLogin: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-gradient-to-r from-red-500 to-orange-500 rounded-2xl">
@@ -71,7 +70,6 @@ const AdminLogin: React.FC = () => {
           </p>
         </div>
 
-        {/* Security Notice */}
         <div className="bg-red-900/20 border border-red-500/30 rounded-xl p-4">
           <div className="flex items-center space-x-2">
             <AlertCircle className="h-5 w-5 text-red-400" />
@@ -83,10 +81,8 @@ const AdminLogin: React.FC = () => {
           </p>
         </div>
 
-        {/* Login Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
                 Usuário de Administrador
@@ -106,7 +102,6 @@ const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
                 Senha de Administrador
@@ -137,7 +132,6 @@ const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            {/* 2FA Field */}
             {showTwoFactor && (
               <div>
                 <label htmlFor="twoFactorCode" className="block text-sm font-medium text-gray-300 mb-2">
@@ -165,7 +159,6 @@ const AdminLogin: React.FC = () => {
             )}
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="flex items-center space-x-2 p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
               <AlertCircle className="h-5 w-5 text-red-400" />
@@ -173,7 +166,6 @@ const AdminLogin: React.FC = () => {
             </div>
           )}
 
-          {/* Submit Button */}
           <div>
             <button
               type="submit"
@@ -195,7 +187,6 @@ const AdminLogin: React.FC = () => {
           </div>
         </form>
 
-        {/* Demo Credentials */}
         <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-4">
           <h4 className="text-gray-300 font-medium mb-2">Credenciais de Administração:</h4>
           <div className="text-sm text-gray-400 space-y-1">
@@ -205,7 +196,6 @@ const AdminLogin: React.FC = () => {
           </div>
         </div>
 
-        {/* Admin Instructions Link */}
         <div className="text-center mb-4">
           <Link 
             to="/admin-instructions" 
@@ -215,7 +205,6 @@ const AdminLogin: React.FC = () => {
           </Link>
         </div>
 
-        {/* Footer */}
         <div className="text-center">
           <p className="text-gray-400 text-sm">
             © 2024 UniDate • Sistema de Administração

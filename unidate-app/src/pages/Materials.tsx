@@ -182,7 +182,6 @@ const Materials: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
@@ -206,7 +205,6 @@ const Materials: React.FC = () => {
             )}
           </div>
 
-          {/* Estatísticas */}
           {stats && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
@@ -253,7 +251,6 @@ const Materials: React.FC = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar com Filtros */}
           <div className="lg:w-80 flex-shrink-0">
             <MaterialFilters
               filters={filters}
@@ -262,9 +259,7 @@ const Materials: React.FC = () => {
             />
           </div>
 
-          {/* Conteúdo Principal */}
           <div className="flex-1">
-            {/* Controles */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-4">
                 <span className="text-sm text-gray-600">
@@ -296,7 +291,6 @@ const Materials: React.FC = () => {
               </div>
             </div>
 
-            {/* Lista de Materiais */}
             {filteredMaterials.length === 0 ? (
               <div className="text-center py-12">
                 <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -332,7 +326,6 @@ const Materials: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Botão Carregar Mais */}
                 {hasMore && (
                   <div className="text-center mt-8">
                     <button
@@ -360,7 +353,6 @@ const Materials: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de Upload */}
       <MaterialUploadModal
         isOpen={showUploadModal}
         onClose={() => setShowUploadModal(false)}

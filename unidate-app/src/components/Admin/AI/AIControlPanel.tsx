@@ -102,8 +102,6 @@ const AIControlPanel: React.FC = () => {
 
   const loadPersonas = async () => {
     try {
-      // TODO: Implementar carregamento real do Firebase
-      // Por enquanto, array vazio até implementarmos a funcionalidade
       setPersonas([]);
     } catch (error) {
       console.error('Erro ao carregar personas:', error);
@@ -112,8 +110,6 @@ const AIControlPanel: React.FC = () => {
 
   const loadCampaigns = async () => {
     try {
-      // TODO: Implementar carregamento real do Firebase
-      // Por enquanto, array vazio até implementarmos a funcionalidade
       setCampaigns([]);
     } catch (error) {
       console.error('Erro ao carregar campanhas:', error);
@@ -202,7 +198,6 @@ const AIControlPanel: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <Bot className="h-8 w-8 text-purple-600" />
@@ -230,7 +225,6 @@ const AIControlPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {[
@@ -254,15 +248,12 @@ const AIControlPanel: React.FC = () => {
         </nav>
       </div>
 
-      {/* Dashboard Tab */}
       {activeTab === 'dashboard' && (
         <div className="space-y-6">
-          {/* Controles Globais */}
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">Controles Globais</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Interruptor Mestre */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-700">Sistema de IA</label>
                 <button
@@ -287,7 +278,6 @@ const AIControlPanel: React.FC = () => {
                 </button>
               </div>
 
-              {/* Modo de Operação */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-700">Modo de Operação</label>
                 <select
@@ -301,7 +291,6 @@ const AIControlPanel: React.FC = () => {
                 </select>
               </div>
 
-              {/* Ações Rápidas */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-700">Ações Rápidas</label>
                 <div className="space-y-2">
@@ -324,7 +313,6 @@ const AIControlPanel: React.FC = () => {
             </div>
           </div>
 
-          {/* Métricas em Tempo Real */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center">
@@ -371,10 +359,8 @@ const AIControlPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Personas Tab */}
       {activeTab === 'personas' && (
         <div className="space-y-6">
-          {/* Ações em Massa */}
           {selectedPersonas.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
@@ -393,7 +379,6 @@ const AIControlPanel: React.FC = () => {
             </div>
           )}
 
-          {/* Tabela de Personas */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200">
               <div className="flex items-center justify-between">
@@ -542,7 +527,6 @@ const AIControlPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Campaigns Tab */}
       {activeTab === 'campaigns' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -590,7 +574,6 @@ const AIControlPanel: React.FC = () => {
         </div>
       )}
 
-      {/* Modais */}
       <PersonaConfigModal
         persona={editingPersona}
         isOpen={!!editingPersona || showCreatePersona}

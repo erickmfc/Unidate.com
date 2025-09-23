@@ -52,7 +52,6 @@ const Profile: React.FC = () => {
   };
 
   const handleSave = () => {
-    // Aqui você implementaria a lógica para salvar as alterações
     console.log('Salvando perfil:', formData);
     setIsEditing(false);
   };
@@ -79,10 +78,8 @@ const Profile: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
         <div className="card mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-center space-y-4 md:space-y-0 md:space-x-6">
-            {/* Profile Picture */}
             <div className="relative">
               <div className="w-32 h-32 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center">
                 <span className="text-white text-4xl font-bold">
@@ -96,7 +93,6 @@ const Profile: React.FC = () => {
               )}
             </div>
 
-            {/* Profile Info */}
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-4">
                 {isEditing ? (
@@ -141,7 +137,6 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            {/* Action Buttons */}
             {isEditing && (
               <div className="flex space-x-3">
                 <button
@@ -163,9 +158,7 @@ const Profile: React.FC = () => {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
           <div className="lg:col-span-2 space-y-8">
-            {/* Bio Section */}
             <div className="card">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Sobre Mim</h2>
               {isEditing ? (
@@ -184,7 +177,6 @@ const Profile: React.FC = () => {
               )}
             </div>
 
-            {/* Interests Section */}
             <div className="card">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Interesses</h2>
               
@@ -230,7 +222,6 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            {/* Academic Info */}
             <div className="card">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Informações Acadêmicas</h2>
               <div className="grid md:grid-cols-2 gap-4">
@@ -288,9 +279,7 @@ const Profile: React.FC = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Stats */}
             <div className="card">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Estatísticas</h3>
               <div className="space-y-4">
@@ -308,7 +297,6 @@ const Profile: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions */}
             <div className="card">
               <h3 className="text-lg font-bold text-gray-900 mb-4">Ações Rápidas</h3>
               <div className="space-y-3">

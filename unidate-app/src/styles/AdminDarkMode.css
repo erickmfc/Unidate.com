@@ -1,6 +1,3 @@
-/* Modo Noturno para Painel Administrativo */
-
-/* Variáveis CSS para modo escuro */
 :root {
   --admin-bg-primary: #ffffff;
   --admin-bg-secondary: #f9fafb;
@@ -35,7 +32,6 @@
   --admin-info: #60a5fa;
 }
 
-/* Aplicar variáveis aos componentes administrativos */
 .admin-container {
   background-color: var(--admin-bg-primary);
   color: var(--admin-text-primary);
@@ -107,7 +103,6 @@
   border-color: var(--admin-accent);
 }
 
-/* Sidebar específica */
 .admin-sidebar {
   background-color: var(--admin-bg-secondary);
   border-right: 1px solid var(--admin-border);
@@ -129,14 +124,12 @@
   color: white;
 }
 
-/* Top bar */
 .admin-topbar {
   background-color: var(--admin-bg-primary);
   border-bottom: 1px solid var(--admin-border);
   transition: all 0.3s ease;
 }
 
-/* Tabelas */
 .admin-table {
   background-color: var(--admin-bg-secondary);
   border: 1px solid var(--admin-border);
@@ -157,7 +150,6 @@
   background-color: var(--admin-bg-tertiary);
 }
 
-/* Modais */
 .admin-modal {
   background-color: var(--admin-bg-primary);
   border: 1px solid var(--admin-border);
@@ -169,7 +161,6 @@
   backdrop-filter: blur(4px);
 }
 
-/* Badges e status */
 .admin-badge-success {
   background-color: var(--admin-success);
   color: white;
@@ -190,7 +181,6 @@
   color: white;
 }
 
-/* Gráficos e métricas */
 .admin-metric-card {
   background-color: var(--admin-bg-secondary);
   border: 1px solid var(--admin-border);
@@ -210,7 +200,6 @@
   color: var(--admin-text-secondary);
 }
 
-/* Formulários */
 .admin-form-group {
   margin-bottom: 1.5rem;
 }
@@ -254,7 +243,6 @@
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-/* Animações específicas para modo escuro */
 .dark .admin-card {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
@@ -267,7 +255,6 @@
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-/* Scrollbar personalizada para modo escuro */
 .dark ::-webkit-scrollbar {
   width: 8px;
 }
@@ -285,12 +272,10 @@
   background: var(--admin-text-tertiary);
 }
 
-/* Transições suaves para mudança de tema */
 * {
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Estados de loading */
 .admin-loading {
   background: linear-gradient(90deg, 
     var(--admin-bg-tertiary) 25%, 
@@ -310,7 +295,6 @@
   }
 }
 
-/* Responsividade para modo escuro */
 @media (max-width: 768px) {
   .dark .admin-sidebar {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -322,7 +306,6 @@
   }
 }
 
-/* Melhorias de acessibilidade para modo escuro */
 .dark .admin-button-primary:focus {
   box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.3);
 }
@@ -331,7 +314,6 @@
   box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
 }
 
-/* Indicadores de status */
 .admin-status-online {
   color: var(--admin-success);
 }

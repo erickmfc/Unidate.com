@@ -481,12 +481,10 @@ const Feed: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Layout Mobile - Design Personalizado */}
       {isMobile ? (
         <div className="flex flex-col h-screen bg-gray-50">
-          {/* Header Mobile - Logo centralizado + Botão mensagens */}
           <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-            <div className="w-8"></div> {/* Espaçador */}
+            <div className="w-8"></div>
             <h1 className="text-xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
               UniDate
             </h1>
@@ -499,10 +497,8 @@ const Feed: React.FC = () => {
             </button>
           </div>
 
-          {/* Stories Section */}
           <div className="bg-white border-b border-gray-200 p-4">
             <div className="flex space-x-4 overflow-x-auto">
-              {/* Story do usuário */}
               <div className="flex-shrink-0 text-center">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-pink-500 p-0.5">
                   <div className="w-full h-full rounded-full bg-white flex items-center justify-center">
@@ -512,7 +508,6 @@ const Feed: React.FC = () => {
                 <p className="text-xs mt-1 text-gray-600">Seu Story</p>
               </div>
               
-              {/* Stories de outros usuários */}
               {[1, 2, 3, 4, 5].map((i) => (
                 <div key={i} className="flex-shrink-0 text-center">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-pink-500 p-0.5">
@@ -526,9 +521,7 @@ const Feed: React.FC = () => {
             </div>
           </div>
 
-          {/* Feed Principal */}
           <div ref={feedRef} className="flex-1 overflow-y-auto">
-            {/* Posts */}
             <div className="space-y-0">
               {loading ? (
                 <div className="text-center py-8">
@@ -546,7 +539,6 @@ const Feed: React.FC = () => {
               ) : (
                 posts.map((post) => (
                   <div key={post.id} className="bg-white border-b border-gray-200 p-4">
-                    {/* Header do Post */}
                     <div className="flex items-center space-x-3 mb-3">
                       <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-purple-400 to-pink-400 flex items-center justify-center">
                         <span className="text-white font-semibold text-sm">
@@ -563,10 +555,8 @@ const Feed: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Conteúdo do Post */}
                     <div className="mb-3">
                       <p className="text-gray-900 text-sm leading-relaxed">{post.content}</p>
-                      {/* Hashtags */}
                       {post.content.includes('#') && (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {post.content.match(/#\w+/g)?.map((tag, index) => (
@@ -578,7 +568,6 @@ const Feed: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Botões de Ação */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                       <button 
                         onClick={() => handleLike(post.id)}
@@ -615,10 +604,8 @@ const Feed: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Navigation Personalizada */}
           <div className="bg-white border-t border-gray-200 px-4 py-3">
             <div className="flex justify-around items-center">
-              {/* 🏠 Início */}
               <button 
                 onClick={handleHomeClick}
                 className="flex flex-col items-center py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer touch-manipulation"
@@ -628,7 +615,6 @@ const Feed: React.FC = () => {
                 <span className="text-xs text-gray-400 mt-1">Início</span>
               </button>
               
-              {/* U - Feed (UniVerso) - Botão central como publicar do Instagram */}
               <button 
                 onClick={handleUniverseClick}
                 className="flex flex-col items-center py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer touch-manipulation"
@@ -640,7 +626,6 @@ const Feed: React.FC = () => {
                 <span className="text-xs text-purple-600 mt-1 font-medium">UniVerso</span>
               </button>
               
-              {/* 👥 Grupos */}
               <button 
                 onClick={handleGroupsClick}
                 className="flex flex-col items-center py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer touch-manipulation"
@@ -650,7 +635,6 @@ const Feed: React.FC = () => {
                 <span className="text-xs text-gray-400 mt-1">Grupos</span>
               </button>
               
-              {/* 🔍 Buscar */}
               <button 
                 onClick={handleSearchClick}
                 className="flex flex-col items-center py-2 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer touch-manipulation"
@@ -666,9 +650,7 @@ const Feed: React.FC = () => {
         /* Layout Desktop */
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-4 gap-8">
-          {/* Main Feed */}
           <div className="lg:col-span-3">
-            {/* Header */}
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">UniVerso</h1>
               <p className="text-gray-600">A voz do campus • Não é sobre conectar, é sobre pertencer</p>
@@ -676,10 +658,8 @@ const Feed: React.FC = () => {
             </div>
 
 
-            {/* Create Post */}
             <PostComposer onSubmit={handleNewPost} />
 
-            {/* Posts */}
             <div className="space-y-6 mt-8">
                 {loading ? (
                   <div className="text-center py-8">
@@ -712,7 +692,6 @@ const Feed: React.FC = () => {
                 )}
             </div>
 
-            {/* Load More */}
             <div className="text-center mt-8">
               <button className="btn-secondary">
                 Carregar mais posts
@@ -720,9 +699,7 @@ const Feed: React.FC = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Trending Hashtags */}
               {trendingHashtags.length > 0 && (
             <div className="card">
               <div className="flex items-center space-x-2 mb-4">
@@ -742,7 +719,6 @@ const Feed: React.FC = () => {
             </div>
               )}
 
-            {/* Campus Stats */}
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Campus Hoje</h3>
               <div className="space-y-4">
@@ -761,7 +737,6 @@ const Feed: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions */}
             <div className="card">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Ações Rápidas</h3>
               <div className="space-y-3">
@@ -796,7 +771,6 @@ const Feed: React.FC = () => {
       </div>
       )}
 
-      {/* Toast Container */}
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </div>
   );

@@ -38,7 +38,6 @@ export interface UserPost {
 }
 
 export class UserProfileService {
-  // Buscar perfil de usuário por UID
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
       if (!db) {
@@ -49,7 +48,6 @@ export class UserProfileService {
       console.log('🔍 Firebase configurado:', !!db);
       console.log('🔍 Projeto ID:', db.app.options.projectId);
 
-      // Buscar dados do usuário na coleção 'users'
       const userRef = doc(db, 'users', userId);
       const userDoc = await getDoc(userRef);
 
@@ -58,25 +56,20 @@ export class UserProfileService {
       if (!userDoc.exists()) {
         console.log('❌ Usuário não encontrado na coleção users, tentando buscar em userProfiles...');
         
-        // Tentar buscar na coleção 'userProfiles' como fallback
         const userProfileRef = doc(db, 'userProfiles', userId);
         const userProfileDoc = await getDoc(userProfileRef);
         
         if (!userProfileDoc.exists()) {
           console.log('❌ Usuário não encontrado em nenhuma coleção, tentando criar perfil básico...');
           
-          // Verificar se o usuário tem posts (significa que existe mas não tem perfil completo)
           const postsCount = await this.getUserPostsCount(userId);
           if (postsCount > 0) {
             console.log('📝 Usuário tem posts, criando perfil básico...');
             
-            // Criar perfil básico baseado nos dados dos posts
             const userPosts = await this.getUserPosts(userId, 1);
             if (userPosts.length > 0) {
-              // Tentar extrair informações do primeiro post
               const firstPost = userPosts[0];
               
-              // Buscar informações do autor nos posts
               const postsQuery = query(
                 collection(db, 'posts'),
                 where('autorId', '==', userId),
@@ -111,7 +104,6 @@ export class UserProfileService {
               
               console.log('✅ Perfil básico criado para usuário com posts:', profile);
               
-              // Salvar o perfil básico no Firebase para futuras consultas
               try {
                 await setDoc(doc(db, 'userProfiles', userId), {
                   uid: userId,
@@ -145,7 +137,6 @@ export class UserProfileService {
         console.log('📋 Dados do usuário encontrados em users:', userData);
       }
 
-      // Buscar estatísticas do usuário
       const postsCount = await this.getUserPostsCount(userId);
       const friendsCount = await this.getUserFriendsCount(userId);
 
@@ -160,7 +151,7 @@ export class UserProfileService {
         joinDate: userData.createdAt ? userData.createdAt.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         postsCount,
         friendsCount,
-        isFriend: false // TODO: Implementar verificação de amizade
+        isFriend: false
       };
 
       console.log('✅ Perfil do usuário carregado:', profile);
@@ -171,7 +162,6 @@ export class UserProfileService {
     }
   }
 
-  // Buscar posts do usuário
   static async getUserPosts(userId: string, limitCount: number = 10): Promise<UserPost[]> {
     try {
       if (!db) {
@@ -212,7 +202,6 @@ export class UserProfileService {
     }
   }
 
-  // Contar posts do usuário
   static async getUserPostsCount(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -232,11 +221,8 @@ export class UserProfileService {
     }
   }
 
-  // Contar amigos do usuário (placeholder - implementar quando tivermos sistema de amigos)
   static async getUserFriendsCount(userId: string): Promise<number> {
     try {
-      // TODO: Implementar sistema de amigos
-      // Por enquanto, retornar 0
       return 0;
     } catch (error) {
       console.error('❌ Erro ao contar amigos do usuário:', error);
@@ -244,7 +230,6 @@ export class UserProfileService {
     }
   }
 
-  // Buscar usuário por nome ou email (para busca)
   static async searchUsers(searchTerm: string): Promise<UserProfile[]> {
     try {
       if (!db) {
@@ -253,7 +238,6 @@ export class UserProfileService {
 
       console.log('🔍 Buscando usuários com termo:', searchTerm);
 
-      // Buscar por nome
       const nameQuery = query(
         collection(db, 'users'),
         where('displayName', '>=', searchTerm),
@@ -275,7 +259,7 @@ export class UserProfileService {
           bio: data.bio || '',
           avatar: data.photoURL || data.avatar || '',
           joinDate: data.createdAt ? data.createdAt.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          postsCount: 0, // Será calculado se necessário
+          postsCount: 0,
           friendsCount: 0,
           isFriend: false
         });
@@ -289,7 +273,6 @@ export class UserProfileService {
     }
   }
 
-  // Verificar se usuário existe
   static async userExists(userId: string): Promise<boolean> {
     try {
       if (!db) {
@@ -305,7 +288,6 @@ export class UserProfileService {
     }
   }
 
-  // Função de debug para listar todos os usuários
   static async debugListAllUsers(): Promise<void> {
     try {
       if (!db) {
@@ -315,7 +297,6 @@ export class UserProfileService {
 
       console.log('🔍 [DEBUG] Listando todos os usuários...');
       
-      // Listar usuários da coleção 'users'
       const usersQuery = query(collection(db, 'users'));
       const usersSnapshot = await getDocs(usersQuery);
       
@@ -324,7 +305,6 @@ export class UserProfileService {
         console.log(`  - ${doc.id}:`, doc.data());
       });
 
-      // Listar usuários da coleção 'userProfiles'
       const userProfilesQuery = query(collection(db, 'userProfiles'));
       const userProfilesSnapshot = await getDocs(userProfilesQuery);
       
@@ -333,7 +313,6 @@ export class UserProfileService {
         console.log(`  - ${doc.id}:`, doc.data());
       });
 
-      // Listar alguns posts para ver os autorIds
       const postsQuery = query(collection(db, 'posts'), limit(5));
       const postsSnapshot = await getDocs(postsQuery);
       

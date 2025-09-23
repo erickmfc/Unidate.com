@@ -68,9 +68,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-50 via-white to-accent-50 overflow-hidden">
-        {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-primary-200 to-accent-200 rounded-full opacity-20 animate-pulse"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-secondary-200 to-primary-200 rounded-full opacity-20 animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -78,7 +76,6 @@ const HomePage: React.FC = () => {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left Column - Text */}
             <div className="space-y-8">
               <div className="space-y-4">
                 <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
@@ -111,7 +108,6 @@ const HomePage: React.FC = () => {
                 )}
               </div>
 
-              {/* Stats */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
                 {stats.map((stat, index) => (
                   <div key={index} className="text-center">
@@ -122,13 +118,10 @@ const HomePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column - Visual */}
             <div className="flex justify-center lg:justify-end">
               <div className="relative">
-                {/* Phone Mockup */}
                 <div className="w-80 h-96 bg-gray-900 rounded-3xl p-2 shadow-2xl">
                   <div className="w-full h-full bg-white rounded-2xl overflow-hidden relative">
-                    {/* App Header */}
                     <div className="bg-gradient-to-r from-primary-500 to-accent-500 p-4 text-white">
                       <div className="flex items-center justify-between">
                         <div className="flex space-x-1">
@@ -139,9 +132,7 @@ const HomePage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* App Content */}
                     <div className="p-6 space-y-4">
-                      {/* Profile Card */}
                       <div className="bg-white border-2 border-gray-200 rounded-2xl p-4 shadow-lg">
                         <div className="flex items-center space-x-4">
                           <div className="w-16 h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full"></div>
@@ -155,7 +146,6 @@ const HomePage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Action Buttons */}
                       <div className="flex justify-center space-x-4">
                         <button className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                           <span className="text-red-500 text-xl">✕</span>
@@ -168,7 +158,6 @@ const HomePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Floating Elements */}
                 <div className="absolute -top-4 -right-4 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center animate-bounce">
                   <Star className="h-4 w-4 text-white" />
                 </div>
@@ -181,7 +170,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -207,7 +195,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Testimonials Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -241,7 +228,6 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Made by Students Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -289,7 +275,6 @@ const HomePage: React.FC = () => {
             </div>
           </div>
 
-          {/* Team Section */}
           <div className="bg-gradient-to-r from-gray-50 to-primary-50 rounded-3xl p-8 md:p-12">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-gray-900 mb-4">Conheça Nossa Equipe</h3>
@@ -298,68 +283,38 @@ const HomePage: React.FC = () => {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-lg">M</span>
+                  <span className="text-white font-bold text-lg">L</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Matheus</h4>
+                <h4 className="font-semibold text-gray-900">Lucas</h4>
                 <p className="text-sm text-gray-600">Desenvolvedor Full-Stack</p>
                 <p className="text-xs text-gray-500">Engenharia de Software</p>
               </div>
 
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-secondary-500 to-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-lg">A</span>
+                  <span className="text-white font-bold text-lg">L</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Ana</h4>
-                <p className="text-sm text-gray-600">UI/UX Designer</p>
-                <p className="text-xs text-gray-500">Design Digital</p>
+                <h4 className="font-semibold text-gray-900">Luan</h4>
+                <p className="text-sm text-gray-600">Desenvolvedor Back-End</p>
+                <p className="text-xs text-gray-500">Ciência da Computação</p>
               </div>
 
               <div className="text-center">
                 <div className="w-16 h-16 bg-gradient-to-r from-accent-500 to-secondary-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-lg">C</span>
+                  <span className="text-white font-bold text-lg">E</span>
                 </div>
-                <h4 className="font-semibold text-gray-900">Carlos</h4>
-                <p className="text-sm text-gray-600">Product Manager</p>
-                <p className="text-xs text-gray-500">Administração</p>
+                <h4 className="font-semibold text-gray-900">Erick</h4>
+                <p className="text-sm text-gray-600">Desenvolvedor Front-End</p>
+                <p className="text-xs text-gray-500">Sistemas de Informação</p>
               </div>
-
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-primary-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-lg">S</span>
-                </div>
-                <h4 className="font-semibold text-gray-900">Sophia</h4>
-                <p className="text-sm text-gray-600">Marketing Digital</p>
-                <p className="text-xs text-gray-500">Comunicação Social</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Development Stats */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">6</div>
-              <div className="text-sm text-gray-600">Meses de Desenvolvimento</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">10K+</div>
-              <div className="text-sm text-gray-600">Linhas de Código</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">50+</div>
-              <div className="text-sm text-gray-600">Horas de Testes</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary-600 mb-2">100%</div>
-              <div className="text-sm text-gray-600">Feito com ❤️</div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-primary-500 to-accent-500">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-4xl font-bold text-white mb-6">

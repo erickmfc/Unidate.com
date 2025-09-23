@@ -1,5 +1,3 @@
-// Tipos para métricas e estatísticas
-
 export interface MaterialMetrics {
   materialId: string;
   downloads: number;
@@ -29,7 +27,7 @@ export interface Badge {
   color: string;
   category: BadgeCategory;
   earnedAt: Date;
-  progress?: number; // Para badges com progresso
+  progress?: number;
   maxProgress?: number;
 }
 
@@ -48,7 +46,7 @@ export interface BadgeDefinition {
   color: string;
   category: BadgeCategory;
   condition: BadgeCondition;
-  isHidden?: boolean; // Badges secretos
+  isHidden?: boolean;
 }
 
 export interface BadgeCondition {
@@ -110,9 +108,7 @@ export interface UserAnalytics {
   }[];
 }
 
-// Constantes para badges
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
-  // Badges de Compartilhamento
   {
     id: 'first_share',
     name: 'Primeiro Passo',
@@ -150,7 +146,6 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     condition: { type: 'materials', operator: 'gte', value: 100 }
   },
 
-  // Badges de Qualidade
   {
     id: 'quality_star',
     name: 'Estrela da Qualidade',
@@ -179,7 +174,6 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     condition: { type: 'average_rating', operator: 'gte', value: 4.8 }
   },
 
-  // Badges de Popularidade
   {
     id: 'popular_rookie',
     name: 'Em Alta',
@@ -208,7 +202,6 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     condition: { type: 'downloads', operator: 'gte', value: 1000 }
   },
 
-  // Badges de Engajamento
   {
     id: 'engagement_rookie',
     name: 'Conectado',
@@ -237,7 +230,6 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
     condition: { type: 'views', operator: 'gte', value: 2000 }
   },
 
-  // Badges de Marco
   {
     id: 'milestone_100_downloads',
     name: 'Centenário',
@@ -267,7 +259,6 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   }
 ];
 
-// Mapeamento de cores para badges
 export const BADGE_CATEGORY_COLORS: Record<BadgeCategory, string> = {
   sharing: 'bg-blue-100 text-blue-800',
   quality: 'bg-yellow-100 text-yellow-800',
@@ -276,7 +267,6 @@ export const BADGE_CATEGORY_COLORS: Record<BadgeCategory, string> = {
   milestone: 'bg-purple-100 text-purple-800',
 };
 
-// Mapeamento de ícones para categorias
 export const BADGE_CATEGORY_ICONS: Record<BadgeCategory, string> = {
   sharing: '📚',
   quality: '⭐',

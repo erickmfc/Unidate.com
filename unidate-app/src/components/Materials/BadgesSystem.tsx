@@ -155,7 +155,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
 
   return (
     <div className={`bg-white rounded-xl shadow-md border border-gray-200 p-6 ${className}`}>
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-2">
           <Trophy className="h-6 w-6 text-yellow-600" />
@@ -174,7 +173,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
         </div>
       </div>
 
-      {/* Estatísticas por Categoria */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
         {Object.entries(categoryStats).map(([category, stats]) => {
           const percentage = (stats.earned / stats.total) * 100;
@@ -200,7 +198,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
         })}
       </div>
 
-      {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="flex-1">
           <div className="relative">
@@ -241,7 +238,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
         </div>
       </div>
 
-      {/* Lista de Badges */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredBadges.map((badgeDef) => {
           const userBadge = userBadges.find(b => b.id === badgeDef.id);
@@ -257,7 +253,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
                   : 'border-gray-200 bg-gray-50 hover:border-gray-300'
               }`}
             >
-              {/* Badge Icon */}
               <div className="flex items-center justify-between mb-3">
                 <div className={`text-3xl ${isEarned ? '' : 'grayscale opacity-50'}`}>
                   {badgeDef.icon}
@@ -269,7 +264,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
                 )}
               </div>
 
-              {/* Badge Info */}
               <div className="mb-3">
                 <h4 className={`font-semibold ${isEarned ? 'text-gray-900' : 'text-gray-600'}`}>
                   {badgeDef.name}
@@ -279,14 +273,12 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
                 </p>
               </div>
 
-              {/* Category */}
               <div className="mb-3">
                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${BADGE_CATEGORY_COLORS[badgeDef.category]}`}>
                   {BADGE_CATEGORY_ICONS[badgeDef.category]} {badgeDef.category}
                 </span>
               </div>
 
-              {/* Progress */}
               {showProgress && !isEarned && (
                 <div className="mb-3">
                   <div className="flex justify-between text-xs text-gray-600 mb-1">
@@ -302,7 +294,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
                 </div>
               )}
 
-              {/* Earned Date */}
               {isEarned && userBadge && (
                 <div className="flex items-center space-x-1 text-xs text-gray-500">
                   <Calendar className="h-3 w-3" />
@@ -310,7 +301,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
                 </div>
               )}
 
-              {/* Hidden Badge Indicator */}
               {badgeDef.isHidden && !isEarned && (
                 <div className="absolute top-2 right-2">
                   <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
@@ -321,7 +311,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
         })}
       </div>
 
-      {/* Empty State */}
       {filteredBadges.length === 0 && (
         <div className="text-center py-8">
           <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -334,7 +323,6 @@ const BadgesSystem: React.FC<BadgesSystemProps> = ({
         </div>
       )}
 
-      {/* Achievement Tips */}
       <div className="mt-6 p-4 bg-blue-50 rounded-lg">
         <div className="flex items-start space-x-3">
           <Target className="h-5 w-5 text-blue-600 mt-0.5" />

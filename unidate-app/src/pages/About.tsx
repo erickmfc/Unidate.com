@@ -12,7 +12,7 @@ import {
 const About: React.FC = () => {
   const teamMembers = [
     {
-      name: 'Matheus Silva',
+      name: 'Lucas Oliveira',
       role: 'Desenvolvedor Full-Stack',
       course: 'Engenharia de Software',
       university: 'USP',
@@ -20,28 +20,20 @@ const About: React.FC = () => {
       description: 'Apaixonado por tecnologia e conectividade. Responsável pela arquitetura e desenvolvimento do UniDate.'
     },
     {
-      name: 'Ana Costa',
-      role: 'UX/UI Designer',
-      course: 'Design Digital',
+      name: 'Luan Pereira',
+      role: 'Desenvolvedor Back-End',
+      course: 'Ciência da Computação',
       university: 'UNICAMP',
       avatar: '/api/placeholder/150/150',
-      description: 'Especialista em experiência do usuário e design de interfaces. Criou toda a identidade visual do UniDate.'
+      description: 'Especialista em banco de dados e APIs. Desenvolveu toda a infraestrutura do UniDate.'
     },
     {
-      name: 'Carlos Santos',
-      role: 'Product Manager',
-      course: 'Administração',
-      university: 'FGV',
+      name: 'Erick Santos',
+      role: 'Desenvolvedor Front-End',
+      course: 'Sistemas de Informação',
+      university: 'UFRJ',
       avatar: '/api/placeholder/150/150',
-      description: 'Focado em estratégia de produto e experiência do usuário. Define a direção e visão do UniDate.'
-    },
-    {
-      name: 'Sophia Lima',
-      role: 'Marketing & Growth',
-      course: 'Comunicação Social',
-      university: 'PUC',
-      avatar: '/api/placeholder/150/150',
-      description: 'Responsável por marketing digital e crescimento da plataforma. Conecta o UniDate com os estudantes.'
+      description: 'Focado em interfaces e experiência do usuário. Criou toda a interface visual do UniDate.'
     }
   ];
 
