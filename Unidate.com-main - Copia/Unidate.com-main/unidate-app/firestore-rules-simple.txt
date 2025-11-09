@@ -1,0 +1,174 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================
+    // FUNÇÕES AUXILIARES
+    // ========================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isGroupMember(groupId) {
+      return isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+    }
+    
+    // ========================================
+    // REGRAS PARA USUÁRIOS
+    // ========================================
+    
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ========================================
+    // REGRAS PARA STATUS DE USUÁRIOS
+    // ========================================
+    
+    match /userStatus/{userId} {
+      allow read, write: if isOwner(userId);
+      allow read: if isAuthenticated();
+    }
+    
+    // ========================================
+    // REGRAS PARA POSTS (FEED)
+    // ========================================
+    
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.autorId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.autorId;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.autorId;
+      // Permitir curtir/descurtir
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['curtidasPor', 'numeroComentarios', 'updatedAt']);
+    }
+    
+    // ========================================
+    // REGRAS PARA COMENTÁRIOS
+    // ========================================
+    
+    match /comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      // Permitir curtir comentários
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes', 'isLiked', 'updatedAt']);
+    }
+    
+    // ========================================
+    // REGRAS PARA GRUPOS
+    // ========================================
+    
+    match /groups/{groupId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.createdBy;
+      // Membros podem alterar foto
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.members &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['image', 'lastActivity', 'updatedAt']);
+      // Entrar/sair de grupos
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'lastActivity', 'updatedAt']);
+      allow delete: if isAuthenticated() && request.auth.uid == resource.data.createdBy;
+    }
+    
+    // ========================================
+    // REGRAS PARA MENSAGENS DE GRUPOS
+    // ========================================
+    
+    match /groupMessages/{messageId} {
+      allow read, create: if isGroupMember(resource.data.groupId);
+      allow update: if isGroupMember(resource.data.groupId) && request.auth.uid == resource.data.userId;
+      allow delete: if isGroupMember(resource.data.groupId) && request.auth.uid == resource.data.userId;
+    }
+    
+    // ========================================
+    // REGRAS PARA CHATS PRIVADOS
+    // ========================================
+    
+    match /chats/{chatId} {
+      allow read, write: if isAuthenticated() && request.auth.uid in resource.data.participants;
+      allow create: if isAuthenticated() && request.auth.uid in request.resource.data.participants;
+    }
+    
+    match /messages/{messageId} {
+      allow read, create: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(resource.data.chatId)).data.participants;
+      allow update: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(resource.data.chatId)).data.participants &&
+        request.auth.uid == resource.data.senderId;
+      allow delete: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(resource.data.chatId)).data.participants &&
+        request.auth.uid == resource.data.senderId;
+    }
+    
+    // ========================================
+    // REGRAS PARA MATCHES/SINTONIAS
+    // ========================================
+    
+    match /matches/{matchId} {
+      allow read, write: if isAuthenticated() && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+    }
+    
+    // ========================================
+    // REGRAS PARA AMIGOS/COLEGAS
+    // ========================================
+    
+    match /friendships/{friendshipId} {
+      allow read, write: if isAuthenticated() && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+    }
+    
+    // ========================================
+    // REGRAS PARA ADMINISTRADORES
+    // ========================================
+    
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+    
+    // ========================================
+    // REGRAS PARA NOTIFICAÇÕES
+    // ========================================
+    
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated();
+    }
+    
+    // ========================================
+    // REGRAS PARA UPLOADS
+    // ========================================
+    
+    match /uploads/{userId}/{allPaths=**} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // ========================================
+    // REGRA PADRÃO - NEGA TUDO MAIS
+    // ========================================
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
