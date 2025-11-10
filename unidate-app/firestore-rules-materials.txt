@@ -1,0 +1,129 @@
+// Regras do Firestore para o sistema de materiais educacionais
+// Adicione estas regras à sua coleção 'materials' no Firestore
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Regras para a coleção de materiais
+    match /materials/{materialId} {
+      // Permitir leitura para todos os usuários autenticados
+      allow read: if request.auth != null;
+      
+      // Permitir criação apenas para usuários autenticados
+      allow create: if request.auth != null 
+        && request.auth.uid == resource.data.authorId
+        && validateMaterialData(request.resource.data);
+      
+      // Permitir atualização apenas pelo autor ou administradores
+      allow update: if request.auth != null 
+        && (request.auth.uid == resource.data.authorId 
+            || isAdmin(request.auth.uid))
+        && validateMaterialUpdate(request.resource.data, resource.data);
+      
+      // Permitir exclusão apenas pelo autor ou administradores
+      allow delete: if request.auth != null 
+        && (request.auth.uid == resource.data.authorId 
+            || isAdmin(request.auth.uid));
+    }
+    
+    // Função para validar dados do material na criação
+    function validateMaterialData(data) {
+      return data.keys().hasAll(['title', 'description', 'type', 'subject', 'category', 'difficulty', 'tags', 'authorId', 'authorName', 'language'])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 200
+        && data.description is string && data.description.size() > 0 && data.description.size() <= 1000
+        && data.type in ['resumo', 'livro', 'video', 'link', 'exercicio', 'prova']
+        && data.subject in ['matematica', 'fisica', 'quimica', 'programacao', 'humanas', 'biologia', 'engenharia', 'medicina', 'direito', 'economia', 'outros']
+        && data.category in ['resumos', 'exercicios', 'provas_antigas', 'tutoriais', 'ferramentas', 'livros', 'videos', 'links']
+        && data.difficulty in ['iniciante', 'intermediario', 'avancado']
+        && data.tags is list && data.tags.size() >= 1 && data.tags.size() <= 10
+        && data.authorId is string && data.authorId == request.auth.uid
+        && data.authorName is string && data.authorName.size() > 0
+        && data.language is string && data.language.size() > 0
+        && data.isApproved is bool && data.isApproved == false
+        && data.isPublic is bool && data.isPublic == true
+        && data.ratings is list && data.ratings.size() == 0
+        && data.averageRating is number && data.averageRating == 0
+        && data.totalRatings is number && data.totalRatings == 0
+        && data.downloads is list && data.downloads.size() == 0
+        && data.totalDownloads is number && data.totalDownloads == 0
+        && data.views is number && data.views == 0
+        && data.reportedCount is number && data.reportedCount == 0
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp;
+    }
+    
+    // Função para validar atualizações do material
+    function validateMaterialUpdate(newData, oldData) {
+      // Campos que não podem ser alterados após a criação
+      let immutableFields = ['authorId', 'authorName', 'createdAt'];
+      let hasImmutableChanges = false;
+      
+      for (field in immutableFields) {
+        if (newData[field] != oldData[field]) {
+          hasImmutableChanges = true;
+        }
+      }
+      
+      return !hasImmutableChanges
+        && (newData.title is string && newData.title.size() > 0 && newData.title.size() <= 200)
+        && (newData.description is string && newData.description.size() > 0 && newData.description.size() <= 1000)
+        && (newData.type in ['resumo', 'livro', 'video', 'link', 'exercicio', 'prova'])
+        && (newData.subject in ['matematica', 'fisica', 'quimica', 'programacao', 'humanas', 'biologia', 'engenharia', 'medicina', 'direito', 'economia', 'outros'])
+        && (newData.category in ['resumos', 'exercicios', 'provas_antigas', 'tutoriais', 'ferramentas', 'livros', 'videos', 'links'])
+        && (newData.difficulty in ['iniciante', 'intermediario', 'avancado'])
+        && (newData.tags is list && newData.tags.size() >= 1 && newData.tags.size() <= 10)
+        && (newData.updatedAt is timestamp);
+    }
+    
+    // Função para verificar se o usuário é administrador
+    function isAdmin(uid) {
+      // Implementar lógica para verificar se o usuário é admin
+      // Por exemplo, verificar em uma coleção de administradores
+      return exists(/databases/$(database)/documents/admins/$(uid));
+    }
+    
+    // Regras para a coleção de administradores (opcional)
+    match /admins/{adminId} {
+      allow read, write: if request.auth != null && request.auth.uid == adminId;
+    }
+    
+    // Regras para outras coleções existentes
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    match /posts/{postId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == resource.data.authorId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+    }
+    
+    match /groups/{groupId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.creatorId;
+    }
+    
+    match /comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == resource.data.authorId;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.authorId;
+    }
+  }
+}
+
+// Instruções de implementação:
+// 1. Acesse o Console do Firebase
+// 2. Vá para Firestore Database > Rules
+// 3. Substitua as regras existentes por estas
+// 4. Publique as regras
+// 5. Teste as regras no simulador do Firebase
+
+// Notas importantes:
+// - Todos os materiais começam como não aprovados (isApproved: false)
+// - Apenas administradores podem aprovar materiais
+// - Usuários só podem editar seus próprios materiais
+// - Campos como authorId e createdAt não podem ser alterados após a criação
+// - Validação rigorosa de tipos e tamanhos de campos
+// - Sistema de tags limitado a 10 tags por material

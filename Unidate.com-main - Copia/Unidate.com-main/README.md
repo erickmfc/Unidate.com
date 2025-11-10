@@ -40,21 +40,6 @@ UniDate é uma plataforma social hiperlocal e exclusiva para estudantes universi
 
 ## 📦 Instalação
 
-<<<<<<< HEAD
-1. **Instale as dependências:**
-```bash
-npm install
-```
-
-2. **Configure o Firebase:**
-   - Crie um projeto no [Firebase Console](https://console.firebase.google.com/)
-   - Ative Authentication, Firestore e Storage
-   - Copie as credenciais para `Unidate.com-main/unidate-app/src/firebase/config.ts`
-
-3. **Execute o projeto:**
-```bash
-cd "Unidate.com-main/unidate-app"
-=======
 1. **Clone o repositório:**
 ```bash
 git clone https://github.com/seu-usuario/unidate.git
@@ -74,7 +59,6 @@ npm install
 
 4. **Execute o projeto:**
 ```bash
->>>>>>> a3689148c94540c38bd1286d4a8389ab324303c8
 npm start
 ```
 
@@ -115,13 +99,10 @@ const firebaseConfig = {
 - ✅ Feed público do campus
 - ✅ Grupos e comunidades
 - ✅ Suporte a PWA (Progressive Web App)
-<<<<<<< HEAD
-=======
   - Instalação no dispositivo
   - Funcionamento offline
   - Notificações push
   - Atalhos rápidos para principais funcionalidades
->>>>>>> a3689148c94540c38bd1286d4a8389ab324303c8
 
 ### Para Administradores
 - ✅ Dashboard com KPIs
@@ -134,20 +115,6 @@ const firebaseConfig = {
 ## 🏗️ Estrutura do Projeto
 
 ```
-<<<<<<< HEAD
-Unidate.com-main/
-├── unidate-app/          # Aplicação React principal
-│   ├── public/
-│   ├── src/
-│   │   ├── components/   # Componentes reutilizáveis
-│   │   ├── contexts/     # Context API (Auth, Admin)
-│   │   ├── firebase/     # Configuração e funções Firebase
-│   │   ├── pages/        # Páginas da aplicação
-│   │   └── App.tsx
-│   ├── package.json
-│   └── README.md
-└── README.md             # Este arquivo
-=======
 unidate-app/
 ├── public/
 ├── src/
@@ -163,7 +130,6 @@ unidate-app/
 │   └── App.tsx
 ├── package.json
 └── README.md
->>>>>>> a3689148c94540c38bd1286d4a8389ab324303c8
 ```
 
 ## 🚀 Deploy
@@ -175,10 +141,6 @@ unidate-app/
 
 ### Firebase Hosting
 ```bash
-<<<<<<< HEAD
-cd "Unidate.com-main/unidate-app"
-=======
->>>>>>> a3689148c94540c38bd1286d4a8389ab324303c8
 npm install -g firebase-tools
 firebase login
 firebase init hosting
@@ -210,7 +172,3 @@ Desenvolvido por estudantes para estudantes.
 ---
 
 **UniDate** - Conectando estudantes universitários através de tecnologia e empatia. 🎓💜
-<<<<<<< HEAD
-
-=======
->>>>>>> a3689148c94540c38bd1286d4a8389ab324303c8

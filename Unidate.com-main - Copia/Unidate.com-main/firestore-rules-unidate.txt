@@ -1,0 +1,156 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'super-admin';
+    }
+    
+    // Função para verificar se é o bot AI
+    function isAIBot() {
+      return (request.resource.data.authorId != null && request.resource.data.authorId == 'ai-bot-unidate') ||
+             (request.resource.data.autorId != null && request.resource.data.autorId == 'ai-bot-unidate') ||
+             (request.resource.data.author != null && 
+              request.resource.data.author.uid != null && 
+              request.resource.data.author.uid == 'ai-bot-unidate');
+    }
+    
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      
+      allow read: if isAdmin();
+    }
+    
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      
+      // Permitir que o bot AI crie posts (mesmo sem autenticação)
+      allow create: if isAIBot();
+      
+      // Usuários autenticados podem criar posts próprios
+      allow create: if isAuthenticated() && 
+        (request.auth.uid == request.resource.data.autorId ||
+         request.auth.uid == request.resource.data.authorId);
+      
+      // Permitir atualização se for o autor ou se for o bot
+      allow update: if isAuthenticated() && 
+        (request.auth.uid == resource.data.autorId ||
+         request.auth.uid == resource.data.authorId ||
+         (resource.data.authorId == 'ai-bot-unidate' && isAdmin()));
+      
+      // Permitir deletar se for o autor ou se for admin e o post for do bot
+      allow delete: if isAuthenticated() && 
+        (request.auth.uid == resource.data.autorId ||
+         request.auth.uid == resource.data.authorId ||
+         (resource.data.authorId == 'ai-bot-unidate' && isAdmin()));
+      
+      // Permitir curtir/descurtir
+      allow update: if isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['curtidasPor', 'numeroComentarios', 'likes', 'comments', 'isLiked', 'updatedAt']);
+      
+      // Admins podem fazer tudo
+      allow read, write: if isAdmin();
+      
+      match /comentarios/{comentarioId} {
+        allow read: if isAuthenticated();
+        
+        allow create: if isAuthenticated() && 
+          request.auth.uid == request.resource.data.autorId;
+        
+        allow update: if isAuthenticated() && 
+          request.auth.uid == resource.data.autorId;
+        
+        allow delete: if isAuthenticated() && 
+          request.auth.uid == resource.data.autorId;
+        
+        allow read, write: if isAdmin();
+      }
+    }
+    
+    match /groups/{groupId} {
+      allow read: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.createdBy;
+      
+      allow update: if isAuthenticated() && 
+        request.auth.uid in resource.data.members;
+      
+      allow delete: if isAuthenticated() && 
+        request.auth.uid == resource.data.createdBy;
+    }
+    
+    match /chats/{chatId} {
+      allow read, write: if isAuthenticated() && 
+        request.auth.uid in resource.data.participants;
+    }
+    
+    match /chats/{chatId}/messages/{messageId} {
+      allow read: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      
+      allow create: if isAuthenticated() && 
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants &&
+        request.auth.uid == request.resource.data.senderId;
+    }
+    
+    match /matches/{matchId} {
+      allow read: if isAuthenticated() && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+      
+      allow create: if isAuthenticated() && 
+        (request.auth.uid == request.resource.data.user1Id || request.auth.uid == request.resource.data.user2Id);
+      
+      allow update: if isAuthenticated() && 
+        (request.auth.uid == resource.data.user1Id || request.auth.uid == resource.data.user2Id);
+    }
+    
+    match /reports/{reportId} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /system/{document} {
+      allow read, write: if isSuperAdmin();
+    }
+    
+    match /events/{eventId} {
+      allow read: if isAuthenticated() && resource.data.status == 'active';
+      
+      allow create, update, delete: if isAdmin();
+    }
+    
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId;
+      
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+    }
+    
+    // Permitir que admins criem/atualizem configurações do bot
+    match /botSchedules/{document} {
+      allow read, write: if isAdmin();
+    }
+    
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
