@@ -35,7 +35,6 @@ export interface GroupChat {
 }
 
 export class GroupChatService {
-  // Enviar mensagem para o grupo
   static async sendMessage(
     groupId: string, 
     userId: string, 
@@ -70,7 +69,6 @@ export class GroupChatService {
     }
   }
 
-  // Buscar mensagens do grupo
   static async getGroupMessages(groupId: string, limitCount: number = 50): Promise<GroupMessage[]> {
     try {
       if (!db) {
@@ -103,7 +101,6 @@ export class GroupChatService {
         });
       });
 
-      // Ordenar por timestamp crescente (mais antigas primeiro)
       return messages.reverse();
     } catch (error) {
       console.error('❌ Erro ao buscar mensagens do grupo:', error);
@@ -111,7 +108,6 @@ export class GroupChatService {
     }
   }
 
-  // Escutar mensagens em tempo real
   static subscribeToGroupMessages(
     groupId: string, 
     callback: (messages: GroupMessage[]) => void,
@@ -148,7 +144,6 @@ export class GroupChatService {
           });
         });
 
-        // Ordenar por timestamp crescente (mais antigas primeiro)
         callback(messages.reverse());
       });
 
@@ -159,7 +154,6 @@ export class GroupChatService {
     }
   }
 
-  // Enviar mensagem do sistema (ex: "João entrou no grupo")
   static async sendSystemMessage(
     groupId: string, 
     content: string
@@ -167,22 +161,18 @@ export class GroupChatService {
     return this.sendMessage(groupId, 'system', 'Sistema', content, 'system');
   }
 
-  // Marcar mensagens como lidas
   static async markMessagesAsRead(groupId: string, userId: string): Promise<void> {
     try {
       if (!db) {
         throw new Error('Firebase não inicializado');
       }
 
-      // TODO: Implementar sistema de mensagens lidas
-      // Por enquanto, apenas log
       console.log(`📖 Marcando mensagens como lidas para usuário ${userId} no grupo ${groupId}`);
     } catch (error) {
       console.error('❌ Erro ao marcar mensagens como lidas:', error);
     }
   }
 
-  // Buscar estatísticas do chat
   static async getChatStats(groupId: string): Promise<{
     totalMessages: number;
     activeUsers: number;

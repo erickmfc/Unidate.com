@@ -105,7 +105,6 @@ export class MaterialsService {
         });
       }
 
-      // Verificar conquistas após criar material
       try {
         const { AchievementsService } = await import('./achievementsService');
         await AchievementsService.checkAchievementsAfterAction(authorId);
@@ -329,7 +328,6 @@ export class MaterialsService {
 
       await this.updateUserMetricsOnRating(material.authorId);
       
-      // Verificar conquistas do autor
       try {
         const { AchievementsService } = await import('./achievementsService');
         await AchievementsService.checkAchievementsAfterAction(material.authorId);

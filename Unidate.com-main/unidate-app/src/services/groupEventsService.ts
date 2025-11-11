@@ -64,7 +64,6 @@ export class GroupEventsService {
     }
   }
 
-  // Buscar eventos do grupo
   static async getGroupEvents(groupId: string, userId?: string): Promise<GroupEvent[]> {
     try {
       if (!db) {
@@ -111,7 +110,6 @@ export class GroupEventsService {
     }
   }
 
-  // Entrar/sair de um evento
   static async toggleEventAttendance(eventId: string, userId: string, isAttending: boolean): Promise<void> {
     try {
       if (!db) {
@@ -120,7 +118,6 @@ export class GroupEventsService {
 
       const eventRef = doc(db, 'groupEvents', eventId);
       
-      // Verificar se o evento existe
       const eventDoc = await getDoc(eventRef);
       if (!eventDoc.exists()) {
         throw new Error('Evento não encontrado');
@@ -128,7 +125,6 @@ export class GroupEventsService {
 
       const eventData = eventDoc.data();
       
-      // Verificar limite de participantes
       if (isAttending && eventData.maxAttendees && eventData.attendees.length >= eventData.maxAttendees) {
         throw new Error('Evento lotado');
       }
@@ -152,7 +148,6 @@ export class GroupEventsService {
     }
   }
 
-  // Atualizar evento
   static async updateEvent(eventId: string, eventData: Partial<GroupEvent> & { date?: Date }, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -161,7 +156,6 @@ export class GroupEventsService {
 
       const eventRef = doc(db, 'groupEvents', eventId);
       
-      // Verificar se o usuário pode editar o evento
       const eventDoc = await getDoc(eventRef);
       if (!eventDoc.exists()) {
         throw new Error('Evento não encontrado');
@@ -172,7 +166,6 @@ export class GroupEventsService {
         throw new Error('Você não tem permissão para editar este evento');
       }
 
-      // Remover campos que não devem ser atualizados
       const { id, groupId, createdBy, createdAt, attendees, date, ...updateData } = eventData;
 
       const updateFields: any = {
@@ -180,7 +173,6 @@ export class GroupEventsService {
         updatedAt: serverTimestamp()
       };
 
-      // Se date foi fornecido, converter para Timestamp
       if (date) {
         updateFields.date = Timestamp.fromDate(date);
       }
@@ -194,7 +186,6 @@ export class GroupEventsService {
     }
   }
 
-  // Deletar evento
   static async deleteEvent(eventId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -203,7 +194,6 @@ export class GroupEventsService {
 
       const eventRef = doc(db, 'groupEvents', eventId);
       
-      // Verificar se o usuário pode deletar o evento
       const eventDoc = await getDoc(eventRef);
       if (!eventDoc.exists()) {
         throw new Error('Evento não encontrado');
@@ -222,7 +212,6 @@ export class GroupEventsService {
     }
   }
 
-  // Buscar eventos próximos
   static async getUpcomingEvents(groupId: string, limitCount: number = 5): Promise<GroupEvent[]> {
     try {
       if (!db) {
@@ -272,7 +261,6 @@ export class GroupEventsService {
     }
   }
 
-  // Buscar eventos por categoria/tag
   static async getEventsByTag(groupId: string, tag: string): Promise<GroupEvent[]> {
     try {
       if (!db) {

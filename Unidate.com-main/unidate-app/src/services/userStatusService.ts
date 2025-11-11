@@ -16,7 +16,6 @@ export interface UserStatus {
 }
 
 export class UserStatusService {
-  // Atualizar status online do usuário
   static async setUserOnline(userId: string, groupId?: string): Promise<void> {
     try {
       if (!db) {
@@ -41,7 +40,6 @@ export class UserStatusService {
     }
   }
 
-  // Atualizar status offline do usuário
   static async setUserOffline(userId: string): Promise<void> {
     try {
       if (!db) {
@@ -66,7 +64,6 @@ export class UserStatusService {
     }
   }
 
-  // Escutar mudanças no status de um usuário
   static subscribeToUserStatus(
     userId: string, 
     callback: (status: UserStatus | null) => void
@@ -95,7 +92,6 @@ export class UserStatusService {
     });
   }
 
-  // Escutar status de todos os usuários de um grupo
   static subscribeToGroupUsersStatus(
     groupId: string,
     callback: (usersStatus: UserStatus[]) => void
@@ -105,12 +101,9 @@ export class UserStatusService {
       return () => {};
     }
 
-    // Esta função seria implementada para escutar todos os usuários de um grupo
-    // Por enquanto, retorna uma função vazia
     return () => {};
   }
 
-  // Verificar se usuário pode acessar chat do grupo
   static async canUserAccessGroupChat(userId: string, groupId: string): Promise<boolean> {
     try {
       if (!db) {
@@ -118,7 +111,6 @@ export class UserStatusService {
         return false;
       }
 
-      // Buscar o grupo
       const groupRef = doc(db, 'groups', groupId);
       const groupDoc = await getDoc(groupRef);
       
@@ -128,7 +120,6 @@ export class UserStatusService {
 
       const groupData = groupDoc.data();
       
-      // Verificar se o usuário é membro do grupo
       return groupData.members.includes(userId);
     } catch (error) {
       console.error('❌ Erro ao verificar acesso ao chat do grupo:', error);

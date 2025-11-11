@@ -27,7 +27,6 @@ const USER_METRICS_COLLECTION = 'userMetrics';
 const USER_BADGES_COLLECTION = 'userBadges';
 
 export class UserMetricsService {
-  // Obter métricas do usuário
   static async getUserMetrics(userId: string): Promise<UserMetrics | null> {
     try {
       if (!db) {
@@ -57,28 +56,23 @@ export class UserMetricsService {
     }
   }
 
-  // Calcular e atualizar métricas do usuário
   static async calculateUserMetrics(userId: string): Promise<UserMetrics> {
     try {
       if (!db) {
         throw new Error('Firebase não está disponível');
       }
 
-      // Buscar todos os materiais do usuário
       const userMaterials = await MaterialsService.getMaterialsByUser(userId);
       
-      // Calcular métricas
       const materialsShared = userMaterials.length;
       const totalDownloads = userMaterials.reduce((sum, material) => sum + material.totalDownloads, 0);
       const totalViews = userMaterials.reduce((sum, material) => sum + material.views, 0);
       
-      // Calcular média de avaliação
       const materialsWithRatings = userMaterials.filter(m => m.averageRating > 0);
       const averageRating = materialsWithRatings.length > 0 
         ? materialsWithRatings.reduce((sum, material) => sum + material.averageRating, 0) / materialsWithRatings.length
         : 0;
 
-      // Verificar e conceder badges
       const badges = await this.checkAndGrantBadges(userId, {
         materialsShared,
         totalDownloads,
@@ -96,7 +90,6 @@ export class UserMetricsService {
         lastUpdated: new Date(),
       };
 
-      // Salvar métricas no Firestore
       await this.saveUserMetrics(metrics);
 
       return metrics;
@@ -106,7 +99,6 @@ export class UserMetricsService {
     }
   }
 
-  // Salvar métricas do usuário
   static async saveUserMetrics(metrics: UserMetrics): Promise<void> {
     try {
       if (!db) {
@@ -124,7 +116,6 @@ export class UserMetricsService {
     }
   }
 
-  // Verificar e conceder badges
   static async checkAndGrantBadges(
     userId: string, 
     currentMetrics: {
@@ -139,13 +130,11 @@ export class UserMetricsService {
         throw new Error('Firebase não está disponível');
       }
 
-      // Buscar badges existentes do usuário
       const existingBadges = await this.getUserBadges(userId);
       const existingBadgeIds = existingBadges.map(badge => badge.id);
 
       const newBadges: Badge[] = [];
 
-      // Verificar cada definição de badge
       for (const badgeDef of BADGE_DEFINITIONS) {
         if (existingBadgeIds.includes(badgeDef.id)) {
           continue; // Badge já concedido
@@ -166,7 +155,6 @@ export class UserMetricsService {
         }
       }
 
-      // Salvar novos badges
       if (newBadges.length > 0) {
         await this.saveUserBadges(userId, [...existingBadges, ...newBadges]);
       }
@@ -178,7 +166,6 @@ export class UserMetricsService {
     }
   }
 
-  // Verificar condição de badge
   private static checkBadgeCondition(
     condition: any, 
     metrics: {
@@ -219,7 +206,6 @@ export class UserMetricsService {
     }
   }
 
-  // Obter badges do usuário
   static async getUserBadges(userId: string): Promise<Badge[]> {
     try {
       if (!db) {
@@ -244,7 +230,6 @@ export class UserMetricsService {
     }
   }
 
-  // Salvar badges do usuário
   static async saveUserBadges(userId: string, badges: Badge[]): Promise<void> {
     try {
       if (!db) {
@@ -263,7 +248,6 @@ export class UserMetricsService {
     }
   }
 
-  // Obter analytics do usuário
   static async getUserAnalytics(
     userId: string, 
     period: 'day' | 'week' | 'month' | 'year' = 'month'
@@ -273,10 +257,8 @@ export class UserMetricsService {
         throw new Error('Firebase não está disponível');
       }
 
-      // Buscar materiais do usuário
       const userMaterials = await MaterialsService.getMaterialsByUser(userId);
       
-      // Calcular métricas do período
       const endDate = new Date();
       const startDate = this.getStartDateForPeriod(period, endDate);
 
@@ -292,10 +274,9 @@ export class UserMetricsService {
         averageRating: periodMaterials.length > 0 
           ? periodMaterials.reduce((sum, material) => sum + material.averageRating, 0) / periodMaterials.length
           : 0,
-        newBadges: 0, // Seria calculado comparando badges antigas vs novas
+        newBadges: 0,
       };
 
-      // Top materiais
       const topMaterials = userMaterials
         .sort((a, b) => b.totalDownloads - a.totalDownloads)
         .slice(0, 5)
@@ -307,7 +288,6 @@ export class UserMetricsService {
           rating: material.averageRating,
         }));
 
-      // Gerar dados de tendência (simulado)
       const trends = this.generateTrendData(period, startDate, endDate, userMaterials);
 
       return {
@@ -323,7 +303,6 @@ export class UserMetricsService {
     }
   }
 
-  // Obter data de início para o período
   private static getStartDateForPeriod(
     period: 'day' | 'week' | 'month' | 'year', 
     endDate: Date
@@ -348,7 +327,6 @@ export class UserMetricsService {
     return startDate;
   }
 
-  // Gerar dados de tendência
   private static generateTrendData(
     period: 'day' | 'week' | 'month' | 'year',
     startDate: Date,
@@ -363,7 +341,6 @@ export class UserMetricsService {
     const views: TimeSeriesData[] = [];
     const ratings: TimeSeriesData[] = [];
 
-    // Simular dados de tendência baseados nos materiais
     const interval = this.getIntervalForPeriod(period);
     const currentDate = new Date(startDate);
 
@@ -371,7 +348,6 @@ export class UserMetricsService {
       const nextDate = new Date(currentDate);
       nextDate.setTime(nextDate.getTime() + interval);
 
-      // Calcular downloads, views e ratings para este período
       const periodMaterials = materials.filter(material => 
         material.createdAt >= currentDate && material.createdAt < nextDate
       );
@@ -399,7 +375,6 @@ export class UserMetricsService {
     return { downloads, views, ratings };
   }
 
-  // Obter intervalo para o período
   private static getIntervalForPeriod(period: 'day' | 'week' | 'month' | 'year'): number {
     switch (period) {
       case 'day':
@@ -415,7 +390,6 @@ export class UserMetricsService {
     }
   }
 
-  // Atualizar métricas quando um material é atualizado
   static async updateMetricsOnMaterialChange(userId: string): Promise<void> {
     try {
       await this.calculateUserMetrics(userId);
@@ -424,7 +398,6 @@ export class UserMetricsService {
     }
   }
 
-  // Obter ranking de usuários
   static async getUserRankings(limit: number = 10): Promise<{
     byDownloads: UserMetrics[];
     byMaterials: UserMetrics[];
@@ -435,7 +408,6 @@ export class UserMetricsService {
         throw new Error('Firebase não está disponível');
       }
 
-      // Buscar todas as métricas de usuários
       const q = query(collection(db, USER_METRICS_COLLECTION));
       const snapshot = await getDocs(q);
       
