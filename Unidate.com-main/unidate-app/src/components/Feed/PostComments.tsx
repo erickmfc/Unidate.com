@@ -30,11 +30,25 @@ const PostComments: React.FC<PostCommentsProps> = ({
   const [unsubscribeComments, setUnsubscribeComments] = useState<(() => void) | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Carregar todos os comentários quando abrir (apenas se não foram passados)
+  // Sincronizar com initialComments quando mudarem
   useEffect(() => {
-    if (isOpen && !unsubscribeComments && initialComments.length === 0) {
+    if (initialComments.length > 0 && !loading) {
+      setComments(prev => {
+        // Mesclar comentários existentes com novos, evitando duplicatas
+        const existingIds = new Set(prev.map(c => c.id));
+        const newComments = initialComments.filter(c => !existingIds.has(c.id));
+        return [...prev, ...newComments];
+      });
+    }
+  }, [initialComments.length]);
+
+  useEffect(() => {
+    if (isOpen) {
       setLoading(true);
       console.log('🔄 [POSTCOMMENTS] Carregando todos os comentários para post:', postId);
+      
+      // Não limpar comentários existentes enquanto carrega
+      // Manter os comentários iniciais visíveis
       
       const unsubscribe = CommentsService.loadPostComments(
         postId,
@@ -46,29 +60,25 @@ const PostComments: React.FC<PostCommentsProps> = ({
         (error) => {
           console.error('❌ [POSTCOMMENTS] Erro ao carregar comentários:', error);
           setLoading(false);
+          // Manter comentários existentes em caso de erro
         }
       );
       
       setUnsubscribeComments(() => unsubscribe);
-    } else if (isOpen && initialComments.length > 0) {
-      // Se comentários foram passados, usar eles
-      setComments(initialComments);
-      setLoading(false);
-    } else if (!isOpen && unsubscribeComments) {
-      console.log('🔄 [POSTCOMMENTS] Fechando comentários, parando listener...');
-      unsubscribeComments();
-      setUnsubscribeComments(null);
-    }
 
-    // Cleanup quando o componente for desmontado
-    return () => {
+      return () => {
+        unsubscribe();
+      };
+    } else if (!isOpen) {
+      // Limpar listener quando fechar
       if (unsubscribeComments) {
+        console.log('🔄 [POSTCOMMENTS] Fechando comentários, parando listener...');
         unsubscribeComments();
+        setUnsubscribeComments(null);
       }
-    };
-  }, [isOpen, postId, initialComments.length]);
+    }
+  }, [isOpen, postId]); // Removido unsubscribeComments das dependências para evitar loops
 
-  // Focar no input quando abrir
   useEffect(() => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
@@ -80,14 +90,50 @@ const PostComments: React.FC<PostCommentsProps> = ({
     
     if (!newComment.trim() || !currentUser || sending) return;
 
+    const commentContent = newComment.trim();
+    const tempId = `temp-${Date.now()}`;
+    
+    // Optimistic update - adicionar comentário localmente imediatamente
+    const optimisticComment: Comment = {
+      id: tempId,
+      postId,
+      userId: currentUser.uid,
+      userName: currentUser.displayName || 'Você',
+      userAvatar: currentUser.photoURL || '/api/placeholder/40/40',
+      content: commentContent,
+      timestamp: new Date() as any, // Timestamp temporário
+      likes: 0,
+      likedBy: [],
+      edited: false
+    };
+
+    // Adicionar comentário otimisticamente
+    setComments(prev => [...prev, optimisticComment]);
+    setNewComment('');
     setSending(true);
+
     try {
-      await onAddComment(postId, newComment.trim());
-      setNewComment('');
+      console.log('🔄 [POSTCOMMENTS] Enviando comentário...', { postId, content: commentContent });
+      await onAddComment(postId, commentContent);
+      console.log('✅ [POSTCOMMENTS] Comentário enviado com sucesso');
+      
+      // Aguardar um pouco para o listener atualizar
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Remover comentário temporário (o listener já deve ter atualizado com o real)
+      setComments(prev => prev.filter(c => c.id !== tempId));
+      
       showSuccess('Comentário adicionado! 💬');
-    } catch (error) {
-      console.error('Erro ao adicionar comentário:', error);
-      showError('Ops! Não conseguimos adicionar seu comentário. Tente novamente.');
+    } catch (error: any) {
+      console.error('❌ [POSTCOMMENTS] Erro ao adicionar comentário:', error);
+      console.error('❌ [POSTCOMMENTS] Detalhes:', error.message);
+      
+      // Reverter optimistic update em caso de erro
+      setComments(prev => prev.filter(c => c.id !== tempId));
+      setNewComment(commentContent); // Restaurar texto do comentário
+      
+      const errorMessage = error.message || 'Ops! Não conseguimos adicionar seu comentário. Tente novamente.';
+      showError(errorMessage);
     } finally {
       setSending(false);
     }
@@ -97,13 +143,10 @@ const PostComments: React.FC<PostCommentsProps> = ({
     let date: Date;
     
     if (timestamp?.toDate) {
-      // Firebase Timestamp
       date = timestamp.toDate();
     } else if (typeof timestamp === 'string') {
-      // String timestamp
       date = new Date(timestamp);
     } else {
-      // Fallback
       date = new Date();
     }
     
@@ -123,7 +166,6 @@ const PostComments: React.FC<PostCommentsProps> = ({
 
   return (
     <div className="border-t border-gray-100 bg-gray-50">
-      {/* Header dos Comentários */}
       <div className="px-4 py-3 border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -141,7 +183,6 @@ const PostComments: React.FC<PostCommentsProps> = ({
         </div>
       </div>
 
-      {/* Lista de Comentários */}
       <div className="max-h-64 overflow-y-auto">
         {loading ? (
           <div className="px-4 py-8 text-center">
@@ -157,14 +198,12 @@ const PostComments: React.FC<PostCommentsProps> = ({
           <div className="px-4 py-2 space-y-3">
             {comments.map((comment) => (
               <div key={comment.id} className="flex space-x-3">
-                {/* Avatar do Comentador */}
                 <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
                   <span className="text-white text-xs font-semibold">
                     {comment.userName.charAt(0).toUpperCase()}
                   </span>
                 </div>
 
-                {/* Conteúdo do Comentário */}
                 <div className="flex-1 min-w-0">
                   <div className="bg-white rounded-2xl px-3 py-2 shadow-sm border border-gray-100">
                     <div className="flex items-center space-x-2 mb-1">
@@ -178,7 +217,6 @@ const PostComments: React.FC<PostCommentsProps> = ({
                     <p className="text-sm text-gray-800">{comment.content}</p>
                   </div>
 
-                  {/* Ações do Comentário */}
                   <div className="flex items-center space-x-4 mt-1 ml-3">
                     <button
                       onClick={() => onLikeComment(comment.id)}
@@ -199,17 +237,14 @@ const PostComments: React.FC<PostCommentsProps> = ({
         )}
       </div>
 
-      {/* Input de Novo Comentário */}
       <div className="px-4 py-3 bg-white border-t border-gray-200">
         <form onSubmit={handleSubmitComment} className="flex items-center space-x-3">
-          {/* Avatar do Usuário Atual */}
           <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs font-semibold">
               {currentUser?.displayName?.charAt(0) || 'U'}
             </span>
           </div>
 
-          {/* Input de Comentário */}
           <div className="flex-1 relative">
             <input
               ref={inputRef}
@@ -219,10 +254,9 @@ const PostComments: React.FC<PostCommentsProps> = ({
               placeholder="Escreva um comentário..."
               className="w-full px-4 py-2 border border-gray-300 rounded-full focus:border-purple-500 focus:ring-2 focus:ring-purple-100 transition-all duration-200 pr-12"
               disabled={sending}
-            />
-          </div>
+              />
+            </div>
 
-          {/* Botão de Enviar */}
           <button
             type="submit"
             disabled={!newComment.trim() || sending}

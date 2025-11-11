@@ -144,6 +144,24 @@ export const loginUser = async (email: string, password: string): Promise<UserCr
 // Fazer login com matrícula
 export const loginWithRegistration = async (registrationNumber: string, password: string): Promise<UserCredential> => {
   try {
+    // Se Firebase não estiver disponível, usar sistema offline
+    if (!auth || !db) {
+      console.log('🔄 Firebase não disponível, usando sistema offline...');
+      const result = await offlineAuth.loginUserOfflineByRegistration(registrationNumber, password);
+      
+      // Simular UserCredential para compatibilidade
+      return {
+        user: {
+          uid: result.user.uid,
+          email: result.user.email,
+          displayName: result.user.displayName,
+          emailVerified: result.user.emailVerified,
+        } as User,
+        providerId: 'offline',
+        operationType: 'signIn'
+      } as UserCredential;
+    }
+
     // Buscar usuário pela matrícula
     const userProfile = await getUserByRegistration(registrationNumber);
     if (!userProfile) {
@@ -159,6 +177,12 @@ export const loginWithRegistration = async (registrationNumber: string, password
 // Buscar usuário por matrícula
 export const getUserByRegistration = async (registrationNumber: string): Promise<UserProfile | null> => {
   try {
+    // Se Firebase não estiver disponível, usar sistema offline
+    if (!db) {
+      console.log('🔄 Firebase não disponível, usando sistema offline...');
+      return await offlineAuth.getUserByRegistrationOffline(registrationNumber);
+    }
+
     const usersRef = collection(db!, 'users');
     const q = query(usersRef, where('registrationNumber', '==', registrationNumber));
     const querySnapshot = await getDocs(q);

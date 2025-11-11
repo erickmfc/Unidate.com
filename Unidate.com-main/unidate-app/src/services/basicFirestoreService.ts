@@ -11,7 +11,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-// Interface básica para posts
 export interface BasicPost {
   id: string;
   titulo: string;
@@ -29,7 +28,6 @@ export interface BasicPost {
 }
 
 class BasicFirestoreService {
-  // 1. ADICIONAR NOVO POST
   async adicionarPost(postData: {
     titulo: string;
     conteudo: string;
@@ -44,9 +42,31 @@ class BasicFirestoreService {
       console.log('🔄 [FIRESTORE] Iniciando adição de post...');
       console.log('🔄 [FIRESTORE] Dados recebidos:', postData);
 
+      // Validação de dados
+      if (!postData.autorId) {
+        throw new Error('ID do autor é obrigatório');
+      }
+      if (!postData.conteudo || !postData.conteudo.trim()) {
+        throw new Error('Conteúdo do post não pode estar vazio');
+      }
+      if (!postData.titulo || !postData.titulo.trim()) {
+        throw new Error('Título do post não pode estar vazio');
+      }
+
       if (!db) {
         console.error('❌ [FIRESTORE] Firestore não está disponível');
         throw new Error('Firestore não está disponível');
+      }
+
+      // Verificar autenticação
+      const { auth } = await import('../firebase/config');
+      if (!auth?.currentUser) {
+        throw new Error('Usuário não autenticado');
+      }
+      if (auth.currentUser.uid !== postData.autorId) {
+        console.warn('⚠️ [FIRESTORE] UID do usuário autenticado não corresponde ao autorId');
+        console.warn('⚠️ [FIRESTORE] auth.currentUser.uid:', auth.currentUser.uid);
+        console.warn('⚠️ [FIRESTORE] postData.autorId:', postData.autorId);
       }
 
       console.log('🔄 [FIRESTORE] Firestore disponível, criando coleção...');
@@ -54,10 +74,10 @@ class BasicFirestoreService {
       console.log('🔄 [FIRESTORE] Coleção criada:', postsCollection);
       
       const novoPostData = {
-        titulo: postData.titulo,
-        conteudo: postData.conteudo,
+        titulo: postData.titulo.trim(),
+        conteudo: postData.conteudo.trim(),
         autorId: postData.autorId,
-        autorNome: postData.autorNome,
+        autorNome: postData.autorNome || 'Usuário',
         autorAvatar: postData.autorAvatar || '/api/placeholder/40/40',
         autorCurso: postData.autorCurso || 'Curso não informado',
         autorUniversidade: postData.autorUniversidade || 'Universidade não informada',
@@ -70,6 +90,7 @@ class BasicFirestoreService {
 
       console.log('🔄 [FIRESTORE] Dados do post preparados:', novoPostData);
       console.log('🔄 [FIRESTORE] Enviando para Firestore...');
+      console.log('🔄 [FIRESTORE] Usuário autenticado:', auth.currentUser.uid);
 
       const docRef = await addDoc(postsCollection, novoPostData);
       
@@ -80,12 +101,25 @@ class BasicFirestoreService {
       return docRef.id;
     } catch (error: any) {
       console.error('❌ [FIRESTORE] Erro ao adicionar post:', error);
-      console.error('❌ [FIRESTORE] Detalhes do erro:', error.message);
-      throw error;
+      console.error('❌ [FIRESTORE] Código do erro:', error.code);
+      console.error('❌ [FIRESTORE] Mensagem:', error.message);
+      console.error('❌ [FIRESTORE] Stack:', error.stack);
+      
+      // Melhorar mensagem de erro baseada no código
+      if (error.code === 'permission-denied') {
+        throw new Error('Permissão negada. Verifique se você está logado e se as regras do Firestore estão configuradas corretamente.');
+      } else if (error.code === 'unavailable') {
+        throw new Error('Firestore temporariamente indisponível. Verifique sua conexão e tente novamente.');
+      } else if (error.code === 'unauthenticated') {
+        throw new Error('Você precisa estar logado para criar posts.');
+      } else if (error.message) {
+        throw new Error(error.message);
+      } else {
+        throw new Error(`Erro ao salvar post: ${error.code || 'Erro desconhecido'}`);
+      }
     }
   }
 
-  // 2. CARREGAR POSTS EM TEMPO REAL
   carregarPosts(
     onPostsUpdate: (posts: BasicPost[]) => void,
     onError?: (error: Error) => void
@@ -93,32 +127,6 @@ class BasicFirestoreService {
     try {
       console.log('🔄 [FIRESTORE] Configurando listener de posts em tempo real...');
       console.log('🔄 [FIRESTORE] DB disponível?', !!db);
-      
-      // Verificar se o usuário está autenticado
-      import('../firebase/config').then(({ auth }) => {
-        console.log('🔐 [FIRESTORE] Usuário autenticado?', !!auth?.currentUser);
-        console.log('🔐 [FIRESTORE] UID do usuário:', auth?.currentUser?.uid);
-        
-        // Teste direto de acesso à coleção
-        if (auth?.currentUser && db) {
-          console.log('🧪 [FIRESTORE] Testando acesso direto à coleção...');
-          import('firebase/firestore').then(({ getDocs, collection }) => {
-            getDocs(collection(db!, 'posts'))
-              .then((snapshot) => {
-                console.log('🧪 [FIRESTORE] Teste direto - Tamanho:', snapshot.size);
-                console.log('🧪 [FIRESTORE] Teste direto - Vazio?', snapshot.empty);
-                if (!snapshot.empty) {
-                  snapshot.forEach((doc) => {
-                    console.log('🧪 [FIRESTORE] Documento encontrado:', doc.id, doc.data());
-                  });
-                }
-              })
-              .catch((error) => {
-                console.error('🧪 [FIRESTORE] Erro no teste direto:', error);
-              });
-          });
-        }
-      });
 
       if (!db) {
         console.error('❌ [FIRESTORE] Firestore não está disponível');
@@ -129,106 +137,93 @@ class BasicFirestoreService {
       const postsCollection = collection(db, 'posts');
       console.log('🔄 [FIRESTORE] Coleção criada:', postsCollection);
       
-      // Tentar query mais simples primeiro
       const q = query(postsCollection);
       console.log('🔄 [FIRESTORE] Query criada:', q);
 
-      console.log('🔄 [FIRESTORE] Configurando listener...');
+      console.log('🔄 [FIRESTORE] Configurando listener onSnapshot...');
       
-      // Teste: usar getDocs primeiro para verificar se funciona
-      console.log('🧪 [FIRESTORE] Testando getDocs antes do onSnapshot...');
-      
-      let unsubscribe: (() => void) | null = null;
-      
-      import('firebase/firestore').then(({ getDocs }) => {
-        getDocs(q).then((snapshot) => {
-          console.log('🧪 [FIRESTORE] getDocs funcionou! Tamanho:', snapshot.size);
-          console.log('🧪 [FIRESTORE] getDocs vazio?', snapshot.empty);
-          
-          // Se getDocs funcionou, configurar onSnapshot
-          console.log('🔄 [FIRESTORE] Configurando onSnapshot...');
-          unsubscribe = onSnapshot(q,
-            (snapshot) => {
-              console.log('📱 [FIRESTORE] ===== SNAPSHOT RECEBIDO =====');
-              console.log('📱 [FIRESTORE] Tamanho do snapshot:', snapshot.size);
-              console.log('📱 [FIRESTORE] Snapshot vazio?', snapshot.empty);
-              console.log('📱 [FIRESTORE] Metadata:', snapshot.metadata);
-              console.log('📱 [FIRESTORE] From cache?', snapshot.metadata.fromCache);
-              console.log('📱 [FIRESTORE] Has pending writes?', snapshot.metadata.hasPendingWrites);
+      const unsubscribe = onSnapshot(q,
+        (snapshot) => {
+          console.log('📱 [FIRESTORE] ===== SNAPSHOT RECEBIDO =====');
+          console.log('📱 [FIRESTORE] Tamanho do snapshot:', snapshot.size);
+          console.log('📱 [FIRESTORE] Snapshot vazio?', snapshot.empty);
+          console.log('📱 [FIRESTORE] From cache?', snapshot.metadata.fromCache);
+          console.log('📱 [FIRESTORE] Has pending writes?', snapshot.metadata.hasPendingWrites);
 
-              const posts: BasicPost[] = [];
+          const posts: BasicPost[] = [];
 
-              if (snapshot.empty) {
-                console.log('⚠️ [FIRESTORE] Snapshot está vazio - nenhum post encontrado');
-                console.log('⚠️ [FIRESTORE] Verificando se há posts na coleção...');
-                onPostsUpdate([]);
-                return;
-              }
+          if (snapshot.empty) {
+            console.log('⚠️ [FIRESTORE] Snapshot está vazio - nenhum post encontrado');
+            onPostsUpdate([]);
+            return;
+          }
 
-              snapshot.forEach((doc) => {
-                const postData = doc.data();
-                console.log('🔄 [FIRESTORE] Processando documento:', doc.id);
-                console.log('🔄 [FIRESTORE] Dados brutos:', postData);
+          snapshot.forEach((doc) => {
+            const postData = doc.data();
+            console.log('🔄 [FIRESTORE] Processando documento:', doc.id);
 
-                const post: BasicPost = {
-                  id: doc.id,
-                  titulo: postData.titulo || '',
-                  conteudo: postData.conteudo || '',
-                  autorId: postData.autorId || '',
-                  autorNome: postData.autorNome || 'Usuário',
-                  autorAvatar: postData.autorAvatar,
-                  autorCurso: postData.autorCurso,
-                  autorUniversidade: postData.autorUniversidade,
-                  dataCriacao: postData.dataCriacao,
-                  curtidasPor: postData.curtidasPor || [],
-                  numeroComentarios: postData.numeroComentarios || 0,
-                  hashtags: postData.hashtags || [],
-                  tipo: postData.tipo || 'texto'
-                };
+            const post: BasicPost = {
+              id: doc.id,
+              titulo: postData.titulo || '',
+              conteudo: postData.conteudo || '',
+              autorId: postData.autorId || '',
+              autorNome: postData.autorNome || 'Usuário',
+              autorAvatar: postData.autorAvatar,
+              autorCurso: postData.autorCurso,
+              autorUniversidade: postData.autorUniversidade,
+              dataCriacao: postData.dataCriacao,
+              curtidasPor: postData.curtidasPor || [],
+              numeroComentarios: postData.numeroComentarios || 0,
+              hashtags: postData.hashtags || [],
+              tipo: postData.tipo || 'texto'
+            };
 
-                posts.push(post);
-                console.log('✅ [FIRESTORE] Post processado:', post);
-              });
+            posts.push(post);
+            console.log('✅ [FIRESTORE] Post processado:', post.id);
+          });
 
-              console.log(`📱 [FIRESTORE] ===== LINHA DO CAMPUS ATUALIZADA =====`);
-              console.log(`📱 [FIRESTORE] Total de posts: ${posts.length}`);
-              console.log('📱 [FIRESTORE] Posts finais:', posts);
-              onPostsUpdate(posts);
-            },
-            (error: any) => {
-              console.error('❌ [FIRESTORE] ===== ERRO NO LISTENER =====');
-              console.error('❌ [FIRESTORE] Erro:', error);
-              console.error('❌ [FIRESTORE] Código do erro:', error.code);
-              console.error('❌ [FIRESTORE] Mensagem:', error.message);
-              console.error('❌ [FIRESTORE] Stack:', error.stack);
-              if (onError) {
-                onError(error);
-              }
+          posts.sort((a, b) => {
+            try {
+              const aTime = a.dataCriacao?.toDate ? a.dataCriacao.toDate().getTime() : (a.dataCriacao ? new Date(a.dataCriacao).getTime() : 0);
+              const bTime = b.dataCriacao?.toDate ? b.dataCriacao.toDate().getTime() : (b.dataCriacao ? new Date(b.dataCriacao).getTime() : 0);
+              return bTime - aTime; // Ordem decrescente (mais recente primeiro)
+            } catch {
+              return 0;
             }
-          );
-          
-          console.log('✅ [FIRESTORE] onSnapshot configurado com sucesso');
-        }).catch((error) => {
-          console.error('🧪 [FIRESTORE] Erro no getDocs:', error);
-          throw error;
-        });
-      });
+          });
 
-      console.log('✅ [FIRESTORE] Listener configurado com sucesso');
-      return () => {
-        if (unsubscribe) {
-          unsubscribe();
+          console.log(`📱 [FIRESTORE] ===== LINHA DO CAMPUS ATUALIZADA =====`);
+          console.log(`📱 [FIRESTORE] Total de posts: ${posts.length}`);
+          onPostsUpdate(posts);
+        },
+        (error: any) => {
+          console.error('❌ [FIRESTORE] ===== ERRO NO LISTENER =====');
+          console.error('❌ [FIRESTORE] Erro:', error);
+          console.error('❌ [FIRESTORE] Código do erro:', error.code);
+          console.error('❌ [FIRESTORE] Mensagem:', error.message);
+          if (onError) {
+            onError(error);
+          }
         }
+      );
+      
+      console.log('✅ [FIRESTORE] onSnapshot configurado com sucesso');
+      
+      return () => {
+        console.log('🔄 [FIRESTORE] Parando listener...');
+        unsubscribe();
       };
     } catch (error: any) {
       console.error('❌ [FIRESTORE] ===== ERRO AO CONFIGURAR LISTENER =====');
       console.error('❌ [FIRESTORE] Erro:', error);
       console.error('❌ [FIRESTORE] Mensagem:', error.message);
-      throw error;
+      if (onError) {
+        onError(error);
+      }
+      return () => {};
     }
   }
 
-  // 3. FUNCIONALIDADE DE LIKES
   async apoiarPost(postId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -279,7 +274,6 @@ class BasicFirestoreService {
     }
   }
 
-  // 4. FUNCIONALIDADES AUXILIARES
   private extrairHashtags(texto: string): string[] {
     const hashtagRegex = /#\w+/g;
     const matches = texto.match(hashtagRegex);
@@ -287,6 +281,5 @@ class BasicFirestoreService {
   }
 }
 
-// Exportar instância singleton
 export const basicFirestoreService = new BasicFirestoreService();
 export default basicFirestoreService;

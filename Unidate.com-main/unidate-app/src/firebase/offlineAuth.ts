@@ -162,3 +162,25 @@ export const resetPasswordOffline = async (email: string): Promise<void> => {
   console.log('📧 E-mail de reset de senha enviado para:', email);
   console.log('🔗 Link de reset: http://localhost:3000/reset-password?token=offline_reset');
 };
+
+// Simular login por matrícula
+export const loginUserOfflineByRegistration = async (
+  registrationNumber: string,
+  password: string
+): Promise<{ user: OfflineUser }> => {
+  // Simular delay de rede
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  const profile = mockProfiles.find(p => p.registrationNumber === registrationNumber);
+  if (!profile) {
+    throw new Error('Matrícula não encontrada');
+  }
+  
+  const user = mockUsers.find(u => u.uid === profile.uid);
+  if (!user) {
+    throw new Error('Usuário não encontrado');
+  }
+  
+  console.log('✅ Usuário logado offline por matrícula:', user);
+  return { user };
+};

@@ -66,7 +66,6 @@ export class UserProfileService {
         if (!userProfileDoc.exists()) {
           console.log('❌ Usuário não encontrado em nenhuma coleção, tentando criar perfil básico...');
           
-          // Buscar em posts normais
           const postsQuery = query(
             collection(db, 'posts'),
             where('autorId', '==', userId),
@@ -74,7 +73,6 @@ export class UserProfileService {
           );
           const postsSnapshot = await getDocs(postsQuery);
           
-          // Buscar em posts de grupos
           const groupPostsQuery = query(
             collection(db, 'groupPosts'),
             where('author.uid', '==', userId),
@@ -87,7 +85,6 @@ export class UserProfileService {
           let autorUniversidade = 'Universidade não informada';
           let autorAvatar = '';
           
-          // Tentar pegar dados dos posts normais primeiro
           if (!postsSnapshot.empty) {
             const postData = postsSnapshot.docs[0].data();
             autorNome = postData.autorNome || postData.author?.name || 'Usuário';
@@ -95,7 +92,6 @@ export class UserProfileService {
             autorUniversidade = postData.autorUniversidade || postData.author?.university || 'Universidade não informada';
             autorAvatar = postData.autorAvatar || postData.author?.avatar || '';
           } 
-          // Se não encontrou em posts normais, tentar em posts de grupos
           else if (!groupPostsSnapshot.empty) {
             const postData = groupPostsSnapshot.docs[0].data();
             autorNome = postData.author?.name || 'Usuário';
@@ -104,10 +100,8 @@ export class UserProfileService {
             autorAvatar = postData.author?.avatar || '';
           }
           
-          // Contar posts totais (normais + grupos)
           const postsCount = await this.getUserPostsCount(userId);
           
-          // Tentar buscar userType do Firestore antes de criar perfil básico
           let userType: 'aluno' | 'professor' | 'uni' | undefined = undefined;
           try {
             const userRef = doc(db, 'users', userId);
@@ -119,7 +113,6 @@ export class UserProfileService {
             console.log('⚠️ Não foi possível buscar userType');
           }
           
-          // Se encontrou algum post, criar perfil básico
           if (!postsSnapshot.empty || !groupPostsSnapshot.empty || postsCount > 0) {
             console.log('📝 Usuário tem posts, criando perfil básico...');
             
@@ -163,11 +156,8 @@ export class UserProfileService {
             return profile;
           }
           
-          // Se não encontrou posts, ainda assim criar um perfil mínimo
-          // para que o usuário possa ser visualizado
           console.log('⚠️ Usuário não encontrado em coleções, mas criando perfil mínimo...');
           
-          // Tentar buscar userType do Firestore
           let userTypeMinimal: 'aluno' | 'professor' | 'uni' | undefined = undefined;
           try {
             const userRef = doc(db, 'users', userId);
@@ -205,12 +195,9 @@ export class UserProfileService {
         console.log('📋 Dados do usuário encontrados em users:', userData);
       }
 
-      // Buscar dados do Firebase Auth também
       let authUser = null;
       try {
         const auth = getAuth();
-        // Não podemos buscar diretamente, mas podemos usar os dados do Firestore
-        // Se o email não estiver no Firestore, tentar buscar do Auth seria necessário
       } catch (authError) {
         console.log('⚠️ Não foi possível buscar do Auth:', authError);
       }
@@ -218,7 +205,6 @@ export class UserProfileService {
       const postsCount = await this.getUserPostsCount(userId);
       const friendsCount = await this.getUserFriendsCount(userId);
 
-      // Buscar dados reais - garantir que não sejam placeholders
       const profile: UserProfile = {
         uid: userId,
         name: userData.displayName || userData.name || userData.email?.split('@')[0] || 'Usuário',
@@ -238,10 +224,8 @@ export class UserProfileService {
       return profile;
     } catch (error) {
       console.error('❌ Erro ao buscar perfil do usuário:', error);
-      // Mesmo em caso de erro, retornar perfil mínimo
       console.log('⚠️ Retornando perfil mínimo devido a erro');
       
-      // Tentar buscar userType mesmo em caso de erro
       let userTypeError: 'aluno' | 'professor' | 'uni' | undefined = undefined;
       if (db) {
         try {
@@ -283,7 +267,6 @@ export class UserProfileService {
 
       const posts: UserPost[] = [];
 
-      // Buscar posts normais
       try {
         const postsQuery = query(
           collection(db, 'posts'),
@@ -310,7 +293,6 @@ export class UserProfileService {
         console.error('❌ Erro ao buscar posts normais:', error);
       }
 
-      // Buscar posts de grupos se ainda não atingiu o limite
       if (posts.length < limitCount) {
         try {
           const groupPostsQuery = query(
@@ -339,7 +321,6 @@ export class UserProfileService {
         }
       }
 
-      // Ordenar por data (mais recente primeiro)
       posts.sort((a, b) => {
         const dateA = a.dataCriacao?.toDate ? a.dataCriacao.toDate().getTime() : 0;
         const dateB = b.dataCriacao?.toDate ? b.dataCriacao.toDate().getTime() : 0;
@@ -360,7 +341,6 @@ export class UserProfileService {
         return 0;
       }
 
-      // Contar posts normais
       const postsQuery = query(
         collection(db, 'posts'),
         where('autorId', '==', userId)
@@ -368,7 +348,6 @@ export class UserProfileService {
       const postsSnapshot = await getDocs(postsQuery);
       const normalPostsCount = postsSnapshot.size;
 
-      // Contar posts de grupos
       const groupPostsQuery = query(
         collection(db, 'groupPosts'),
         where('author.uid', '==', userId)
@@ -389,7 +368,6 @@ export class UserProfileService {
         return 0;
       }
 
-      // Buscar friendships onde o usuário é user1Id ou user2Id e status é 'accepted'
       const friendshipsQuery1 = query(
         collection(db, 'friendships'),
         where('user1Id', '==', userId),
@@ -419,7 +397,6 @@ export class UserProfileService {
         return false;
       }
 
-      // Verificar se existe friendship entre os dois usuários
       const friendshipQuery1 = query(
         collection(db, 'friendships'),
         where('user1Id', '==', userId1),
@@ -451,36 +428,63 @@ export class UserProfileService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Verificar se já existe uma friendship
-      const existingQuery = query(
-        collection(db, 'friendships'),
-        where('user1Id', 'in', [userId1, userId2]),
-        where('user2Id', 'in', [userId1, userId2])
-      );
-      const existing = await getDocs(existingQuery);
+      if (!userId1 || !userId2 || userId1 === userId2) {
+        throw new Error('IDs de usuário inválidos');
+      }
 
-      if (!existing.empty) {
-        // Se existe, atualizar status para 'accepted'
-        const friendshipDoc = existing.docs[0];
-        await updateDoc(doc(db, 'friendships', friendshipDoc.id), {
+      console.log('🔄 [FRIENDSHIP] Adicionando amizade entre:', userId1, 'e', userId2);
+
+      const query1 = query(
+        collection(db, 'friendships'),
+        where('user1Id', '==', userId1),
+        where('user2Id', '==', userId2)
+      );
+      
+      const query2 = query(
+        collection(db, 'friendships'),
+        where('user1Id', '==', userId2),
+        where('user2Id', '==', userId1)
+      );
+
+      const [snapshot1, snapshot2] = await Promise.all([
+        getDocs(query1),
+        getDocs(query2)
+      ]);
+
+      const existingDoc = snapshot1.empty ? (snapshot2.empty ? null : snapshot2.docs[0]) : snapshot1.docs[0];
+
+      if (existingDoc) {
+        console.log('🔄 [FRIENDSHIP] Amizade já existe, atualizando status...');
+        await updateDoc(doc(db, 'friendships', existingDoc.id), {
           status: 'accepted',
           updatedAt: serverTimestamp()
         });
+        console.log('✅ [FRIENDSHIP] Amizade atualizada com sucesso');
       } else {
-        // Criar nova friendship
+        const [user1, user2] = userId1 < userId2 ? [userId1, userId2] : [userId2, userId1];
+        
+        console.log('🔄 [FRIENDSHIP] Criando nova amizade...');
         await addDoc(collection(db, 'friendships'), {
-          user1Id: userId1,
-          user2Id: userId2,
+          user1Id: user1,
+          user2Id: user2,
           status: 'accepted',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
+        console.log('✅ [FRIENDSHIP] Amizade criada com sucesso');
       }
-
-      console.log('✅ Amizade criada/atualizada com sucesso');
-    } catch (error) {
-      console.error('❌ Erro ao adicionar amigo:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ [FRIENDSHIP] Erro ao adicionar amigo:', error);
+      console.error('❌ [FRIENDSHIP] Código do erro:', error.code);
+      console.error('❌ [FRIENDSHIP] Mensagem:', error.message);
+      
+      if (error.code === 'permission-denied') {
+        throw new Error('Você não tem permissão para adicionar colegas. Verifique se está logado.');
+      } else if (error.code === 'unavailable') {
+        throw new Error('Serviço temporariamente indisponível. Tente novamente.');
+      } else {
+        throw new Error(`Erro ao adicionar colega: ${error.message || 'Erro desconhecido'}`);
+      }
     }
   }
 
@@ -536,7 +540,6 @@ export class UserProfileService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Primeiro tentar buscar em 'users'
       const usersRef = collection(db, 'users');
       const q = query(usersRef, limit(limitCount));
       const snapshot = await getDocs(q);
@@ -562,7 +565,6 @@ export class UserProfileService {
         });
       });
 
-      // Buscar contagem real de posts para cada usuário
       if (userIds.length > 0) {
         const postsPromises = userIds.map(async (userId) => {
           try {
@@ -588,7 +590,6 @@ export class UserProfileService {
         });
       }
 
-      // Se não encontrou usuários suficientes, buscar em 'userProfiles'
       if (users.length < limitCount) {
         const userProfilesRef = collection(db, 'userProfiles');
         const profilesQuery = query(userProfilesRef, limit(limitCount - users.length));
@@ -597,7 +598,6 @@ export class UserProfileService {
         const additionalUserIds: string[] = [];
         
         profilesSnapshot.forEach((doc) => {
-          // Verificar se já não está na lista
           if (!users.find(u => u.uid === doc.id)) {
             const data = doc.data();
             additionalUserIds.push(doc.id);
@@ -617,7 +617,6 @@ export class UserProfileService {
           }
         });
 
-        // Buscar contagem real de posts para usuários adicionais
         if (additionalUserIds.length > 0) {
           const additionalPostsPromises = additionalUserIds.map(async (userId) => {
             try {

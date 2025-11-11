@@ -293,14 +293,14 @@ const Feed: React.FC = () => {
       
       console.log('✅ Post deletado com sucesso');
       success('Post Deletado', 'Post removido com sucesso!');
-    } catch (error: any) {
-      console.error('❌ Erro ao deletar post:', error);
+    } catch (err: any) {
+      console.error('❌ Erro ao deletar post:', err);
       
       let errorMessage = 'Erro ao deletar post. Tente novamente.';
       
-      if (error.message.includes('não tem permissão')) {
+      if (err.message.includes('não tem permissão')) {
         errorMessage = 'Você não tem permissão para deletar este post.';
-      } else if (error.message.includes('não encontrado')) {
+      } else if (err.message.includes('não encontrado')) {
         errorMessage = 'Post não encontrado.';
       }
       
@@ -366,15 +366,24 @@ const Feed: React.FC = () => {
       return;
     }
 
+    // Declarar firestoreData fora do try para poder usar no catch
+    let firestoreData: any = null;
+    
     try {
       // Extrair hashtags do conteúdo
       const hashtags = postData.content.match(/#\w+/g) || [];
       console.log('🔄 [POST] Hashtags extraídas:', hashtags);
 
+      // Validar conteúdo
+      if (!postData.content || !postData.content.trim()) {
+        error('Erro', 'O post não pode estar vazio.');
+        return;
+      }
+
       // Preparar dados para o Firestore
-      const firestoreData = {
-        titulo: postData.content.substring(0, 100) + (postData.content.length > 100 ? '...' : ''),
-        conteudo: postData.content,
+      firestoreData = {
+        titulo: postData.content.trim().substring(0, 100) + (postData.content.trim().length > 100 ? '...' : ''),
+        conteudo: postData.content.trim(),
         autorId: currentUser.uid,
         autorNome: userProfile.displayName || currentUser.displayName || 'Usuário',
         autorAvatar: userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40',
@@ -382,6 +391,14 @@ const Feed: React.FC = () => {
         autorUniversidade: userProfile.university || 'UFRJ - Universidade Federal do Rio de Janeiro',
         tipo: (postData.type === 'text' ? 'texto' : postData.type === 'image' ? 'imagem' : postData.type === 'poll' ? 'poll' : 'tev') as 'texto' | 'imagem' | 'poll' | 'tev'
       };
+
+      // Validação adicional
+      if (!firestoreData.autorId) {
+        throw new Error('ID do autor não encontrado. Faça login novamente.');
+      }
+      if (!firestoreData.conteudo || firestoreData.conteudo.length === 0) {
+        throw new Error('O conteúdo do post não pode estar vazio.');
+      }
 
       console.log('🔄 [POST] Dados preparados para Firestore:', firestoreData);
 
@@ -395,25 +412,26 @@ const Feed: React.FC = () => {
       const postId = await basicFirestoreService.adicionarPost(firestoreData);
       console.log('✅ [POST] Post criado no Firestore com ID:', postId);
 
-      // Criar post local para atualização imediata da UI (opcional, pois o listener vai atualizar)
-    const newPost: Post = {
+      // Criar post local para atualização imediata da UI
+      // O listener vai atualizar automaticamente, mas adicionamos localmente para feedback imediato
+      const newPost: Post = {
         id: postId,
-      author: {
+        author: {
           uid: currentUser.uid,
           name: userProfile.displayName || currentUser.displayName || 'Usuário',
           course: userProfile.course || 'Curso não informado',
           university: userProfile.university || 'Universidade não informada',
           avatar: userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40'
-      },
-      content: postData.content,
-      type: postData.type,
+        },
+        content: postData.content,
+        type: postData.type,
         image: postData.image,
         timestamp: new Date().toISOString(),
-      likes: 0,
-      comments: 0,
-      isLiked: false,
+        likes: 0,
+        comments: 0,
+        isLiked: false,
         location: postData.location,
-      teviData: postData.teviData,
+        teviData: postData.teviData,
         pollData: postData.pollData,
         event: postData.event,
         hashtags: hashtags
@@ -421,9 +439,16 @@ const Feed: React.FC = () => {
 
       console.log('🔄 [POST] Post local criado:', newPost);
 
-      // Adicionar post ao início da lista local (temporário até o listener atualizar)
+      // Adicionar post ao início da lista local para feedback imediato
+      // O listener do Firestore vai atualizar em seguida com os dados reais
       setPosts(prevPosts => {
         console.log('🔄 [POST] Posts anteriores:', prevPosts.length);
+        // Verificar se o post já não existe (evitar duplicatas)
+        const postExists = prevPosts.some(p => p.id === postId);
+        if (postExists) {
+          console.log('⚠️ [POST] Post já existe na lista, não adicionando duplicado');
+          return prevPosts;
+        }
         const updatedPosts = [newPost, ...prevPosts];
         console.log('🔄 [POST] Posts atualizados:', updatedPosts.length);
         return updatedPosts;
@@ -432,18 +457,26 @@ const Feed: React.FC = () => {
       console.log('✅ [POST] Post criado e adicionado com sucesso!');
       success('Post Criado', 'Seu post foi publicado com sucesso!');
             // Post criado com sucesso - o listener vai atualizar automaticamente
-    } catch (error: any) {
-      console.error('❌ [POST] Erro ao criar post:', error);
-      console.error('❌ [POST] Detalhes do erro:', error.message);
-      error('Erro ao Criar Post', 'Ops! Não conseguimos criar seu post. Tente novamente.');
+    } catch (err: any) {
+      console.error('❌ [POST] Erro ao criar post:', err);
+      console.error('❌ [POST] Código do erro:', err.code);
+      console.error('❌ [POST] Mensagem:', err.message);
+      console.error('❌ [POST] Stack:', err.stack);
       
       // Log detalhado para debug
       console.error('❌ [POST] Detalhes completos do erro:', {
-        error,
+        error: err,
+        errorCode: err.code,
+        errorMessage: err.message,
         postData,
         currentUser: currentUser?.uid,
-        userProfile: userProfile?.uid
+        userProfile: userProfile?.uid,
+        firestoreData: firestoreData
       });
+      
+      // Mostrar mensagem de erro mais específica
+      const errorMessage = err.message || 'Ops! Não conseguimos criar seu post. Tente novamente.';
+      error('Erro ao Criar Post', errorMessage);
     }
   };
 

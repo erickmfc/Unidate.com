@@ -183,20 +183,33 @@ const UserProfile: React.FC = () => {
       return;
     }
 
+    if (currentUser.uid === userProfile.uid) {
+      showError('Você não pode adicionar a si mesmo como colega.');
+      return;
+    }
+
     try {
       setIsAddingFriend(true);
       
+      console.log('🔄 [PROFILE] Adicionando colega:', { currentUserId: currentUser.uid, targetUserId: userProfile.uid });
+      
       await UserProfileService.addFriend(currentUser.uid, userProfile.uid);
+      
+      console.log('✅ [PROFILE] Colega adicionado com sucesso');
       
       setIsFriend(true);
       if (userProfile) {
-        setUserProfile({ ...userProfile, isFriend: true, friendsCount: userProfile.friendsCount + 1 });
+        setUserProfile({ ...userProfile, isFriend: true, friendsCount: (userProfile.friendsCount || 0) + 1 });
       }
       
       showSuccess('Colega adicionado com sucesso! 👥');
-    } catch (error) {
-      console.error('Erro ao adicionar colega:', error);
-      showError('Erro ao adicionar colega. Tente novamente.');
+    } catch (err: any) {
+      console.error('❌ [PROFILE] Erro ao adicionar colega:', err);
+      console.error('❌ [PROFILE] Detalhes do erro:', err.message);
+      
+      // Mostrar mensagem de erro mais específica
+      const errorMessage = err.message || 'Tente novamente.';
+      showError(`Erro ao adicionar colega: ${errorMessage}`);
     } finally {
       setIsAddingFriend(false);
     }

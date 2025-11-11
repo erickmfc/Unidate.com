@@ -106,13 +106,24 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
   };
 
   const handleAddAsColleague = async (userId: string, userName: string) => {
-    if (!currentUser?.uid) return;
+    if (!currentUser?.uid) {
+      error('Erro', 'Você precisa estar logado para adicionar colegas.');
+      return;
+    }
+
+    if (currentUser.uid === userId) {
+      error('Erro', 'Você não pode adicionar a si mesmo como colega.');
+      return;
+    }
 
     try {
       setAddingIds(prev => new Set(prev).add(userId));
       
+      console.log('🔄 [SUGGESTED] Adicionando colega:', { currentUserId: currentUser.uid, targetUserId: userId });
+      
       await UserProfileService.addFriend(currentUser.uid, userId);
       
+      console.log('✅ [SUGGESTED] Colega adicionado com sucesso');
       success(`${userName} foi adicionado(a) como colega!`);
       
       // Remover da lista de sugeridos
@@ -120,9 +131,13 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
       
       // Recarregar lista
       await loadSuggestedProfiles();
-    } catch (err) {
-      console.error('Erro ao adicionar colega:', err);
-      error('Erro ao adicionar colega', 'Tente novamente.');
+    } catch (err: any) {
+      console.error('❌ [SUGGESTED] Erro ao adicionar colega:', err);
+      console.error('❌ [SUGGESTED] Detalhes do erro:', err.message);
+      
+      // Mostrar mensagem de erro mais específica
+      const errorMessage = err.message || 'Tente novamente.';
+      error('Erro ao adicionar colega', errorMessage);
     } finally {
       setAddingIds(prev => {
         const newSet = new Set(prev);

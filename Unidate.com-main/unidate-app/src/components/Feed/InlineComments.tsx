@@ -36,13 +36,19 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
 
     setSending(true);
     try {
+      console.log('🔄 [INLINECOMMENTS] Enviando comentário...', { postId, content: newComment.trim() });
       await onAddComment(postId, newComment.trim());
+      console.log('✅ [INLINECOMMENTS] Comentário enviado com sucesso');
       setNewComment('');
       setShowInput(false);
+      // Aguardar um pouco antes de mostrar sucesso para garantir que foi salvo
+      await new Promise(resolve => setTimeout(resolve, 200));
       showSuccess('Comentário adicionado! 💬');
-    } catch (error) {
-      console.error('Erro ao adicionar comentário:', error);
-      showError('Ops! Não conseguimos adicionar seu comentário. Tente novamente.');
+    } catch (error: any) {
+      console.error('❌ [INLINECOMMENTS] Erro ao adicionar comentário:', error);
+      console.error('❌ [INLINECOMMENTS] Detalhes:', error.message);
+      const errorMessage = error.message || 'Ops! Não conseguimos adicionar seu comentário. Tente novamente.';
+      showError(errorMessage);
     } finally {
       setSending(false);
     }
@@ -78,7 +84,7 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
       const comment = comments.find(c => c.id === commentId);
       if (!comment) return;
 
-      const isLiked = comment.likedBy.includes(currentUser.uid);
+      const isLiked = comment.likedBy?.includes(currentUser.uid) || false;
       await CommentsService.toggleCommentLike(commentId, currentUser.uid, isLiked);
     } catch (error) {
       console.error('Erro ao curtir comentário:', error);
@@ -176,7 +182,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
               </span>
             </div>
 
-            {/* Input de Comentário */}
             <div className="flex-1 relative">
               <input
                 ref={inputRef}
@@ -190,7 +195,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
               />
             </div>
 
-            {/* Botão de Enviar */}
             <button
               type="submit"
               disabled={!newComment.trim() || sending}
@@ -203,7 +207,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
               )}
             </button>
 
-            {/* Botão de Cancelar */}
             <button
               type="button"
               onClick={() => {

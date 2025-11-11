@@ -81,34 +81,46 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
   }, []);
 
   useEffect(() => {
-    if (!unsubscribeComments) {
-      setLoadingComments(true);
-      console.log('🔄 [POSTCARD] Carregando últimos comentários para post:', post.id);
-      
-      const unsubscribe = CommentsService.loadPostComments(
-        post.id,
-        (loadedComments) => {
-          console.log('📱 [POSTCARD] Comentários carregados:', loadedComments.length);
-          const lastTwoComments = loadedComments.slice(-2);
-          setComments(lastTwoComments);
-          setLoadingComments(false);
-        },
-        (error) => {
-          console.error('❌ [POSTCARD] Erro ao carregar comentários:', error);
-          setLoadingComments(false);
-        },
-        2
-      );
-      
-      setUnsubscribeComments(() => unsubscribe);
+    setLoadingComments(true);
+    console.log('🔄 [POSTCARD] Carregando últimos comentários para post:', post.id);
+    
+    // Limpar listener anterior se existir
+    const currentUnsubscribe = unsubscribeComments;
+    if (currentUnsubscribe) {
+      currentUnsubscribe();
     }
+    
+    const unsubscribe = CommentsService.loadPostComments(
+      post.id,
+      (loadedComments) => {
+        console.log('📱 [POSTCARD] Comentários carregados:', loadedComments.length);
+        // Pegar os últimos 2 comentários (mais recentes)
+        const sortedComments = [...loadedComments].sort((a, b) => {
+          try {
+            const aTime = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : (a.timestamp ? new Date(a.timestamp).getTime() : 0);
+            const bTime = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : (b.timestamp ? new Date(b.timestamp).getTime() : 0);
+            return bTime - aTime; // Mais recentes primeiro
+          } catch {
+            return 0;
+          }
+        });
+        const lastTwoComments = sortedComments.slice(0, 2); // Pegar os 2 mais recentes
+        setComments(lastTwoComments);
+        setLoadingComments(false);
+      },
+      (error) => {
+        console.error('❌ [POSTCARD] Erro ao carregar comentários:', error);
+        setLoadingComments(false);
+      },
+      2
+    );
+    
+    setUnsubscribeComments(() => unsubscribe);
 
     return () => {
-      if (unsubscribeComments) {
-        unsubscribeComments();
-      }
+      unsubscribe();
     };
-  }, [post.id]);
+  }, [post.id]); // Não incluir unsubscribeComments nas dependências para evitar loops
 
   const handleProfileClick = () => {
     console.log('🔍 Navegando para perfil do usuário:', post.author.uid);
@@ -130,24 +142,32 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
   };
 
   const handleAddComment = async (postId: string, content: string) => {
-    if (!currentUser || !userProfile) {
+    if (!currentUser) {
       throw new Error('Usuário não autenticado');
     }
 
     try {
       console.log('🔄 [POSTCARD] Adicionando comentário...', { postId, content });
       
-      await CommentsService.addComment(
+      // Usar userProfile se disponível, senão usar dados do currentUser
+      const userName = userProfile?.displayName || currentUser.displayName || 'Usuário';
+      const userAvatar = userProfile?.photoURL || currentUser.photoURL || '/api/placeholder/40/40';
+      
+      const commentId = await CommentsService.addComment(
         postId,
         currentUser.uid,
-        userProfile.displayName || currentUser.displayName || 'Usuário',
-        userProfile.photoURL || currentUser.photoURL || '/api/placeholder/40/40',
+        userName,
+        userAvatar,
         content
       );
       
-      console.log('✅ [POSTCARD] Comentário adicionado com sucesso!');
-    } catch (error) {
+      console.log('✅ [POSTCARD] Comentário adicionado com sucesso! ID:', commentId);
+      
+      // O listener do Firestore vai atualizar automaticamente
+      // Não precisamos atualizar manualmente aqui
+    } catch (error: any) {
       console.error('❌ [POSTCARD] Erro ao adicionar comentário:', error);
+      console.error('❌ [POSTCARD] Detalhes:', error.message);
       throw error;
     }
   };
@@ -159,7 +179,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
       const comment = comments.find(c => c.id === commentId);
       if (!comment) return;
 
-      const isLiked = comment.likedBy.includes(currentUser.uid);
+      const isLiked = comment.likedBy?.includes(currentUser.uid) || false;
       
       await CommentsService.toggleCommentLike(commentId, currentUser.uid, isLiked);
       
