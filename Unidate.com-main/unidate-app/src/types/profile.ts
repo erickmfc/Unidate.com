@@ -1,4 +1,3 @@
-// Tipos para o sistema de perfil com cards modulares
 export interface ProfileCard {
   id: string;
   type: 'survival_kit' | 'subjects' | 'food_ranking' | 'campus_spot' | 'music' | 'custom';
@@ -23,7 +22,7 @@ export interface SubjectPair {
 export interface FoodRating {
   id: string;
   name: string;
-  rating: number; // 1-5 estrelas
+  rating: number;
   location: string;
   comment?: string;
 }
@@ -54,9 +53,7 @@ export interface CustomCard {
   data: any;
 }
 
-// Tipos para o perfil expandido
 export interface ExpandedUserProfile {
-  // Dados básicos (card fixo)
   uid: string;
   email: string;
   displayName: string;
@@ -68,30 +65,24 @@ export interface ExpandedUserProfile {
   period: number;
   bio?: string;
   
-  // Cards modulares
   cards: ProfileCard[];
   
-  // Dados de personalidade
   personalityAnswers: Record<string, any>;
   
-  // Configurações
   isVerified: boolean;
   isEmailVerified: boolean;
   onboardingCompleted: boolean;
   
-  // Metadados
   createdAt: Date;
   updatedAt: Date;
 }
 
-// Tipos para criação de cards
 export interface CreateCardData {
   type: ProfileCard['type'];
   title: string;
   data: any;
 }
 
-// Tipos para edição de cards
 export interface EditCardData {
   id: string;
   title?: string;

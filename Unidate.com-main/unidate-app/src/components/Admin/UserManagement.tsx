@@ -113,12 +113,11 @@ const UserManagement: React.FC = () => {
 
   const handleUserAction = (userId: string, action: string) => {
     console.log(`Ação ${action} no usuário ${userId}`);
-    // Implementar lógica de ação
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h2>
@@ -136,7 +135,7 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="card">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0">
           <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
@@ -172,7 +171,7 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Users Table */}
+      {}
       <div className="card">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -276,7 +275,7 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* User Detail Modal */}
+      {}
       {selectedUser && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -291,7 +290,7 @@ const UserManagement: React.FC = () => {
             </div>
 
             <div className="space-y-6">
-              {/* User Info */}
+              {}
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
                   <span className="text-white text-xl font-semibold">
@@ -307,7 +306,7 @@ const UserManagement: React.FC = () => {
                 </div>
               </div>
 
-              {/* Details */}
+              {}
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Curso</label>
@@ -327,7 +326,7 @@ const UserManagement: React.FC = () => {
                 </div>
               </div>
 
-              {/* Actions */}
+              {}
               <div className="flex space-x-3 pt-4 border-t border-gray-200">
                 <button className="btn-primary">
                   <Mail className="h-4 w-4 mr-2" />
@@ -358,4 +357,3 @@ const UserManagement: React.FC = () => {
 };
 
 export default UserManagement;
-

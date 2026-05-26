@@ -25,14 +25,12 @@ const ContentModeration: React.FC = () => {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Carregar denúncias reais
   useEffect(() => {
     const loadReports = async () => {
       try {
         setLoading(true);
         console.log('📊 Carregando denúncias...');
         
-        // Buscar denúncias reais do Firebase
         const realReports = await AdminModerationService.getReports();
         
         console.log(`✅ ${realReports.length} denúncias carregadas`);
@@ -47,12 +45,10 @@ const ContentModeration: React.FC = () => {
 
     loadReports();
 
-    // Auto-refresh a cada 30 segundos
     const interval = setInterval(loadReports, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Filtrar denúncias
   useEffect(() => {
     let filtered = reports;
 
@@ -127,10 +123,8 @@ const ContentModeration: React.FC = () => {
     try {
       console.log(`📊 Aplicando ação ${action} ao report ${reportId}`);
       
-      // Aplicar ação real no Firebase
       await AdminModerationService.handleReportAction(reportId, action);
       
-      // Atualizar status local
       setReports(prev => prev.map(report => 
         report.id === reportId 
           ? { ...report, status: action === 'ignore' || action === 'remove' || action === 'suspend' ? 'resolved' as const : 'reviewed' as const }
@@ -164,7 +158,7 @@ const ContentModeration: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Moderação de Conteúdo</h1>
@@ -185,10 +179,10 @@ const ContentModeration: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
+          {}
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -202,7 +196,7 @@ const ContentModeration: React.FC = () => {
             </div>
           </div>
 
-          {/* Reason Filter */}
+          {}
           <div className="sm:w-48">
             <select
               value={filterReason}
@@ -219,7 +213,7 @@ const ContentModeration: React.FC = () => {
             </select>
           </div>
 
-          {/* Priority Filter */}
+          {}
           <div className="sm:w-48">
             <select
               value={filterPriority}
@@ -235,7 +229,7 @@ const ContentModeration: React.FC = () => {
         </div>
       </div>
 
-      {/* Reports Grid */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredReports.map((report) => (
           <div
@@ -246,7 +240,7 @@ const ContentModeration: React.FC = () => {
               setShowReportDetail(true);
             }}
           >
-            {/* Header */}
+            {}
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center space-x-2">
                 {getTypeIcon(report.type)}
@@ -259,7 +253,7 @@ const ContentModeration: React.FC = () => {
               </div>
             </div>
 
-            {/* Content Preview */}
+            {}
             <div className="mb-4">
               <div className="text-sm text-gray-600 mb-2">
                 <strong>Autor:</strong> {report.content.author}
@@ -281,7 +275,7 @@ const ContentModeration: React.FC = () => {
               )}
             </div>
 
-            {/* Report Info */}
+            {}
             <div className="border-t border-gray-200 pt-4">
               <div className="flex items-center justify-between mb-2">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getReasonColor(report.report.reason)}`}>
@@ -299,7 +293,7 @@ const ContentModeration: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Actions */}
+            {}
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center space-x-2">
                 <button
@@ -338,7 +332,7 @@ const ContentModeration: React.FC = () => {
         ))}
       </div>
 
-      {/* Empty State */}
+      {}
       {filteredReports.length === 0 && (
         <div className="text-center py-12">
           <Flag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -352,7 +346,7 @@ const ContentModeration: React.FC = () => {
         </div>
       )}
 
-      {/* Report Detail Modal */}
+      {}
       {showReportDetail && selectedReport && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -371,7 +365,7 @@ const ContentModeration: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Content */}
+                  {}
                   <div>
                     <h4 className="text-sm font-medium text-gray-900 mb-3">Conteúdo Denunciado</h4>
                     <div className="bg-gray-50 rounded-lg p-4">
@@ -393,7 +387,7 @@ const ContentModeration: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Report Details */}
+                  {}
                   <div>
                     <h4 className="text-sm font-medium text-gray-900 mb-3">Detalhes da Denúncia</h4>
                     <div className="space-y-3">

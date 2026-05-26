@@ -85,7 +85,7 @@ const About: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+      {}
       <section className="pt-20 pb-16 bg-gradient-to-br from-indigo-50 via-white to-pink-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -117,7 +117,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Nossa História */}
+      {}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -159,7 +159,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Nossa Missão */}
+      {}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -183,7 +183,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Nossa Equipe */}
+      {}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -212,7 +212,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Timeline */}
+      {}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -244,7 +244,7 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Call to Action */}
+      {}
       <section className="py-20 bg-gradient-to-r from-indigo-500 to-pink-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-4">
@@ -276,4 +276,3 @@ const About: React.FC = () => {
 };
 
 export default About;
-

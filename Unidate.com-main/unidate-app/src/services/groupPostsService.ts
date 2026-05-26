@@ -33,9 +33,9 @@ export interface GroupPost {
   pollData?: {
     question: string;
     options: string[];
-    votes: Record<string, number>; // userId -> optionIndex
+    votes: Record<string, number>;
   };
-  likes: string[]; // Array de UIDs
+  likes: string[];
   comments: number;
   hashtags: string[];
   createdAt: Timestamp;
@@ -43,7 +43,6 @@ export interface GroupPost {
 }
 
 export class GroupPostsService {
-  // Criar post no grupo
   static async createPost(
     groupId: string,
     postData: {
@@ -59,7 +58,6 @@ export class GroupPostsService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Extrair hashtags
       const hashtags = postData.content.match(/#\w+/g)?.map(tag => tag.substring(1)) || [];
 
       const postRef = await addDoc(collection(db, 'groupPosts'), {
@@ -80,7 +78,6 @@ export class GroupPostsService {
     }
   }
 
-  // Buscar posts do grupo
   static async getGroupPosts(groupId: string, limitCount: number = 20): Promise<GroupPost[]> {
     try {
       if (!db) {
@@ -114,7 +111,6 @@ export class GroupPostsService {
     }
   }
 
-  // Curtir/descurtir post
   static async toggleLike(postId: string, userId: string, isLiking: boolean): Promise<void> {
     try {
       if (!db) {
@@ -140,7 +136,6 @@ export class GroupPostsService {
     }
   }
 
-  // Votar em enquete
   static async votePoll(postId: string, userId: string, optionIndex: number): Promise<void> {
     try {
       if (!db) {
@@ -159,7 +154,6 @@ export class GroupPostsService {
         throw new Error('Este post não é uma enquete');
       }
 
-      // Remover voto anterior se existir
       const currentVotes = postData.pollData.votes || {};
       const newVotes = { ...currentVotes, [userId]: optionIndex };
 
@@ -173,7 +167,6 @@ export class GroupPostsService {
     }
   }
 
-  // Incrementar contador de comentários
   static async incrementComments(postId: string): Promise<void> {
     try {
       if (!db) return;
@@ -192,7 +185,6 @@ export class GroupPostsService {
     }
   }
 
-  // Deletar post
   static async deletePost(postId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -219,4 +211,3 @@ export class GroupPostsService {
     }
   }
 }
-

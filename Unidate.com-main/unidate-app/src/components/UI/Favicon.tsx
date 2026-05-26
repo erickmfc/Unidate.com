@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Componente para gerar o favicon SVG
 const Favicon: React.FC = () => {
   return (
     <svg
@@ -16,9 +15,9 @@ const Favicon: React.FC = () => {
         </linearGradient>
       </defs>
       
-      {/* Graduation Cap */}
+      {}
       <g transform="translate(50, 20)">
-        {/* Cap top (square) */}
+        {}
         <rect
           x="-8"
           y="-8"
@@ -28,7 +27,7 @@ const Favicon: React.FC = () => {
           fill="url(#faviconGradient)"
         />
         
-        {/* Cap band */}
+        {}
         <rect
           x="-10"
           y="6"
@@ -38,7 +37,7 @@ const Favicon: React.FC = () => {
           fill="url(#faviconGradient)"
         />
         
-        {/* Tassel */}
+        {}
         <line
           x1="8"
           y1="8"
@@ -49,7 +48,7 @@ const Favicon: React.FC = () => {
           strokeLinecap="round"
         />
         
-        {/* Tassel end */}
+        {}
         <circle
           cx="12"
           cy="12"
@@ -58,9 +57,9 @@ const Favicon: React.FC = () => {
         />
       </g>
       
-      {/* Infinity Symbol */}
+      {}
       <g transform="translate(50, 50)">
-        {/* Left loop */}
+        {}
         <ellipse
           cx="-12"
           cy="0"
@@ -69,7 +68,7 @@ const Favicon: React.FC = () => {
           fill="url(#faviconGradient)"
         />
         
-        {/* Right loop */}
+        {}
         <ellipse
           cx="12"
           cy="0"
@@ -78,7 +77,7 @@ const Favicon: React.FC = () => {
           fill="url(#faviconGradient)"
         />
         
-        {/* Center connection */}
+        {}
         <rect
           x="-4"
           y="-8"
@@ -87,7 +86,7 @@ const Favicon: React.FC = () => {
           fill="url(#faviconGradient)"
         />
         
-        {/* Left circle */}
+        {}
         <circle
           cx="-12"
           cy="0"
@@ -95,7 +94,7 @@ const Favicon: React.FC = () => {
           fill="#EC4899"
         />
         
-        {/* Right circle */}
+        {}
         <circle
           cx="12"
           cy="0"
@@ -104,15 +103,15 @@ const Favicon: React.FC = () => {
         />
       </g>
       
-      {/* Open Book */}
+      {}
       <g transform="translate(70, 25)">
-        {/* Book pages */}
+        {}
         <path
           d="M-8 -6 L8 -6 L6 6 L-6 6 Z"
           fill="url(#faviconGradient)"
         />
         
-        {/* Book spine */}
+        {}
         <rect
           x="-2"
           y="-6"
@@ -126,4 +125,3 @@ const Favicon: React.FC = () => {
 };
 
 export default Favicon;
-

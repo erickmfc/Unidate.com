@@ -58,7 +58,6 @@ export class AnalyticsService {
       const startDate = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
       const startTimestamp = Timestamp.fromDate(startDate);
 
-      // Buscar dados em paralelo
       const [
         totalUsers,
         activeUsers,
@@ -79,15 +78,12 @@ export class AnalyticsService {
         this.getRealTimeData()
       ]);
 
-      // Calcular engajamento
       const totalInteractions = postsData.count + commentsData.count + likesData.count;
       const engagement = totalUsers > 0 ? (totalInteractions / totalUsers) * 100 : 0;
 
-      // Calcular retenção (usuários que voltaram nos últimos 7 dias)
       const retentionUsers = await this.getRetentionUsers();
       const retention = totalUsers > 0 ? (retentionUsers / totalUsers) * 100 : 0;
 
-      // Calcular crescimento
       const previousPeriodStart = new Date(now.getTime() - (daysAgo * 2) * 24 * 60 * 60 * 1000);
       const previousPeriodTimestamp = Timestamp.fromDate(previousPeriodStart);
       const previousNewUsers = await this.getNewUsers(previousPeriodTimestamp);
@@ -95,7 +91,6 @@ export class AnalyticsService {
         ? ((newUsers - previousNewUsers) / previousNewUsers) * 100 
         : newUsers > 0 ? 100 : 0;
 
-      // Calcular engajamento médio
       const avgEngagement = postsData.count > 0 
         ? ((commentsData.count + likesData.count) / postsData.count) * 100 
         : 0;
@@ -110,17 +105,17 @@ export class AnalyticsService {
           growth: Math.round(growth * 100) / 100
         },
         traffic: {
-          pageViews: postsData.count * 3, // Estimativa baseada em posts
+          pageViews: postsData.count * 3,
           uniqueVisitors: activeUsers,
-          bounceRate: 35, // Valor estimado
-          avgSessionTime: 12, // minutos
+          bounceRate: 35,
+          avgSessionTime: 12,
           topPages: []
         },
         engagement: {
           postsCreated: postsData.count,
           commentsCount: commentsData.count,
           likesCount: likesData.count,
-          sharesCount: 0, // Não temos dados de compartilhamento ainda
+          sharesCount: 0,
           avgEngagement: Math.round(avgEngagement * 100) / 100,
           topContent: postsData.topPosts
         },
@@ -159,7 +154,6 @@ export class AnalyticsService {
     try {
       if (!db) return 0;
       
-      // Tentar buscar usuários online via userStatus
       try {
         const statusRef = collection(db, 'userStatus');
         const statusQuery = query(statusRef, where('isOnline', '==', true));
@@ -172,7 +166,6 @@ export class AnalyticsService {
         console.log('userStatus não disponível, usando fallback');
       }
 
-      // Fallback: contar usuários que criaram posts recentemente
       try {
         const postsRef = collection(db!, 'posts');
         const postsQuery = query(
@@ -194,7 +187,6 @@ export class AnalyticsService {
         console.error('Erro ao buscar usuários ativos via posts:', postsError);
       }
 
-      // Último fallback: retornar 0
       return 0;
     } catch (error) {
       console.error('Erro ao contar usuários ativos:', error);
@@ -208,7 +200,6 @@ export class AnalyticsService {
 
       if (!db) return 0;
       
-      // Buscar em 'users'
       try {
         const usersRef = collection(db, 'users');
         const usersQuery = query(usersRef, where('createdAt', '>=', since));
@@ -218,13 +209,11 @@ export class AnalyticsService {
         console.log('Erro ao buscar novos usuários em users:', error);
       }
 
-      // Buscar em 'userProfiles' e filtrar por data manualmente
       try {
         const profilesRef = collection(db!, 'userProfiles');
         const profilesSnapshot = await getDocs(profilesRef);
         profilesSnapshot.forEach(doc => {
           const data = doc.data();
-          // Verificar se a data está dentro do período
           const joinDate = data.joinDate || data.createdAt;
           if (joinDate) {
             let date: Date;
@@ -233,7 +222,7 @@ export class AnalyticsService {
             } else if (typeof joinDate === 'string') {
               date = new Date(joinDate);
             } else {
-              return; // Data inválida
+              return;
             }
             
             if (date >= since.toDate()) {
@@ -281,7 +270,6 @@ export class AnalyticsService {
         });
       });
 
-      // Ordenar por engajamento e pegar top 5
       topPosts.sort((a, b) => b.engagement - a.engagement);
       const top5 = topPosts.slice(0, 5);
 
@@ -314,7 +302,6 @@ export class AnalyticsService {
   private static async getLikesData(since: Timestamp): Promise<{ count: number }> {
     try {
       if (!db) return { count: 0 };
-      // Contar likes nos posts criados no período
       const postsRef = collection(db, 'posts');
       const postsQuery = query(
         postsRef,
@@ -363,7 +350,6 @@ export class AnalyticsService {
       const deviceMap = new Map<string, number>();
       let totalUsers = 0;
 
-      // Processar users
       usersSnapshot.forEach(doc => {
         const data = doc.data();
         const course = data.course || data.curso || 'Não informado';
@@ -374,7 +360,6 @@ export class AnalyticsService {
         totalUsers++;
       });
 
-      // Processar userProfiles
       profilesSnapshot.forEach(doc => {
         const data = doc.data();
         const course = data.course || 'Não informado';
@@ -385,7 +370,6 @@ export class AnalyticsService {
         totalUsers++;
       });
 
-      // Converter para arrays com porcentagens
       const byCourse = Array.from(courseMap.entries())
         .map(([course, count]) => ({
           course,
@@ -404,7 +388,6 @@ export class AnalyticsService {
         .sort((a, b) => b.users - a.users)
         .slice(0, 10);
 
-      // Dispositivos (estimado - 60% mobile, 40% desktop)
       const mobileUsers = Math.round(totalUsers * 0.6);
       const desktopUsers = totalUsers - mobileUsers;
       const byDevice = [
@@ -412,7 +395,6 @@ export class AnalyticsService {
         { device: 'Desktop', users: desktopUsers, percentage: 40 }
       ];
 
-      // Por ano (dados simulados por enquanto)
       const byYear = [
         { year: '1', users: Math.round(totalUsers * 0.25), percentage: 25 },
         { year: '2', users: Math.round(totalUsers * 0.30), percentage: 30 },
@@ -444,7 +426,6 @@ export class AnalyticsService {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       const timestamp = Timestamp.fromDate(sevenDaysAgo);
 
-      // Contar usuários que criaram posts nos últimos 7 dias (indicador de atividade)
       const postsRef = collection(db, 'posts');
       const postsQuery = query(
         postsRef,
@@ -480,15 +461,13 @@ export class AnalyticsService {
           currentActivity: []
         };
       }
-      // Buscar usuários online
       const statusRef = collection(db, 'userStatus');
       const statusQuery = query(statusRef, where('isOnline', '==', true));
       const statusSnapshot = await getDocs(statusQuery);
 
       const onlineUsers = statusSnapshot.size;
-      const activeSessions = onlineUsers; // Aproximação
+      const activeSessions = onlineUsers;
 
-      // Buscar atividade recente (últimos posts)
       const postsRef = collection(db!, 'posts');
       const recentPostsQuery = query(
         postsRef,
@@ -526,4 +505,3 @@ export class AnalyticsService {
     }
   }
 }
-

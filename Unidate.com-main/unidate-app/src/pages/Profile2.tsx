@@ -21,7 +21,6 @@ import {
   GraduationCap
 } from 'lucide-react';
 
-// Tipos para o sistema de widgets
 interface Widget {
   id: string;
   type: 'estante' | 'conquistas' | 'mural' | 'mapa-astral' | 'ranking' | 'kit-sobrevivencia' | 'tier-list' | 'timeline';
@@ -52,7 +51,6 @@ const Profile2: React.FC = () => {
   const [userStatus, setUserStatus] = useState<'online' | 'away' | 'focus' | 'offline'>('online');
   const [currentMusic, setCurrentMusic] = useState<{title: string, artist: string, preview: string} | null>(null);
 
-  // Temas disponíveis
   const themes: ProfileTheme[] = [
     {
       id: 'default',
@@ -88,7 +86,6 @@ const Profile2: React.FC = () => {
     }
   ];
 
-  // Widgets disponíveis no catálogo
   const defaultWidgets: Widget[] = [
     {
       id: 'estante',
@@ -165,11 +162,9 @@ const Profile2: React.FC = () => {
   ];
 
   useEffect(() => {
-    // Carregar widgets do usuário
     setWidgets(defaultWidgets);
     setSelectedTheme(themes[0]);
     
-    // Simular música atual
     setCurrentMusic({
       title: "Bohemian Rhapsody",
       artist: "Queen",
@@ -427,7 +422,7 @@ const Profile2: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header Dinâmico */}
+      {}
       <div 
         className="profile-header"
         style={{ 
@@ -451,7 +446,7 @@ const Profile2: React.FC = () => {
                 {userProfile?.displayName || 'Usuário'}
               </h1>
               
-              {/* Badge do Tipo de Usuário */}
+              {}
               {userProfile?.userType && (
                 <div className="mb-2">
                   {userProfile.userType === 'aluno' && (
@@ -535,7 +530,7 @@ const Profile2: React.FC = () => {
         </div>
       </div>
 
-      {/* Grid de Widgets */}
+      {}
       <div className="profile-content">
         <div 
           className="widgets-grid"
@@ -549,7 +544,7 @@ const Profile2: React.FC = () => {
         </div>
       </div>
 
-      {/* Catálogo de Widgets */}
+      {}
       {showWidgetCatalog && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -580,7 +575,7 @@ const Profile2: React.FC = () => {
         </div>
       )}
 
-      {/* Customização */}
+      {}
       {showCustomization && (
         <div className="modal-overlay">
           <div className="modal-content">

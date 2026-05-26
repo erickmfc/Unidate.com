@@ -16,7 +16,6 @@ import {
 import { ActivityFeed } from '../types/subjects';
 
 export class ActivityFeedService {
-  // Obter feed de atividades
   static async getFeed(userId?: string, filters?: { type?: string; subjectId?: string }, limitCount: number = 20): Promise<ActivityFeed[]> {
     try {
       if (!db) {
@@ -69,7 +68,6 @@ export class ActivityFeedService {
     }
   }
 
-  // Compartilhar layout
   static async shareLayout(layoutId: string, userId: string, userName: string, userAvatar: string, layoutData: any): Promise<string> {
     try {
       if (!db) {
@@ -101,7 +99,6 @@ export class ActivityFeedService {
     }
   }
 
-  // Destacar conteúdo
   static async highlightContent(
     contentId: string,
     userId: string,
@@ -141,7 +138,6 @@ export class ActivityFeedService {
     }
   }
 
-  // Notificar nova lição concluída
   static async notifyLessonCompleted(
     userId: string,
     userName: string,
@@ -181,7 +177,6 @@ export class ActivityFeedService {
     }
   }
 
-  // Notificar contribuição aprovada
   static async notifyContributionApproved(
     contributorId: string,
     contributorName: string,
@@ -219,7 +214,6 @@ export class ActivityFeedService {
     }
   }
 
-  // Curtir atividade
   static async likeActivity(activityId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -236,7 +230,6 @@ export class ActivityFeedService {
     }
   }
 
-  // Compartilhar atividade
   static async shareActivity(activityId: string): Promise<void> {
     try {
       if (!db) {
@@ -253,4 +246,3 @@ export class ActivityFeedService {
     }
   }
 }
-

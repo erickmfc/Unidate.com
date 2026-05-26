@@ -128,7 +128,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <User className="h-6 w-6 text-purple-600" />
@@ -144,7 +144,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
           </button>
         </div>
 
-        {/* Tabs */}
+        {}
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
             {[
@@ -168,9 +168,9 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
           </nav>
         </div>
 
-        {/* Content */}
+        {}
         <div className="p-6 overflow-y-auto max-h-[60vh]">
-          {/* Aba: Perfil e Identidade */}
+          {}
           {activeTab === 'profile' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -238,11 +238,11 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
                 />
               </div>
 
-              {/* Widgets */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900">Widgets do Perfil</h3>
                 
-                {/* Minha Estante */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Minha Estante (Livros)
@@ -280,7 +280,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
                   </div>
                 </div>
 
-                {/* Kit de Sobrevivência */}
+                {}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Kit de Sobrevivência Universitária
@@ -318,7 +318,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
                   </div>
                 </div>
 
-                {/* Mapa Astral do Campus */}
+                {}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -359,7 +359,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
             </div>
           )}
 
-          {/* Aba: Comportamento no UniVerso */}
+          {}
           {activeTab === 'posts' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -432,7 +432,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
                 </p>
               </div>
 
-              {/* Tópicos Temporários */}
+              {}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Tópicos Temporários
@@ -479,7 +479,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
             </div>
           )}
 
-          {/* Aba: Comportamento em Interações */}
+          {}
           {activeTab === 'interactions' && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -564,7 +564,7 @@ const PersonaConfigModal: React.FC<PersonaConfigModalProps> = ({
           )}
         </div>
 
-        {/* Footer */}
+        {}
         <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
           <button
             onClick={onClose}

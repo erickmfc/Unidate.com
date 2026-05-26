@@ -27,7 +27,7 @@ export interface Group {
   category: string;
   university: string;
   isJoined: boolean;
-  lastActivity: Timestamp;
+  lastActivity: any;
   image?: string;
   tags: string[];
   createdBy: string;
@@ -39,15 +39,109 @@ export interface Group {
     date: string;
     attendees: number;
   }[];
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  createdAt: any;
+  updatedAt: any;
 }
+
+const DEFAULT_MOCK_GROUPS: Group[] = [
+  {
+    id: 'group_sqlite_mock_1',
+    name: 'Gerações de T.I. 💻',
+    description: 'Comunidade dos alunos de TI, ciência da computação e sistemas de informação para networking, ajuda em projetos e memes.',
+    members: ['ai-bot-unidate'],
+    editors: ['ai-bot-unidate'],
+    maxMembers: 150,
+    category: 'Estudos',
+    university: 'UFRJ - Universidade Federal do Rio de Janeiro',
+    isJoined: false,
+    lastActivity: new Date().toISOString(),
+    tags: ['ti', 'tecnologia', 'programacao'],
+    createdBy: 'ai-bot-unidate',
+    isOwner: false,
+    isEditor: false,
+    isPublic: true,
+    image: '/api/placeholder/120/120',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'group_sqlite_mock_2',
+    name: 'Cálculo 1 - Desespero & Café ☕',
+    description: 'Grupo focado em sobreviver ao Cálculo 1. Compartilhamento de listas de exercícios, resoluções e ajuda mútua antes das provas.',
+    members: ['ai-bot-unidate'],
+    editors: ['ai-bot-unidate'],
+    maxMembers: 100,
+    category: 'Estudos',
+    university: 'UFRJ - Universidade Federal do Rio de Janeiro',
+    isJoined: false,
+    lastActivity: new Date().toISOString(),
+    tags: ['calculo1', 'matematica', 'engenharia'],
+    createdBy: 'ai-bot-unidate',
+    isOwner: false,
+    isEditor: false,
+    isPublic: true,
+    image: '/api/placeholder/120/120',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: 'group_sqlite_mock_3',
+    name: 'Atlética Geral do Campus 🏆',
+    description: 'Fique por dentro de todos os campeonatos universitários, treinos, jogos, festas e produtos oficiais da nossa atlética.',
+    members: ['ai-bot-unidate'],
+    editors: ['ai-bot-unidate'],
+    maxMembers: 300,
+    category: 'Lazer',
+    university: 'UFRJ - Universidade Federal do Rio de Janeiro',
+    isJoined: false,
+    lastActivity: new Date().toISOString(),
+    tags: ['atletica', 'esportes', 'jogos'],
+    createdBy: 'ai-bot-unidate',
+    isOwner: false,
+    isEditor: false,
+    isPublic: true,
+    image: '/api/placeholder/120/120',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
+const getLocalGroups = (): Group[] => {
+  const local = localStorage.getItem('unidate_offline_groups');
+  if (!local) {
+    localStorage.setItem('unidate_offline_groups', JSON.stringify(DEFAULT_MOCK_GROUPS));
+    return DEFAULT_MOCK_GROUPS;
+  }
+  return JSON.parse(local);
+};
+
+const saveLocalGroups = (groups: Group[]) => {
+  localStorage.setItem('unidate_offline_groups', JSON.stringify(groups));
+  window.dispatchEvent(new Event('local-groups-updated'));
+};
 
 export class GroupsService {
   static async createGroup(groupData: Omit<Group, 'id' | 'members' | 'editors' | 'isJoined' | 'isOwner' | 'isEditor' | 'lastActivity' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Criando grupo em modo local (localStorage)');
+        const id = 'group_sqlite_' + Math.random().toString(36).substr(2, 9);
+        const newGroup: Group = {
+          id,
+          ...groupData,
+          members: [groupData.createdBy],
+          editors: [groupData.createdBy],
+          isJoined: true,
+          isOwner: true,
+          isEditor: true,
+          lastActivity: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        const allGroups = getLocalGroups();
+        allGroups.push(newGroup);
+        saveLocalGroups(allGroups);
+        return id;
       }
 
       const groupRef = await addDoc(collection(db, 'groups'), {
@@ -73,7 +167,8 @@ export class GroupsService {
   static async getGroups(limitCount: number = 50): Promise<Group[]> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Carregando grupos locais');
+        return getLocalGroups().slice(0, limitCount);
       }
 
       const q = query(
@@ -107,7 +202,8 @@ export class GroupsService {
   static async getGroupsByCategory(category: string): Promise<Group[]> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Carregando grupos locais por categoria:', category);
+        return getLocalGroups().filter(g => g.category === category);
       }
 
       const q = query(
@@ -141,8 +237,17 @@ export class GroupsService {
   static async updateGroupImage(groupId: string, userId: string, imageUrl: string): Promise<void> {
     try {
       if (!db) {
-        console.error('❌ Firebase não inicializado');
-        throw new Error('Firebase não inicializado');
+        console.log(`🖼️ [GROUPS] Atualizando foto do grupo local ${groupId} por usuário ${userId}`);
+        const allGroups = getLocalGroups();
+        const group = allGroups.find(g => g.id === groupId);
+        if (!group) throw new Error('Grupo não encontrado');
+        if (!group.members.includes(userId)) {
+          throw new Error('Apenas membros do grupo podem alterar a foto');
+        }
+        group.image = imageUrl;
+        group.updatedAt = new Date().toISOString();
+        saveLocalGroups(allGroups);
+        return;
       }
 
       console.log(`🖼️ Atualizando foto do grupo ${groupId} por usuário ${userId}`);
@@ -175,8 +280,25 @@ export class GroupsService {
   static async toggleGroupMembership(groupId: string, userId: string, isJoining: boolean): Promise<void> {
     try {
       if (!db) {
-        console.error('❌ Firebase não inicializado');
-        throw new Error('Firebase não está disponível. Verifique sua conexão.');
+        console.log(`🔄 [GROUPS] Membro local ${isJoining ? 'entrando' : 'saindo'} no grupo ${groupId}`);
+        const allGroups = getLocalGroups();
+        const group = allGroups.find(g => g.id === groupId);
+        if (!group) throw new Error('Grupo não encontrado');
+        
+        const isAlreadyMember = group.members.includes(userId);
+        if (isJoining && isAlreadyMember) return;
+        if (!isJoining && !isAlreadyMember) return;
+        
+        if (isJoining) {
+          group.members.push(userId);
+        } else {
+          group.members = group.members.filter(id => id !== userId);
+        }
+        
+        group.lastActivity = new Date().toISOString();
+        group.updatedAt = new Date().toISOString();
+        saveLocalGroups(allGroups);
+        return;
       }
 
       if (!userId) {
@@ -193,7 +315,6 @@ export class GroupsService {
       }
 
       const groupData = groupDoc.data();
-      console.log('📋 Dados do grupo:', groupData);
       
       const isAlreadyMember = groupData.members?.includes(userId) || false;
       
@@ -213,35 +334,15 @@ export class GroupsService {
           lastActivity: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        console.log(`✅ Usuário ${userId} entrou no grupo ${groupId}`);
       } else {
         await updateDoc(groupRef, {
           members: arrayRemove(userId),
           lastActivity: serverTimestamp(),
           updatedAt: serverTimestamp()
         });
-        console.log(`✅ Usuário ${userId} saiu do grupo ${groupId}`);
       }
     } catch (error) {
       console.error('❌ Erro ao atualizar membro do grupo:', error);
-      console.error('❌ Detalhes do erro:', {
-        groupId,
-        userId,
-        isJoining,
-        error: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined
-      });
-      
-      if (error instanceof Error) {
-        if (error.message.includes('permission-denied')) {
-          throw new Error('Você não tem permissão para esta ação');
-        } else if (error.message.includes('not-found')) {
-          throw new Error('Grupo não encontrado');
-        } else if (error.message.includes('unavailable')) {
-          throw new Error('Serviço temporariamente indisponível. Tente novamente.');
-        }
-      }
-      
       throw error;
     }
   }
@@ -249,7 +350,8 @@ export class GroupsService {
   static async getUserGroups(userId: string): Promise<Group[]> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Buscando grupos locais do usuário:', userId);
+        return getLocalGroups().filter(g => g.members.includes(userId));
       }
 
       const q = query(
@@ -282,7 +384,7 @@ export class GroupsService {
   static async hasUserCreatedGroup(userId: string): Promise<boolean> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        return getLocalGroups().some(g => g.createdBy === userId);
       }
 
       const q = query(
@@ -302,7 +404,18 @@ export class GroupsService {
   static async updateGroup(groupId: string, updateData: Partial<Group>): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Atualizando grupo local:', groupId);
+        const allGroups = getLocalGroups();
+        const index = allGroups.findIndex(g => g.id === groupId);
+        if (index === -1) throw new Error('Grupo não encontrado');
+        
+        allGroups[index] = {
+          ...allGroups[index],
+          ...updateData,
+          updatedAt: new Date().toISOString()
+        };
+        saveLocalGroups(allGroups);
+        return;
       }
 
       const groupRef = doc(db, 'groups', groupId);
@@ -321,7 +434,11 @@ export class GroupsService {
   static async deleteGroup(groupId: string): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Deletando grupo local:', groupId);
+        const allGroups = getLocalGroups();
+        const updated = allGroups.filter(g => g.id !== groupId);
+        saveLocalGroups(updated);
+        return;
       }
 
       await deleteDoc(doc(db, 'groups', groupId));
@@ -335,7 +452,15 @@ export class GroupsService {
   static async addEditor(groupId: string, userId: string): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Adicionando editor local ao grupo:', groupId);
+        const allGroups = getLocalGroups();
+        const group = allGroups.find(g => g.id === groupId);
+        if (!group) throw new Error('Grupo não encontrado');
+        if (!group.editors.includes(userId)) {
+          group.editors.push(userId);
+        }
+        saveLocalGroups(allGroups);
+        return;
       }
 
       const groupRef = doc(db, 'groups', groupId);
@@ -354,7 +479,13 @@ export class GroupsService {
   static async removeEditor(groupId: string, userId: string): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [GROUPS] Removendo editor local do grupo:', groupId);
+        const allGroups = getLocalGroups();
+        const group = allGroups.find(g => g.id === groupId);
+        if (!group) throw new Error('Grupo não encontrado');
+        group.editors = group.editors.filter(id => id !== userId);
+        saveLocalGroups(allGroups);
+        return;
       }
 
       const groupRef = doc(db, 'groups', groupId);
@@ -373,7 +504,8 @@ export class GroupsService {
   static async isEditor(groupId: string, userId: string): Promise<boolean> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        const group = getLocalGroups().find(g => g.id === groupId);
+        return group ? group.editors.includes(userId) : false;
       }
 
       const groupRef = doc(db, 'groups', groupId);

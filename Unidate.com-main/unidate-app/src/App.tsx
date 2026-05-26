@@ -44,11 +44,8 @@ const SOSPage = lazy(() => import('./pages/SOSPage'));
 const AnonymousWallPage = lazy(() => import('./pages/AnonymousWallPage'));
 const Events = lazy(() => import('./pages/Events'));
 const CampusGuide = lazy(() => import('./pages/CampusGuide'));
-const Achievements = lazy(() => import('./pages/Achievements'));
-const Materials = lazy(() => import('./pages/Materials'));
-const MaterialDetails = lazy(() => import('./pages/MaterialDetails'));
+
 const Experts = lazy(() => import('./pages/Experts'));
-const UserAnalytics = lazy(() => import('./pages/UserAnalytics'));
 const AdminInstructions = lazy(() => import('./components/Admin/AdminInstructions'));
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -73,7 +70,6 @@ const AppContent: React.FC = () => {
   const { loading } = useAuth();
   const location = useLocation();
 
-  // Inicializar sistema de bots quando app carrega
   useEffect(() => {
     botInitializer.initialize();
   }, []);
@@ -194,42 +190,10 @@ const AppContent: React.FC = () => {
             } 
           />
           <Route 
-            path="/achievements" 
-            element={
-              <ProtectedRoute>
-                <Achievements />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/materials" 
-            element={
-              <ProtectedRoute>
-                <Materials />
-              </ProtectedRoute>
-            } 
-          />
-          <Route
-            path="/materials/:materialId"
-            element={
-              <ProtectedRoute>
-                <MaterialDetails />
-              </ProtectedRoute>
-            }
-          />
-          <Route 
             path="/experts" 
             element={
               <ProtectedRoute>
                 <Experts />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/my-analytics" 
-            element={
-              <ProtectedRoute>
-                <UserAnalytics />
               </ProtectedRoute>
             } 
           />

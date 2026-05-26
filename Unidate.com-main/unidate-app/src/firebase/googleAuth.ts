@@ -1,14 +1,11 @@
 import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from './config';
 
-// Configuração do Google Auth Provider
 const googleProvider = new GoogleAuthProvider();
 
-// Configurar escopos adicionais se necessário
 googleProvider.addScope('email');
 googleProvider.addScope('profile');
 
-// Função para login com Google usando popup
 export const signInWithGooglePopup = async () => {
   try {
     if (!auth) {
@@ -23,7 +20,6 @@ export const signInWithGooglePopup = async () => {
   }
 };
 
-// Função para login com Google usando redirect
 export const signInWithGoogleRedirect = async () => {
   try {
     if (!auth) {
@@ -37,7 +33,6 @@ export const signInWithGoogleRedirect = async () => {
   }
 };
 
-// Função para obter resultado do redirect
 export const getGoogleRedirectResult = async () => {
   try {
     if (!auth) {
@@ -52,7 +47,6 @@ export const getGoogleRedirectResult = async () => {
   }
 };
 
-// Função para criar perfil do usuário após login com Google
 export const createGoogleUserProfile = async (user: any, additionalData: {
   registrationNumber: string;
   university: string;
@@ -65,8 +59,6 @@ export const createGoogleUserProfile = async (user: any, additionalData: {
       throw new Error('Firebase não está disponível');
     }
 
-    // Aqui você pode salvar os dados adicionais no Firestore
-    // Por enquanto, apenas retornamos os dados
     return {
       uid: user.uid,
       email: user.email,

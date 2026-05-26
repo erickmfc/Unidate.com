@@ -1,4 +1,3 @@
-// Estrutura hierárquica de lições
 export interface Lesson {
   id: string;
   title: string;
@@ -7,13 +6,13 @@ export interface Lesson {
   order: number;
   isCompleted: boolean;
   completedAt?: Date;
-  progress: number; // 0-100
-  estimatedTime: number; // minutos
+  progress: number;
+  estimatedTime: number;
   difficulty: 'iniciante' | 'intermediario' | 'avancado';
   tags: string[];
   multimedia: MultimediaContent;
   exercises?: Exercise[];
-  expertId?: string; // ID do especialista responsável
+  expertId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -67,7 +66,6 @@ export interface Subject {
   updatedAt: Date;
 }
 
-// Conteúdo multimídia
 export interface MultimediaContent {
   videos?: VideoContent[];
   audios?: AudioContent[];
@@ -106,15 +104,14 @@ export interface AnimationContent {
   title: string;
 }
 
-// Especialistas/Professores
 export interface Expert {
   id: string;
   name: string;
   avatar: string;
   bio: string;
   credentials: string[];
-  specialties: string[]; // matérias
-  subjects: string[]; // IDs das matérias
+  specialties: string[];
+  subjects: string[];
   rating: number;
   totalRatings: number;
   isFavorite: boolean;
@@ -146,12 +143,11 @@ export interface MentorshipSession {
   id: string;
   studentId: string;
   scheduledAt: Date;
-  duration: number; // minutos
+  duration: number;
   status: 'scheduled' | 'completed' | 'cancelled';
   notes?: string;
 }
 
-// Sistema de contribuições
 export interface Contribution {
   id: string;
   subjectId: string;
@@ -186,14 +182,13 @@ export interface ContributionReview {
   createdAt: Date;
 }
 
-// Anotações pessoais
 export interface PersonalNote {
   id: string;
   userId: string;
   subjectId: string;
   lessonId: string;
   content: string;
-  position: NotePosition; // onde foi anotado
+  position: NotePosition;
   highlights: Highlight[];
   tags: string[];
   createdAt: Date;
@@ -215,7 +210,6 @@ export interface Highlight {
   position: NotePosition;
 }
 
-// Feed de atividades
 export interface ActivityFeed {
   id: string;
   userId: string;
@@ -231,7 +225,6 @@ export interface ActivityFeed {
   createdAt: Date;
 }
 
-// Busca inteligente
 export interface SearchResult {
   type: 'lesson' | 'module' | 'subject' | 'expert' | 'contribution';
   id: string;
@@ -253,17 +246,15 @@ export interface SearchFilters {
   };
 }
 
-// Progresso do usuário
 export interface UserProgress {
   userId: string;
   subjectId: string;
   totalProgress: number;
   completedLessons: string[];
   currentLesson?: string;
-  timeSpent: number; // minutos
+  timeSpent: number;
   lastAccessed: Date;
   notesCount: number;
   contributionsCount: number;
   updatedAt: Date;
 }
-

@@ -1,4 +1,3 @@
-// Perguntas de personalidade para o cadastro
 export interface PersonalityQuestion {
   id: string;
   question: string;
@@ -9,7 +8,6 @@ export interface PersonalityQuestion {
 }
 
 export const personalityQuestions: PersonalityQuestion[] = [
-  // Categoria: Acadêmico
   {
     id: 'study_style',
     question: 'Como você prefere estudar?',
@@ -46,7 +44,6 @@ export const personalityQuestions: PersonalityQuestion[] = [
     category: 'academic'
   },
 
-  // Categoria: Estilo de Vida
   {
     id: 'campus_food',
     question: 'Qual seu lanche favorito na cantina?',
@@ -83,7 +80,6 @@ export const personalityQuestions: PersonalityQuestion[] = [
     category: 'lifestyle'
   },
 
-  // Categoria: Preferências
   {
     id: 'music_genre',
     question: 'Qual seu gênero musical favorito?',
@@ -120,7 +116,6 @@ export const personalityQuestions: PersonalityQuestion[] = [
     category: 'preferences'
   },
 
-  // Categoria: Divertido
   {
     id: 'superpower',
     question: 'Se você pudesse ter um superpoder, qual seria?',
@@ -158,12 +153,10 @@ export const personalityQuestions: PersonalityQuestion[] = [
   }
 ];
 
-// Função para obter perguntas por categoria
 export const getQuestionsByCategory = (category: 'academic' | 'lifestyle' | 'preferences' | 'fun'): PersonalityQuestion[] => {
   return personalityQuestions.filter(q => q.category === category);
 };
 
-// Função para obter perguntas aleatórias
 export const getRandomQuestions = (count: number): PersonalityQuestion[] => {
   const shuffled = [...personalityQuestions].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);

@@ -50,14 +50,11 @@ const AdminDashboard: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Carregar dados reais do admin
   useEffect(() => {
     const loadDashboardData = async () => {
       setLoading(true);
       
       try {
-        // TODO: Implementar carregamento de dados reais do Firebase
-        // Por enquanto, usar dados zerados para mostrar apenas informações reais
         setMetrics({
           usersOnline: 0,
           newRegistrations24h: 0,
@@ -69,7 +66,6 @@ const AdminDashboard: React.FC = () => {
           growthRate: 0
         });
 
-        // TODO: Implementar carregamento de atividades reais do Firebase
         setRecentActivity([]);
         
       } catch (error) {
@@ -134,7 +130,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
@@ -146,9 +142,9 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* KPIs Cards */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Usuários Online */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -165,7 +161,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Novos Cadastros */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -182,7 +178,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Denúncias Pendentes */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -199,7 +195,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Posts (24h) */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -217,9 +213,9 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Charts Row */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Growth Chart */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Crescimento de Usuários</h3>
@@ -237,7 +233,7 @@ const AdminDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Engagement by Course */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Engajamento por Curso</h3>
@@ -271,7 +267,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Recent Activity */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Atividade Recente</h3>
@@ -310,7 +306,7 @@ const AdminDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Quick Actions */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Link
           to="/admin/moderation"
@@ -358,7 +354,7 @@ const AdminDashboard: React.FC = () => {
         </Link>
       </div>
 
-      {/* Bot de Posts Automáticos */}
+      {}
       <div className="mb-8">
         <AIBotPanel />
       </div>

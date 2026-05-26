@@ -40,7 +40,6 @@ const Settings: React.FC = () => {
     photoURL: userProfile?.photoURL || '',
   });
 
-  // Atualizar dados quando userProfile mudar
   useEffect(() => {
     if (userProfile) {
       setProfileData({
@@ -94,18 +93,15 @@ const Settings: React.FC = () => {
     try {
       setUploadingPhoto(true);
 
-      // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
         throw new Error('Por favor, selecione uma imagem válida');
       }
 
-      // Validar tamanho (máximo 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         throw new Error('A imagem deve ter no máximo 5MB');
       }
 
-      // Mostrar preview imediatamente
       const reader = new FileReader();
       reader.onload = (e) => {
         const preview = e.target?.result as string;
@@ -133,10 +129,8 @@ const Settings: React.FC = () => {
       setSaving(true);
       let photoURL = profileData.photoURL;
 
-      // Se houver arquivo selecionado, fazer upload para o Firebase Storage
       if (selectedFile) {
         try {
-          // Deletar foto antiga se existir e for do Firebase Storage
           if (userProfile?.photoURL && userProfile.photoURL.includes('firebasestorage.googleapis.com')) {
             await ProfilePhotoService.deleteProfilePhoto(userProfile.photoURL);
           }
@@ -149,7 +143,6 @@ const Settings: React.FC = () => {
         }
       }
 
-      // Atualizar perfil no Firestore
       await updateUserProfile(currentUser.uid, {
         displayName: profileData.displayName,
         bio: profileData.bio,
@@ -161,7 +154,6 @@ const Settings: React.FC = () => {
       showSuccess('Perfil atualizado com sucesso! 🎉');
       setSelectedFile(null);
       
-      // Recarregar perfil do contexto
       await refreshUserProfile();
     } catch (error: any) {
       console.error('Erro ao salvar perfil:', error);
@@ -173,13 +165,11 @@ const Settings: React.FC = () => {
 
   const handlePasswordChange = () => {
     console.log('Alterando senha:', passwordData);
-    // Implementar lógica de alteração de senha
   };
 
   const handleDeleteAccount = () => {
     if (window.confirm('Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita.')) {
       console.log('Excluindo conta...');
-      // Implementar lógica de exclusão de conta
     }
   };
 
@@ -196,7 +186,7 @@ const Settings: React.FC = () => {
       <div>
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações do Perfil</h3>
         
-        {/* Profile Picture */}
+        {/* Photo upload */}
         <div className="flex items-center space-x-4 mb-6">
           <div className="relative">
             <div className="w-20 h-20 bg-gradient-to-br from-primary-500 to-accent-500 rounded-2xl flex items-center justify-center overflow-hidden">
@@ -225,19 +215,13 @@ const Settings: React.FC = () => {
               <input
                 type="file"
                 accept="image/*"
-                onChange={handlePhotoUpload}
                 className="hidden"
-                disabled={uploadingPhoto}
+                onChange={handlePhotoUpload}
               />
             </label>
           </div>
-          <div>
-            <h4 className="font-medium text-gray-900">Foto do Perfil</h4>
-            <p className="text-sm text-gray-600">Clique para alterar</p>
-          </div>
         </div>
 
-        {/* Form Fields */}
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -503,7 +487,7 @@ const Settings: React.FC = () => {
             <span className="text-sm font-medium">Claro</span>
           </button>
           
-          {/* Tema Escuro - Indisponível */}
+          {/* Dark theme - unavailable */}
           <div className="relative p-4 border-2 border-gray-200 rounded-lg bg-gray-50 opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-gray-100/80 rounded-lg z-10 flex items-center justify-center">
               <div className="bg-gray-800 text-white px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 shadow-lg">
@@ -515,7 +499,7 @@ const Settings: React.FC = () => {
             <span className="text-sm font-medium text-gray-500">Escuro</span>
           </div>
           
-          {/* Tema Automático - Indisponível */}
+          {/* Auto theme - unavailable */}
           <div className="relative p-4 border-2 border-gray-200 rounded-lg bg-gray-50 opacity-60 cursor-not-allowed">
             <div className="absolute inset-0 bg-gray-100/80 rounded-lg z-10 flex items-center justify-center">
               <div className="bg-gray-800 text-white px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 shadow-lg">

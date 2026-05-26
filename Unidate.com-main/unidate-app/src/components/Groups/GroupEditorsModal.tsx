@@ -33,7 +33,6 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestedUsers, setSuggestedUsers] = useState<EditorInfo[]>([]);
 
-  // Carregar informações dos editores atuais
   useEffect(() => {
     if (isOpen && currentEditors.length > 0) {
       loadEditorsInfo();
@@ -43,13 +42,11 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
   const loadEditorsInfo = async () => {
     setLoading(true);
     try {
-      // TODO: Implementar busca de informações dos usuários
-      // Por enquanto, criar dados mockados baseados nos UIDs
       const editorsInfo: EditorInfo[] = currentEditors.map((uid, index) => ({
         uid,
         name: `Editor ${index + 1}`,
         email: `editor${index + 1}@exemplo.com`,
-        isOwner: uid === currentUser?.uid // Assumir que o primeiro é o dono
+        isOwner: uid === currentUser?.uid
       }));
       
       setEditors(editorsInfo);
@@ -95,8 +92,6 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
     }
 
     try {
-      // TODO: Implementar busca real de usuários
-      // Por enquanto, retornar sugestões mockadas
       const suggestions: EditorInfo[] = [
         {
           uid: 'user1',
@@ -126,7 +121,7 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between p-6 border-b">
           <div className="flex items-center space-x-3">
             <Shield className="h-6 w-6 text-purple-600" />
@@ -145,9 +140,9 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
+        {}
         <div className="p-6 space-y-6">
-          {/* Adicionar Editor */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Adicionar Editor
@@ -166,7 +161,7 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
               <UserPlus className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
 
-            {/* Sugestões */}
+            {}
             {suggestedUsers.length > 0 && (
               <div className="mt-2 border border-gray-200 rounded-lg bg-white shadow-lg max-h-40 overflow-y-auto">
                 {suggestedUsers.map((user) => (
@@ -186,7 +181,7 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
             )}
           </div>
 
-          {/* Lista de Editores Atuais */}
+          {}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Editores Atuais ({editors.length})
@@ -246,7 +241,7 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="flex items-center justify-end space-x-3 p-6 border-t bg-gray-50">
           <button
             onClick={onClose}

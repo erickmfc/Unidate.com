@@ -29,7 +29,6 @@ import { PostsService, Post as FirebasePost } from '../services/postsService';
 import { basicFirestoreService } from '../services/basicFirestoreService';
 import { AIBotService } from '../services/aiBotService';
 
-// Interface local para o componente (com timestamp como string)
 interface Post {
   id: string;
   author: {
@@ -42,7 +41,7 @@ interface Post {
   content: string;
   type: 'text' | 'image' | 'poll' | 'tevi';
   image?: string;
-  timestamp: string; // String para o componente
+  timestamp: string;
   likes: number;
   comments: number;
   isLiked: boolean;
@@ -76,7 +75,6 @@ const Feed: React.FC = () => {
   const [unsubscribePosts, setUnsubscribePosts] = useState<(() => void) | null>(null);
   const feedRef = useRef<HTMLDivElement>(null);
 
-  // Detectar se é mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -87,7 +85,6 @@ const Feed: React.FC = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Carregar posts reais do Firebase com verificação completa
   useEffect(() => {
     let unsubscribe: (() => void) | null = null;
     
@@ -97,18 +94,15 @@ const Feed: React.FC = () => {
         console.log('🔄 [FEED] Iniciando carregamento de posts...');
         console.log('🔄 [FEED] Usuário atual:', currentUser?.uid);
         
-        // Verificar se o serviço está disponível
         if (!basicFirestoreService) {
           throw new Error('Serviço Firestore não está disponível');
         }
         
-        // Usar o serviço simplificado com listener em tempo real
         unsubscribe = basicFirestoreService.carregarPosts(
           (firestorePosts) => {
             console.log('📱 [FEED] Posts recebidos do Firestore:', firestorePosts.length);
             console.log('📱 [FEED] Dados dos posts:', firestorePosts);
             
-            // Log detalhado de cada post
             firestorePosts.forEach((post, index) => {
               console.log(`📋 [FEED] Post ${index + 1} detalhado:`, {
                 id: post.id,
@@ -130,7 +124,6 @@ const Feed: React.FC = () => {
               return;
             }
             
-            // Converter posts para formato local
             const convertedPosts: Post[] = firestorePosts.map((post, index) => {
               try {
                 console.log(`🔄 [FEED] Convertendo post ${index + 1}:`, post);
@@ -177,7 +170,6 @@ const Feed: React.FC = () => {
               } catch (error) {
                 console.error(`❌ [FEED] Erro ao converter post ${index + 1}:`, error);
                 console.error(`❌ [FEED] Dados do post que falhou:`, post);
-                // Retornar um post vazio para não quebrar o array
                 return {
                   id: post.id || `error-${index}`,
                   author: { uid: '', name: 'Erro', course: '', university: '', avatar: '' },
@@ -210,7 +202,6 @@ const Feed: React.FC = () => {
           }
         );
 
-        // Armazenar função de unsubscribe para limpeza
         setUnsubscribePosts(() => unsubscribe);
         console.log('✅ [FEED] Listener de posts configurado com sucesso');
       } catch (error) {
@@ -222,7 +213,6 @@ const Feed: React.FC = () => {
 
     loadPosts();
 
-    // Cleanup function para parar o listener quando o componente for desmontado
     return () => {
       if (unsubscribePosts) {
         console.log('🔄 [FEED] Parando listener de posts...');
@@ -238,7 +228,6 @@ const Feed: React.FC = () => {
       const post = posts.find(p => p.id === postId);
       if (!post) return;
 
-      // Atualizar UI imediatamente (otimista)
       setPosts(posts.map(p => 
         p.id === postId 
           ? { 
@@ -249,11 +238,9 @@ const Feed: React.FC = () => {
           : p
       ));
 
-      // Fazer a chamada para o Firebase
       await basicFirestoreService.toggleLike(postId, currentUser.uid, post.isLiked);
     } catch (error) {
       console.error('❌ Erro ao apoiar/desapoiar post:', error);
-      // Reverter mudança em caso de erro
       setPosts(posts.map(p => 
         p.id === postId 
           ? { 
@@ -267,12 +254,10 @@ const Feed: React.FC = () => {
   };
 
   const handleComment = async (postId: string, commentText: string) => {
-    // Esta função não é mais usada - os comentários são gerenciados diretamente no PostCard
     console.log('🔄 [FEED] handleComment chamado (não usado):', postId, commentText);
   };
 
   const handleShare = (postId: string) => {
-    // Implementar lógica de compartilhamento
     console.log('Compartilhando post:', postId);
   };
 
@@ -285,10 +270,8 @@ const Feed: React.FC = () => {
     try {
       console.log('🗑️ Deletando post:', postId);
       
-      // Deletar no Firebase
       await PostsService.deletePost(postId, currentUser.uid);
       
-      // Atualizar estado local
       setPosts(posts.filter(post => post.id !== postId));
       
       console.log('✅ Post deletado com sucesso');
@@ -308,7 +291,6 @@ const Feed: React.FC = () => {
     }
   };
 
-  // Handlers para botões mobile
   const handleHomeClick = () => {
     console.log('🏠 Botão Início clicado');
     if (feedRef.current) {
@@ -318,7 +300,6 @@ const Feed: React.FC = () => {
 
   const handleUniverseClick = () => {
     console.log('🌍 Botão UniVerso clicado - já estamos no UniVerso!');
-    // Já estamos na página do UniVerso, então apenas scroll para o topo
     if (feedRef.current) {
       feedRef.current.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -366,21 +347,17 @@ const Feed: React.FC = () => {
       return;
     }
 
-    // Declarar firestoreData fora do try para poder usar no catch
     let firestoreData: any = null;
     
     try {
-      // Extrair hashtags do conteúdo
       const hashtags = postData.content.match(/#\w+/g) || [];
       console.log('🔄 [POST] Hashtags extraídas:', hashtags);
 
-      // Validar conteúdo
       if (!postData.content || !postData.content.trim()) {
         error('Erro', 'O post não pode estar vazio.');
         return;
       }
 
-      // Preparar dados para o Firestore
       firestoreData = {
         titulo: postData.content.trim().substring(0, 100) + (postData.content.trim().length > 100 ? '...' : ''),
         conteudo: postData.content.trim(),
@@ -392,7 +369,6 @@ const Feed: React.FC = () => {
         tipo: (postData.type === 'text' ? 'texto' : postData.type === 'image' ? 'imagem' : postData.type === 'poll' ? 'poll' : 'tev') as 'texto' | 'imagem' | 'poll' | 'tev'
       };
 
-      // Validação adicional
       if (!firestoreData.autorId) {
         throw new Error('ID do autor não encontrado. Faça login novamente.');
       }
@@ -402,18 +378,14 @@ const Feed: React.FC = () => {
 
       console.log('🔄 [POST] Dados preparados para Firestore:', firestoreData);
 
-      // Verificar se o serviço está disponível
       if (!basicFirestoreService) {
         throw new Error('Serviço Firestore não está disponível');
       }
 
-      // Criar post no Firestore
       console.log('🔄 [POST] Enviando post para o Firestore...');
       const postId = await basicFirestoreService.adicionarPost(firestoreData);
       console.log('✅ [POST] Post criado no Firestore com ID:', postId);
 
-      // Criar post local para atualização imediata da UI
-      // O listener vai atualizar automaticamente, mas adicionamos localmente para feedback imediato
       const newPost: Post = {
         id: postId,
         author: {
@@ -439,11 +411,8 @@ const Feed: React.FC = () => {
 
       console.log('🔄 [POST] Post local criado:', newPost);
 
-      // Adicionar post ao início da lista local para feedback imediato
-      // O listener do Firestore vai atualizar em seguida com os dados reais
       setPosts(prevPosts => {
         console.log('🔄 [POST] Posts anteriores:', prevPosts.length);
-        // Verificar se o post já não existe (evitar duplicatas)
         const postExists = prevPosts.some(p => p.id === postId);
         if (postExists) {
           console.log('⚠️ [POST] Post já existe na lista, não adicionando duplicado');
@@ -456,14 +425,12 @@ const Feed: React.FC = () => {
       
       console.log('✅ [POST] Post criado e adicionado com sucesso!');
       success('Post Criado', 'Seu post foi publicado com sucesso!');
-            // Post criado com sucesso - o listener vai atualizar automaticamente
     } catch (err: any) {
       console.error('❌ [POST] Erro ao criar post:', err);
       console.error('❌ [POST] Código do erro:', err.code);
       console.error('❌ [POST] Mensagem:', err.message);
       console.error('❌ [POST] Stack:', err.stack);
       
-      // Log detalhado para debug
       console.error('❌ [POST] Detalhes completos do erro:', {
         error: err,
         errorCode: err.code,
@@ -474,7 +441,6 @@ const Feed: React.FC = () => {
         firestoreData: firestoreData
       });
       
-      // Mostrar mensagem de erro mais específica
       const errorMessage = err.message || 'Ops! Não conseguimos criar seu post. Tente novamente.';
       error('Erro ao Criar Post', errorMessage);
     }
@@ -487,14 +453,12 @@ const Feed: React.FC = () => {
     peopleOnline: 0
   });
 
-  // Carregar hashtags e estatísticas reais
   useEffect(() => {
     const loadStats = async () => {
       try {
         const trending = await PostsService.getTrendingHashtags();
         setTrendingHashtags(trending);
         
-        // Estatísticas reais baseadas nos posts
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         
@@ -509,7 +473,7 @@ const Feed: React.FC = () => {
         setCampusStats({
           postsToday: postsToday.length,
           teviPosts: teviPosts.length,
-          peopleOnline: 0 // Será implementado quando tivermos sistema de presença
+          peopleOnline: 0
         });
       } catch (error) {
         console.error('Erro ao carregar estatísticas:', error);
@@ -562,7 +526,7 @@ const Feed: React.FC = () => {
           </div>
 
           <div ref={feedRef} className="flex-1 overflow-y-auto">
-            {/* Botão flutuante para abrir drawer de perfis (mobile) */}
+            {}
             <button
               onClick={() => setShowProfilesDrawer(true)}
               className="fixed bottom-24 left-4 z-40 w-14 h-14 bg-indigo-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-600 transition-colors"
@@ -586,7 +550,6 @@ const Feed: React.FC = () => {
                 </div>
               ) : (
                 posts.map((post) => {
-                  // Verificar se é post do bot (mobile também)
                   if (post.author.uid === 'ai-bot-unidate' || post.author.uid === AIBotService.getBotProfile().uid) {
                     return (
                       <div key={post.id} className="bg-white border-b border-gray-200">
@@ -613,7 +576,6 @@ const Feed: React.FC = () => {
                     );
                   }
                   
-                  // Posts normais mobile
                   return (
                     <div key={post.id} className="bg-white border-b border-gray-200 p-4">
                       <div className="flex items-center space-x-3 mb-3">
@@ -725,17 +687,17 @@ const Feed: React.FC = () => {
           </div>
         </div>
       ) : (
-        /* Layout Desktop */
+        
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-12 gap-8">
-          {/* Sidebar Esquerda - Perfis Sugeridos */}
+          {}
           <div className="lg:col-span-2 hidden lg:block">
             <div className="sticky top-8">
               <SuggestedProfiles maxProfiles={6} />
             </div>
           </div>
 
-          {/* Timeline Central */}
+          {}
           <div className="lg:col-span-7">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">UniVerso</h1>
@@ -765,7 +727,6 @@ const Feed: React.FC = () => {
                   </div>
                 ) : (
                   posts.map((post) => {
-                    // Verificar se é post do bot
                     if (post.author.uid === 'ai-bot-unidate' || post.author.uid === AIBotService.getBotProfile().uid) {
                       return (
                         <TwitterStylePost
@@ -786,7 +747,6 @@ const Feed: React.FC = () => {
                       );
                     }
                     
-                    // Posts normais
                     return (
                       <PostCard
                         key={post.id}
@@ -809,7 +769,7 @@ const Feed: React.FC = () => {
             </div>
           </div>
 
-          {/* Sidebar Direita */}
+          {}
           <div className="lg:col-span-3 space-y-6">
               {trendingHashtags.length > 0 && (
             <div className="card">
@@ -880,7 +840,7 @@ const Feed: React.FC = () => {
             </div>
           </div>
 
-          {/* Drawer de Perfis (Mobile) */}
+          {}
           {showProfilesDrawer && (
             <div className="fixed inset-0 z-50 lg:hidden">
               <div

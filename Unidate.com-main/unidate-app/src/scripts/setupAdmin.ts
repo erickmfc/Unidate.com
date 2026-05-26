@@ -1,12 +1,9 @@
-// Script para configurar o primeiro administrador do UniDate
 import { createAdminUser } from '../firebase/realAdminAuth';
 
-// Função para criar o primeiro admin
 export const setupFirstAdmin = async () => {
   try {
     console.log('🔧 Configurando primeiro administrador...');
     
-    // Credenciais do primeiro admin
     const adminData = {
       email: 'admin@unidate.com',
       password: 'admin123',
@@ -34,7 +31,6 @@ export const setupFirstAdmin = async () => {
   }
 };
 
-// Função para verificar se já existe um admin
 export const checkAdminExists = async () => {
   try {
     const { getAllAdmins } = await import('../firebase/realAdminAuth');
@@ -46,7 +42,6 @@ export const checkAdminExists = async () => {
   }
 };
 
-// Função principal para setup
 export const runAdminSetup = async () => {
   try {
     const exists = await checkAdminExists();

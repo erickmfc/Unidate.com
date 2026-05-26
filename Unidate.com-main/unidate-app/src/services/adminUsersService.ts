@@ -39,7 +39,6 @@ export class AdminUsersService {
 
       console.log('📊 Buscando usuários do admin...');
 
-      // Buscar de ambas as coleções
       const usersRef = collection(db, 'users');
       const profilesRef = collection(db, 'userProfiles');
 
@@ -50,7 +49,6 @@ export class AdminUsersService {
 
       const userMap = new Map<string, any>();
 
-      // Processar users
       usersSnapshot.forEach(doc => {
         const data = doc.data();
         userMap.set(doc.id, {
@@ -68,18 +66,15 @@ export class AdminUsersService {
         });
       });
 
-      // Processar userProfiles (atualizar dados existentes ou criar novos)
       profilesSnapshot.forEach(doc => {
         const data = doc.data();
         const existing = userMap.get(doc.id);
         
         if (existing) {
-          // Atualizar dados existentes
           existing.university = data.university || existing.university;
           existing.course = data.course || existing.course;
           existing.photoURL = data.avatar || data.photoURL || existing.photoURL;
         } else {
-          // Criar novo registro
           userMap.set(doc.id, {
             id: doc.id,
             displayName: data.name || data.displayName || 'Usuário',
@@ -96,7 +91,6 @@ export class AdminUsersService {
         }
       });
 
-      // Buscar contagens de posts, grupos e denúncias
       const usersWithCounts = await Promise.all(
         Array.from(userMap.values()).slice(0, maxUsers).map(async (user) => {
           const [postsCount, groupsCount, reportsCount] = await Promise.all([
@@ -110,12 +104,11 @@ export class AdminUsersService {
             postsCount,
             groupsCount,
             reportsCount,
-            warningsCount: 0 // TODO: Implementar contagem de avisos
+            warningsCount: 0
           };
         })
       );
 
-      // Converter para formato AdminUser
       const adminUsers: AdminUser[] = usersWithCounts.map(user => ({
         id: user.id,
         displayName: user.displayName,
@@ -216,7 +209,6 @@ export class AdminUsersService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Buscar posts
       const postsRef = collection(db, 'posts');
       const postsQuery = query(
         postsRef,
@@ -230,7 +222,6 @@ export class AdminUsersService {
         ...doc.data()
       }));
 
-      // Buscar grupos
       const groupsRef = collection(db!, 'groups');
       const groupsQuery = query(groupsRef, limit(100));
       const groupsSnapshot = await getDocs(groupsQuery);
@@ -246,7 +237,6 @@ export class AdminUsersService {
           ...doc.data()
         }));
 
-      // Buscar denúncias
       const reportsRef = collection(db!, 'reports');
       const reportsQuery = query(
         reportsRef,
@@ -272,4 +262,3 @@ export class AdminUsersService {
     }
   }
 }
-

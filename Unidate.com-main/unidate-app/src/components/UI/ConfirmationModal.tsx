@@ -96,7 +96,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             </p>
           </div>
 
-          {/* Actions */}
+          {}
           <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
             <button
               onClick={onClose}

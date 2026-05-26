@@ -184,7 +184,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         <p className="text-gray-600">Selecione o tipo de conta que melhor descreve você</p>
       </div>
 
-      {/* Seleção de Tipo de Perfil */}
+      {}
       <div className="grid grid-cols-1 gap-4 mb-6">
         <button
           type="button"
@@ -278,7 +278,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         <h3 className="text-xl font-bold text-gray-800 mb-2">Agora, me conte algumas informações básicas</h3>
       </div>
 
-      {/* Foto de Perfil */}
+      {}
       <div className="flex justify-center">
         <div className="relative">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
@@ -298,7 +298,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         </div>
       </div>
 
-      {/* Nome */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <User className="w-4 h-4 inline mr-2" />
@@ -313,7 +313,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         />
       </div>
 
-      {/* E-mail */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <Mail className="w-4 h-4 inline mr-2" />
@@ -337,7 +337,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         <p className="text-gray-600">Conte-nos sobre sua vida universitária</p>
       </div>
 
-      {/* Matrícula */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <Hash className="w-4 h-4 inline mr-2" />
@@ -352,7 +352,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         />
       </div>
 
-      {/* Universidade */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <GraduationCap className="w-4 h-4 inline mr-2" />
@@ -393,7 +393,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         )}
       </div>
 
-      {/* Curso */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <GraduationCap className="w-4 h-4 inline mr-2" />
@@ -408,7 +408,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         />
       </div>
 
-      {/* Ano e Período */}
+      {}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -451,7 +451,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         <p className="text-gray-600">Crie uma senha segura para sua conta</p>
       </div>
 
-      {/* Senha */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <Lock className="w-4 h-4 inline mr-2" />
@@ -479,7 +479,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
         </div>
       </div>
 
-      {/* Confirmar Senha */}
+      {}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
           <Lock className="w-4 h-4 inline mr-2" />
@@ -568,11 +568,11 @@ const ExpandedOnboardingFlow: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
+        {}
         <div className="text-center mb-8">
         </div>
 
-        {/* Progress Bar */}
+        {}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">Passo {currentStep} de 4</span>
@@ -586,11 +586,11 @@ const ExpandedOnboardingFlow: React.FC = () => {
           </div>
         </div>
 
-        {/* Form */}
+        {}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {renderStep()}
 
-          {/* Error Message */}
+          {}
           {error && (
             <div className="mt-6 flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
               <AlertCircle className="h-5 w-5 text-red-500" />
@@ -598,7 +598,7 @@ const ExpandedOnboardingFlow: React.FC = () => {
             </div>
           )}
 
-          {/* Navigation */}
+          {}
           <div className="mt-8 flex justify-between">
             <button
               onClick={handlePrevious}

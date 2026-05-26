@@ -31,7 +31,6 @@ export interface RecentActivity {
 }
 
 export class DashboardService {
-  // Buscar estatísticas completas do usuário
   static async getUserStats(userId: string): Promise<UserStats> {
     try {
       if (!db) {
@@ -40,7 +39,6 @@ export class DashboardService {
 
       console.log('📊 Buscando estatísticas do usuário:', userId);
 
-      // Buscar todas as estatísticas em paralelo
       const [
         matchesCount,
         postsCount,
@@ -81,7 +79,6 @@ export class DashboardService {
     }
   }
 
-  // Contar matches do usuário
   private static async getMatchesCount(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -89,7 +86,6 @@ export class DashboardService {
         return 0;
       }
 
-      // Buscar na coleção de matches onde o usuário está envolvido
       const matchesQuery = query(
         collection(db, 'matches'),
         where('participants', 'array-contains', userId)
@@ -103,7 +99,6 @@ export class DashboardService {
     }
   }
 
-  // Contar posts do usuário
   private static async getPostsCount(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -124,7 +119,6 @@ export class DashboardService {
     }
   }
 
-  // Contar grupos do usuário
   private static async getGroupsCount(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -145,7 +139,6 @@ export class DashboardService {
     }
   }
 
-  // Contar mensagens do usuário
   private static async getMessagesCount(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -153,7 +146,6 @@ export class DashboardService {
         return 0;
       }
 
-      // Contar mensagens em grupos
       const groupMessagesQuery = query(
         collection(db, 'groupMessages'),
         where('userId', '==', userId)
@@ -161,7 +153,6 @@ export class DashboardService {
       
       const groupMessagesSnapshot = await getDocs(groupMessagesQuery);
       
-      // Contar mensagens em chats privados
       const privateMessagesQuery = query(
         collection(db, 'messages'),
         where('senderId', '==', userId)
@@ -176,7 +167,6 @@ export class DashboardService {
     }
   }
 
-  // Contar total de curtidas recebidas
   private static async getTotalLikes(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -204,7 +194,6 @@ export class DashboardService {
     }
   }
 
-  // Calcular completude do perfil
   private static async getProfileCompletion(userId: string): Promise<number> {
     try {
       if (!db) {
@@ -222,7 +211,6 @@ export class DashboardService {
       const userData = userDoc.data();
       let completion = 0;
       
-      // Campos obrigatórios (cada um vale 20%)
       if (userData.displayName) completion += 20;
       if (userData.photoURL) completion += 20;
       if (userData.course || userData.curso) completion += 20;
@@ -236,7 +224,6 @@ export class DashboardService {
     }
   }
 
-  // Buscar atividade recente do usuário
   static async getRecentActivity(userId: string, limitCount: number = 5): Promise<RecentActivity[]> {
     try {
       if (!db) {
@@ -247,7 +234,6 @@ export class DashboardService {
 
       const activities: RecentActivity[] = [];
 
-      // Buscar posts recentes
       const postsQuery = query(
         collection(db, 'posts'),
         where('autorId', '==', userId),
@@ -269,7 +255,6 @@ export class DashboardService {
         });
       });
 
-      // Buscar grupos recentes
       const groupsQuery = query(
         collection(db, 'groups'),
         where('members', 'array-contains', userId),
@@ -291,7 +276,6 @@ export class DashboardService {
         });
       });
 
-      // Ordenar por timestamp e limitar
       activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       return activities.slice(0, limitCount);
     } catch (error) {
@@ -300,14 +284,12 @@ export class DashboardService {
     }
   }
 
-  // Buscar próximos eventos
   static async getUpcomingEvents(userId: string): Promise<any[]> {
     try {
       if (!db) {
         throw new Error('Firebase não inicializado');
       }
 
-      // Buscar eventos dos grupos do usuário
       const groupsQuery = query(
         collection(db, 'groups'),
         where('members', 'array-contains', userId)
@@ -316,7 +298,6 @@ export class DashboardService {
       const groupsSnapshot = await getDocs(groupsQuery);
       const events: any[] = [];
 
-      // Para cada grupo, buscar eventos
       for (const groupDoc of groupsSnapshot.docs) {
         const eventsQuery = query(
           collection(db, 'events'),
@@ -339,7 +320,6 @@ export class DashboardService {
         });
       }
 
-      // Ordenar por data e limitar
       events.sort((a, b) => a.date.getTime() - b.date.getTime());
       return events.slice(0, 3);
     } catch (error) {

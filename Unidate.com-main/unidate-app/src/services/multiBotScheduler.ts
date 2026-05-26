@@ -15,27 +15,21 @@ class MultiBotScheduler {
   private initialized = false;
 
   constructor() {
-    // A inicialização será feita pelo botInitializer quando o Firebase estiver pronto
   }
 
-  /**
-   * Inicializa o sistema de agendamento
-   */
+  
   async initialize() {
     if (this.initialized) return;
     
     try {
-      // Carregar configuração salva
       await this.loadAndStartSchedules();
 
-      // Observar mudanças na configuração
       this.persistenceWatcher = botPersistenceService.watchScheduleConfig((config) => {
         if (config) {
           this.syncWithPersistence(config);
         }
       });
 
-      // Verificar periodicamente se há posts para criar (backup)
       this.startPeriodicCheck();
       
       this.initialized = true;
@@ -44,9 +38,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Carrega configuração salva e inicia agendamentos
-   */
+  
   private async loadAndStartSchedules() {
     try {
       const config = await botPersistenceService.loadScheduleConfig();
@@ -55,10 +47,8 @@ class MultiBotScheduler {
         return;
       }
 
-      // Carregar perfis
       const profiles = await AIBotProfilesService.getProfiles();
       
-      // Iniciar agendamentos para perfis ativos
       for (const profileSchedule of config.profiles) {
         const profile = profiles.find(p => p.id === profileSchedule.profileId);
         if (profile && profile.status === 'active') {
@@ -72,9 +62,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Sincroniza com configuração persistida
-   */
+  
   private async syncWithPersistence(config: BotScheduleConfig) {
     if (!config.isActive) {
       this.stopAllProfiles();
@@ -83,7 +71,6 @@ class MultiBotScheduler {
 
     const profiles = await AIBotProfilesService.getProfiles();
     
-    // Parar agendamentos que não estão mais na configuração
     this.schedules.forEach((schedule, profileId) => {
       const stillActive = config.profiles.some(p => p.profileId === profileId);
       if (!stillActive) {
@@ -91,7 +78,6 @@ class MultiBotScheduler {
       }
     });
 
-    // Iniciar novos agendamentos
     for (const profileSchedule of config.profiles) {
       const profile = profiles.find(p => p.id === profileSchedule.profileId);
       if (profile && profile.status === 'active') {
@@ -102,19 +88,14 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Inicia verificação periódica (backup para garantir que posts sejam criados)
-   */
+  
   private startPeriodicCheck() {
-    // Verificar a cada 1 minuto se há posts para criar
     this.checkInterval = setInterval(async () => {
       await this.checkAndCreatePendingPosts();
-    }, 60000); // 1 minuto
+    }, 60000);
   }
 
-  /**
-   * Verifica se há posts pendentes e cria
-   */
+  
   private async checkAndCreatePendingPosts() {
     try {
       const config = await botPersistenceService.loadScheduleConfig();
@@ -129,10 +110,8 @@ class MultiBotScheduler {
 
         const nextPostTime = profileSchedule.nextPostTime;
         if (nextPostTime && now >= nextPostTime) {
-          // Hora de criar post
           await this.createPostForProfile(profile);
           
-          // Atualizar próximo horário
           const newNextPostTime = new Date(now.getTime() + profileSchedule.intervalMinutes * 60 * 1000);
           await botPersistenceService.updateProfileSchedule(profile.id, {
             lastPostTime: now,
@@ -145,9 +124,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Inicia agendamento a partir de configuração persistida
-   */
+  
   private async startProfileScheduleFromConfig(
     profile: BotProfile, 
     config: { intervalMinutes: number; lastPostTime: Date | null; nextPostTime: Date | null }
@@ -161,14 +138,12 @@ class MultiBotScheduler {
       nextPostTime: config.nextPostTime || this.calculateNextPostTime(config.lastPostTime, config.intervalMinutes)
     };
 
-    // Se já passou o horário, criar post imediatamente
     if (schedule.nextPostTime && new Date() >= schedule.nextPostTime) {
       await this.createPostForProfile(profile);
       schedule.lastPostTime = new Date();
       schedule.nextPostTime = this.calculateNextPostTime(schedule.lastPostTime, config.intervalMinutes);
     }
 
-    // Agendar próximo post
     const timeUntilNext = schedule.nextPostTime 
       ? Math.max(0, schedule.nextPostTime.getTime() - new Date().getTime())
       : config.intervalMinutes * 60 * 1000;
@@ -178,13 +153,11 @@ class MultiBotScheduler {
       schedule.lastPostTime = new Date();
       schedule.nextPostTime = this.calculateNextPostTime(schedule.lastPostTime, config.intervalMinutes);
       
-      // Atualizar persistência
       await botPersistenceService.updateProfileSchedule(profile.id, {
         lastPostTime: schedule.lastPostTime,
         nextPostTime: schedule.nextPostTime
       });
 
-      // Agendar próximo
       this.scheduleNextPost(profile, schedule);
     }, timeUntilNext);
 
@@ -192,9 +165,7 @@ class MultiBotScheduler {
     console.log(`🤖 Agendamento iniciado para ${profile.name}`);
   }
 
-  /**
-   * Agenda próximo post
-   */
+  
   private scheduleNextPost(profile: BotProfile, schedule: ProfileSchedule) {
     if (schedule.intervalId) {
       clearTimeout(schedule.intervalId);
@@ -212,9 +183,7 @@ class MultiBotScheduler {
     }, profile.postingFrequency.intervalMinutes * 60 * 1000);
   }
 
-  /**
-   * Calcula próximo horário de post
-   */
+  
   private calculateNextPostTime(lastPostTime: Date | null, intervalMinutes: number): Date {
     const now = new Date();
     if (!lastPostTime) {
@@ -223,15 +192,12 @@ class MultiBotScheduler {
     return new Date(lastPostTime.getTime() + intervalMinutes * 60 * 1000);
   }
 
-  /**
-   * Inicia agendamento para um perfil (salva no Firestore)
-   */
+  
   async startProfileSchedule(profile: BotProfile, userId: string = 'system') {
     if (!profile.postingFrequency.enabled || profile.status !== 'active') {
       return;
     }
 
-    // Salvar configuração no Firestore
     const config = await botPersistenceService.loadScheduleConfig();
     const profiles = config?.profiles || [];
     
@@ -259,7 +225,6 @@ class MultiBotScheduler {
       profiles
     }, userId);
 
-    // Iniciar agendamento local
     await this.startProfileScheduleFromConfig(profile, {
       intervalMinutes: profile.postingFrequency.intervalMinutes,
       lastPostTime: null,
@@ -267,18 +232,14 @@ class MultiBotScheduler {
     });
   }
 
-  /**
-   * Para agendamento de um perfil (remove do Firestore)
-   */
+  
   async stopProfileSchedule(profileId: string, userId: string = 'system') {
     this.stopProfileScheduleLocal(profileId);
 
-    // Remover da configuração persistida
     const config = await botPersistenceService.loadScheduleConfig();
     if (config) {
       config.profiles = config.profiles.filter(p => p.profileId !== profileId);
       
-      // Se não há mais perfis, desativar
       if (config.profiles.length === 0) {
         config.isActive = false;
       }
@@ -287,9 +248,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Para agendamento local (sem persistir)
-   */
+  
   private stopProfileScheduleLocal(profileId: string) {
     const schedule = this.schedules.get(profileId);
     if (schedule?.intervalId) {
@@ -300,9 +259,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Para todos os agendamentos
-   */
+  
   async stopAllProfiles(userId: string = 'system') {
     this.schedules.forEach((_, profileId) => {
       this.stopProfileScheduleLocal(profileId);
@@ -314,9 +271,7 @@ class MultiBotScheduler {
     }, userId);
   }
 
-  /**
-   * Cria um post para um perfil
-   */
+  
   private async createPostForProfile(profile: BotProfile) {
     try {
       console.log(`🤖 Criando post para ${profile.name}...`);
@@ -331,7 +286,6 @@ class MultiBotScheduler {
         );
       }
       
-      // Atualizar persistência
       await botPersistenceService.updateProfileSchedule(profile.id, {
         lastPostTime: schedule?.lastPostTime || new Date(),
         nextPostTime: schedule?.nextPostTime ? schedule.nextPostTime : undefined
@@ -343,9 +297,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Atualiza agendamento quando perfil é modificado
-   */
+  
   async updateProfileSchedule(profile: BotProfile, userId: string = 'system') {
     this.stopProfileScheduleLocal(profile.id);
     
@@ -356,9 +308,7 @@ class MultiBotScheduler {
     }
   }
 
-  /**
-   * Retorna status de todos os agendamentos
-   */
+  
   getSchedulesStatus(): Array<{ profileId: string; isActive: boolean; lastPostTime: Date | null }> {
     return Array.from(this.schedules.entries()).map(([profileId, schedule]) => ({
       profileId,
@@ -367,9 +317,7 @@ class MultiBotScheduler {
     }));
   }
 
-  /**
-   * Limpa recursos
-   */
+  
   cleanup() {
     if (this.checkInterval) {
       clearInterval(this.checkInterval);

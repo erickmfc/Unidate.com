@@ -27,7 +27,7 @@ import {
   Sparkles,
   Zap
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatService, ChatMessage, Chat } from '../services/chatService';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
@@ -62,6 +62,7 @@ interface ChatConversation {
 
 const ChatPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { currentUser, userProfile, logoutUser } = useAuth();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
@@ -144,18 +145,14 @@ const ChatPage: React.FC = () => {
         setLoading(true);
         const chats = await ChatService.getUserChats(currentUser.uid);
         
-        // Converter chats para ChatConversation
         const conversationsList = await Promise.all(
           chats.map(async (chat): Promise<ChatConversation | null> => {
-            // Encontrar o outro participante
             const otherParticipantId = chat.participants.find(id => id !== currentUser.uid);
             if (!otherParticipantId) return null;
 
-            // Buscar perfil do outro participante
             const contactProfile = await UserProfileService.getUserProfile(otherParticipantId);
             if (!contactProfile) return null;
 
-            // Formatar timestamp
             const lastMessageTime = chat.lastMessageTime as Timestamp;
             const timestamp = lastMessageTime?.toDate() 
               ? lastMessageTime.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
@@ -166,7 +163,7 @@ const ChatPage: React.FC = () => {
               name: contactProfile.name,
               email: contactProfile.email,
               avatar: contactProfile.avatar,
-              isOnline: false, // TODO: Integrar com UserStatusService
+              isOnline: false,
               status: 'Online',
               workHours: '',
               role: '',
@@ -186,12 +183,10 @@ const ChatPage: React.FC = () => {
           })
         );
 
-        // Filtrar nulls e ordenar por timestamp
         const validConversations = conversationsList.filter((c): c is ChatConversation => c !== null);
         setConversations(validConversations);
       } catch (error) {
         console.error('Erro ao carregar conversas:', error);
-        // Se houver erro, manter lista vazia
         setConversations([]);
       } finally {
         setLoading(false);
@@ -199,6 +194,13 @@ const ChatPage: React.FC = () => {
     };
 
     loadConversations();
+
+    if (!db) {
+      window.addEventListener('local-chats-updated', loadConversations);
+      return () => {
+        window.removeEventListener('local-chats-updated', loadConversations);
+      };
+    }
   }, [currentUser?.uid]);
 
   // Carregar mensagens reais quando uma conversa é selecionada
@@ -331,26 +333,39 @@ const ChatPage: React.FC = () => {
 
   // Buscar quem te segue
   const loadFollowers = async () => {
-    if (!currentUser?.uid || !db) return;
+    if (!currentUser?.uid) return;
 
     try {
       setLoadingFollowers(true);
-      // Buscar friendships onde o usuário atual é user2Id (quem te segue)
-      const followersQuery = query(
-        collection(db, 'friendships'),
-        where('user2Id', '==', currentUser.uid),
-        where('status', '==', 'accepted')
-      );
-
-      const snapshot = await getDocs(followersQuery);
       const followerIds: string[] = [];
-      
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        followerIds.push(data.user1Id);
-      });
 
-      // Buscar perfis dos seguidores
+      if (db) {
+        // Buscar friendships onde o usuário atual é user2Id (quem te segue)
+        const followersQuery = query(
+          collection(db, 'friendships'),
+          where('user2Id', '==', currentUser.uid),
+          where('status', '==', 'accepted')
+        );
+
+        const snapshot = await getDocs(followersQuery);
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          followerIds.push(data.user1Id);
+        });
+      } else {
+        const friendships = JSON.parse(localStorage.getItem('unidate_offline_friendships') || '[]');
+        friendships.forEach((f: any) => {
+          if (f.status === 'accepted') {
+            if (f.user1Id === currentUser.uid) {
+              followerIds.push(f.user2Id);
+            } else if (f.user2Id === currentUser.uid) {
+              followerIds.push(f.user1Id);
+            }
+          }
+        });
+      }
+
+      // Carregar perfil de cada seguidor
       const followerProfiles = await Promise.all(
         followerIds.map(id => UserProfileService.getUserProfile(id))
       );
@@ -365,7 +380,6 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  // Iniciar nova conversa com um usuário
   const handleStartChat = async (userId: string) => {
     if (!currentUser?.uid) return;
 
@@ -413,7 +427,16 @@ const ChatPage: React.FC = () => {
     } catch (error) {
       console.error('Erro ao iniciar conversa:', error);
     }
-  };
+  }
+
+  useEffect(() => {
+    const state = (location as any).state as { activeContactId?: string } | null;
+    if (currentUser?.uid && state?.activeContactId) {
+      console.log('⚡ [CHAT] Iniciando chat automático com:', state.activeContactId);
+      handleStartChat(state.activeContactId);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [currentUser?.uid, (location as any).state]);;
 
   const formatTime = (timestamp: any): string => {
     if (!timestamp) return '';

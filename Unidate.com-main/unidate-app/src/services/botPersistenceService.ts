@@ -25,9 +25,7 @@ export interface BotScheduleConfig {
 class BotPersistenceService {
   private readonly CONFIG_DOC_ID = 'bot-schedule-config';
 
-  /**
-   * Salva configuração de agendamento no Firestore
-   */
+  
   async saveScheduleConfig(config: Partial<BotScheduleConfig>, userId: string): Promise<void> {
     try {
       if (!db) throw new Error('Firebase não inicializado');
@@ -47,9 +45,7 @@ class BotPersistenceService {
     }
   }
 
-  /**
-   * Carrega configuração de agendamento
-   */
+  
   async loadScheduleConfig(): Promise<BotScheduleConfig | null> {
     try {
       if (!db) throw new Error('Firebase não inicializado');
@@ -78,9 +74,7 @@ class BotPersistenceService {
     }
   }
 
-  /**
-   * Atualiza status de um perfil específico
-   */
+  
   async updateProfileSchedule(
     profileId: string, 
     updates: {
@@ -117,9 +111,7 @@ class BotPersistenceService {
     }
   }
 
-  /**
-   * Observa mudanças na configuração em tempo real
-   */
+  
   watchScheduleConfig(callback: (config: BotScheduleConfig | null) => void): () => void {
     if (!db) {
       console.error('Firebase não inicializado');
@@ -157,4 +149,3 @@ class BotPersistenceService {
 }
 
 export const botPersistenceService = new BotPersistenceService();
-

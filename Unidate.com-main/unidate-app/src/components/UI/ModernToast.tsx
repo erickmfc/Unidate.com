@@ -27,10 +27,8 @@ const Toast: React.FC<ToastProps> = ({
   const [isLeaving, setIsLeaving] = useState(false);
 
   useEffect(() => {
-    // Animar entrada
     const timer = setTimeout(() => setIsVisible(true), 100);
     
-    // Auto-close
     const autoCloseTimer = setTimeout(() => {
       handleClose();
     }, duration);
@@ -104,7 +102,7 @@ const Toast: React.FC<ToastProps> = ({
         ${styles.bg}
       `}
     >
-      {/* Progress Bar */}
+      {}
       <div className="absolute top-0 left-0 h-1 w-full bg-gray-200 rounded-t-lg overflow-hidden">
         <div
           className={`h-full ${styles.progressColor} transition-all ease-linear`}

@@ -15,7 +15,6 @@ import {
 import { Contribution, ContributionVote, ContributionReview } from '../types/subjects';
 
 export class ContributionsService {
-  // Criar contribuição
   static async createContribution(contributionData: Omit<Contribution, 'id' | 'createdAt' | 'updatedAt' | 'votes' | 'totalVotes' | 'upvotes' | 'downvotes' | 'reviews'>): Promise<string> {
     try {
       if (!db) {
@@ -44,7 +43,6 @@ export class ContributionsService {
     }
   }
 
-  // Obter contribuições por matéria
   static async getContributionsBySubject(subjectId: string): Promise<Contribution[]> {
     try {
       if (!db) {
@@ -90,7 +88,6 @@ export class ContributionsService {
     }
   }
 
-  // Votar em contribuição
   static async vote(
     contributionId: string, 
     userId: string, 
@@ -111,14 +108,11 @@ export class ContributionsService {
       const data = contributionDoc.data();
       const votes: ContributionVote[] = data.votes || [];
       
-      // Verificar se usuário já votou
       const existingVoteIndex = votes.findIndex(v => v.userId === userId);
       
       if (existingVoteIndex >= 0) {
-        // Atualizar voto existente
         const existingVote = votes[existingVoteIndex];
         if (existingVote.vote === vote) {
-          // Remover voto se for o mesmo
           votes.splice(existingVoteIndex, 1);
           await updateDoc(contributionRef, {
             votes,
@@ -128,7 +122,6 @@ export class ContributionsService {
             updatedAt: serverTimestamp(),
           });
         } else {
-          // Mudar voto
           votes[existingVoteIndex] = { userId, vote, createdAt: new Date() };
           await updateDoc(contributionRef, {
             votes,
@@ -139,7 +132,6 @@ export class ContributionsService {
           });
         }
       } else {
-        // Adicionar novo voto
         votes.push({ userId, vote, createdAt: new Date() });
         await updateDoc(contributionRef, {
           votes,
@@ -155,7 +147,6 @@ export class ContributionsService {
     }
   }
 
-  // Adicionar revisão
   static async review(
     contributionId: string,
     reviewerId: string,
@@ -199,7 +190,6 @@ export class ContributionsService {
     }
   }
 
-  // Aprovar contribuição (admin/expert)
   static async approve(contributionId: string, approverId: string): Promise<void> {
     try {
       if (!db) {
@@ -217,7 +207,6 @@ export class ContributionsService {
     }
   }
 
-  // Rejeitar contribuição (admin/expert)
   static async reject(contributionId: string, rejectorId: string, reason?: string): Promise<void> {
     try {
       if (!db) {
@@ -236,7 +225,6 @@ export class ContributionsService {
     }
   }
 
-  // Obter contribuições pendentes
   static async getPendingContributions(): Promise<Contribution[]> {
     try {
       if (!db) {
@@ -282,4 +270,3 @@ export class ContributionsService {
     }
   }
 }
-

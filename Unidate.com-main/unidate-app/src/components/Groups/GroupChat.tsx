@@ -34,24 +34,20 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
   useEffect(() => {
     if (!groupId || !currentUser) return;
 
-    // Verificar se o usuário pode acessar o chat
     const checkAccess = async () => {
       try {
         const hasAccess = await UserStatusService.canUserAccessGroupChat(currentUser.uid, groupId);
         setCanAccessChat(hasAccess);
         
         if (hasAccess) {
-          // Marcar usuário como online no grupo
           await UserStatusService.setUserOnline(currentUser.uid, groupId);
           
-          // Escutar mensagens em tempo real
           const unsubscribe = GroupChatService.subscribeToGroupMessages(
             groupId,
             (newMessages) => {
               setMessages(newMessages);
               setLoading(false);
               
-              // Scroll para a última mensagem
               setTimeout(() => {
                 scrollToBottom();
               }, 100);
@@ -81,7 +77,6 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
       if (unsubscribe) {
         unsubscribe();
       }
-      // Marcar usuário como offline quando sair do chat
       if (currentUser) {
         UserStatusService.setUserOffline(currentUser.uid);
       }
@@ -150,11 +145,10 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
     );
   };
 
-  // Se não pode acessar o chat, mostrar mensagem
   if (!canAccessChat && !loading) {
     return (
       <div className="flex flex-col h-full bg-white">
-        {/* Header do Chat */}
+        {}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-3">
             <button
@@ -170,7 +164,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
           </div>
         </div>
 
-        {/* Mensagem de acesso negado */}
+        {}
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center">
             <Users className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -194,7 +188,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
 
   return (
     <div className="flex flex-col h-full bg-white">
-      {/* Header do Chat */}
+      {}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
         <div className="flex items-center space-x-3">
           <button
@@ -219,7 +213,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
         </div>
       </div>
 
-      {/* Área de Mensagens */}
+      {}
       <div 
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto p-4 space-y-4"
@@ -261,7 +255,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
                 }`}
               >
                 <div className={`flex max-w-xs lg:max-w-md ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-                  {/* Avatar */}
+                  {}
                   {showAvatar && (
                     <div className={`w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center ${isOwn ? 'ml-2' : 'mr-2'}`}>
                       <span className="text-white text-xs font-semibold">
@@ -270,7 +264,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
                     </div>
                   )}
                   
-                  {/* Mensagem */}
+                  {}
                   <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
                     {showAvatar && (
                       <div className={`text-xs text-gray-500 mb-1 ${isOwn ? 'text-right' : 'text-left'}`}>
@@ -300,7 +294,7 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input de Mensagem */}
+      {}
       <div className="border-t border-gray-200 p-4">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-3">
           <button

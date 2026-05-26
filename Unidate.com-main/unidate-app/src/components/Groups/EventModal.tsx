@@ -8,7 +8,7 @@ interface EventModalProps {
   onClose: () => void;
   groupId: string;
   groupName: string;
-  event?: GroupEvent | null; // Se fornecido, é edição; se null, é criação
+  event?: GroupEvent | null;
   onEventSaved: (event?: GroupEvent) => void;
 }
 
@@ -68,16 +68,12 @@ const EventModal: React.FC<EventModalProps> = ({
       } as any;
 
       if (event) {
-        // Editar evento existente
         await GroupEventsService.updateEvent(event.id, eventData, event.createdBy);
         console.log('✅ Evento atualizado com sucesso');
-        // Passar o evento atualizado
         onEventSaved({ ...event, ...eventData } as GroupEvent);
       } else {
-        // Criar novo evento
         const eventId = await GroupEventsService.createEvent(eventData);
         console.log('✅ Evento criado com sucesso:', eventId);
-        // Criar um evento temporário para o callback (será recarregado pela lista)
         const newEvent: GroupEvent = {
           id: eventId,
           ...eventData,
@@ -114,7 +110,7 @@ const EventModal: React.FC<EventModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
@@ -130,7 +126,7 @@ const EventModal: React.FC<EventModalProps> = ({
           </button>
         </div>
 
-        {/* Form */}
+        {}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -138,7 +134,7 @@ const EventModal: React.FC<EventModalProps> = ({
             </div>
           )}
 
-          {/* Título */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Título do Evento *
@@ -154,7 +150,7 @@ const EventModal: React.FC<EventModalProps> = ({
             />
           </div>
 
-          {/* Descrição */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Descrição
@@ -169,7 +165,7 @@ const EventModal: React.FC<EventModalProps> = ({
             />
           </div>
 
-          {/* Data e Hora */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Data e Hora *
@@ -184,7 +180,7 @@ const EventModal: React.FC<EventModalProps> = ({
             />
           </div>
 
-          {/* Local */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Local *
@@ -200,7 +196,7 @@ const EventModal: React.FC<EventModalProps> = ({
             />
           </div>
 
-          {/* Máximo de Participantes */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Máximo de Participantes (opcional)
@@ -216,7 +212,7 @@ const EventModal: React.FC<EventModalProps> = ({
             />
           </div>
 
-          {/* Tags */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tags (separadas por vírgula)
@@ -231,7 +227,7 @@ const EventModal: React.FC<EventModalProps> = ({
             />
           </div>
 
-          {/* Público/Privado */}
+          {}
           <div className="flex items-center space-x-3">
             <input
               type="checkbox"
@@ -245,7 +241,7 @@ const EventModal: React.FC<EventModalProps> = ({
             </label>
           </div>
 
-          {/* Botões */}
+          {}
           <div className="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
             <button
               type="button"

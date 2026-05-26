@@ -84,7 +84,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
     setLoadingComments(true);
     console.log('🔄 [POSTCARD] Carregando últimos comentários para post:', post.id);
     
-    // Limpar listener anterior se existir
     const currentUnsubscribe = unsubscribeComments;
     if (currentUnsubscribe) {
       currentUnsubscribe();
@@ -94,17 +93,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
       post.id,
       (loadedComments) => {
         console.log('📱 [POSTCARD] Comentários carregados:', loadedComments.length);
-        // Pegar os últimos 2 comentários (mais recentes)
         const sortedComments = [...loadedComments].sort((a, b) => {
           try {
             const aTime = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : (a.timestamp ? new Date(a.timestamp).getTime() : 0);
             const bTime = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : (b.timestamp ? new Date(b.timestamp).getTime() : 0);
-            return bTime - aTime; // Mais recentes primeiro
+            return bTime - aTime;
           } catch {
             return 0;
           }
         });
-        const lastTwoComments = sortedComments.slice(0, 2); // Pegar os 2 mais recentes
+        const lastTwoComments = sortedComments.slice(0, 2);
         setComments(lastTwoComments);
         setLoadingComments(false);
       },
@@ -120,7 +118,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
     return () => {
       unsubscribe();
     };
-  }, [post.id]); // Não incluir unsubscribeComments nas dependências para evitar loops
+  }, [post.id]);
 
   const handleProfileClick = () => {
     console.log('🔍 Navegando para perfil do usuário:', post.author.uid);
@@ -149,7 +147,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
     try {
       console.log('🔄 [POSTCARD] Adicionando comentário...', { postId, content });
       
-      // Usar userProfile se disponível, senão usar dados do currentUser
       const userName = userProfile?.displayName || currentUser.displayName || 'Usuário';
       const userAvatar = userProfile?.photoURL || currentUser.photoURL || '/api/placeholder/40/40';
       
@@ -163,8 +160,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
       
       console.log('✅ [POSTCARD] Comentário adicionado com sucesso! ID:', commentId);
       
-      // O listener do Firestore vai atualizar automaticamente
-      // Não precisamos atualizar manualmente aqui
     } catch (error: any) {
       console.error('❌ [POSTCARD] Erro ao adicionar comentário:', error);
       console.error('❌ [POSTCARD] Detalhes:', error.message);

@@ -41,13 +41,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification, onRem
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Animação de entrada
     const timer = setTimeout(() => setIsVisible(true), 100);
     return () => clearTimeout(timer);
   }, []);
 
   useEffect(() => {
-    // Auto-remover após duração
     if (notification.duration !== 0) {
       const timer = setTimeout(() => {
         handleRemove();

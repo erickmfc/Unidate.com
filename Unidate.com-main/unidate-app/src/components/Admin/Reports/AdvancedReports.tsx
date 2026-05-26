@@ -134,10 +134,8 @@ const AdvancedReports: React.FC = () => {
       try {
         setLoading(true);
         
-        // Simular delay de API
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Dados simulados - em produção viriam do Firebase
         setReports([]);
         setTemplates(reportTemplates);
       } catch (error) {
@@ -154,7 +152,6 @@ const AdvancedReports: React.FC = () => {
     try {
       setGenerating(true);
       
-      // Simular geração de relatório
       await new Promise(resolve => setTimeout(resolve, 3000));
       
       const template = templates.find(t => t.id === templateId);
@@ -166,7 +163,7 @@ const AdvancedReports: React.FC = () => {
         description: template.description,
         type: template.type as any,
         category: template.category as any,
-        data: {}, // Dados simulados
+        data: {},
         generatedAt: new Date(),
         period: `${dateRange.start} - ${dateRange.end}`,
         status: 'ready'
@@ -174,7 +171,6 @@ const AdvancedReports: React.FC = () => {
       
       setReports(prev => [newReport, ...prev]);
       
-      // Feedback visual
       alert(`Relatório "${template.name}" gerado com sucesso!`);
     } catch (error) {
       console.error('Erro ao gerar relatório:', error);
@@ -188,19 +184,15 @@ const AdvancedReports: React.FC = () => {
     const report = reports.find(r => r.id === reportId);
     if (!report) return;
     
-    // Simular exportação
     console.log(`Exportando relatório ${reportId} em formato ${format}`);
     
-    // Aqui você implementaria a lógica real de exportação
     const filename = `${report.title.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.${format}`;
     
-    // Simular download
     const link = document.createElement('a');
-    link.href = '#'; // URL do arquivo gerado
+    link.href = '#';
     link.download = filename;
     link.click();
     
-    // Feedback visual
     alert(`Exportando relatório "${report.title}" em formato ${format.toUpperCase()}...`);
   };
 
@@ -274,7 +266,7 @@ const AdvancedReports: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Header */}
+      {}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Relatórios Avançados</h1>
@@ -294,7 +286,7 @@ const AdvancedReports: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtros */}
+      {}
       {showFilters && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -348,7 +340,7 @@ const AdvancedReports: React.FC = () => {
         </div>
       )}
 
-      {/* Templates de Relatórios */}
+      {}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Templates de Relatórios
@@ -416,7 +408,7 @@ const AdvancedReports: React.FC = () => {
         </div>
       </div>
 
-      {/* Relatórios Gerados */}
+      {}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
           Relatórios Gerados

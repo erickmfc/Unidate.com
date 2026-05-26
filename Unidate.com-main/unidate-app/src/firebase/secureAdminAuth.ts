@@ -1,8 +1,4 @@
-/**
- * Sistema seguro de autenticação de administradores
- * Usa Firebase Auth com Custom Claims para identificar admins
- * NÃO armazena credenciais no frontend
- */
+
 
 import { 
   signInWithEmailAndPassword, 
@@ -45,10 +41,7 @@ export interface AdminSession {
   twoFactorVerified: boolean;
 }
 
-/**
- * Verifica se um usuário tem claim de admin
- * Custom Claims são definidos no backend (Cloud Functions)
- */
+
 const checkAdminClaim = async (user: User): Promise<boolean> => {
   try {
     const tokenResult = await getIdTokenResult(user, true);
@@ -59,10 +52,7 @@ const checkAdminClaim = async (user: User): Promise<boolean> => {
   }
 };
 
-/**
- * Verifica se o usuário está na coleção de admins do Firestore
- * Fallback caso Custom Claims não estejam configurados
- */
+
 const checkAdminInFirestore = async (uid: string): Promise<AdminUser | null> => {
   try {
     if (!db) return null;
@@ -96,37 +86,28 @@ const checkAdminInFirestore = async (uid: string): Promise<AdminUser | null> => 
   }
 };
 
-/**
- * Faz login de administrador usando Firebase Auth
- * NÃO aceita credenciais hardcoded - apenas Firebase Auth
- */
+
 export const loginAdmin = async (email: string, password: string): Promise<AdminSession> => {
   try {
     if (!auth) {
       throw new Error('Firebase Auth não inicializado');
     }
 
-    // Autenticar com Firebase Auth
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
 
-    // Verificar se é admin via Custom Claims
     const hasAdminClaim = await checkAdminClaim(user);
     
-    // Se não tiver claim, verificar no Firestore (fallback)
     let adminData: AdminUser | null = null;
     if (!hasAdminClaim) {
       adminData = await checkAdminInFirestore(user.uid);
       if (!adminData) {
-        // Não é admin - fazer logout
         await signOut(auth);
         throw new Error('Usuário não possui permissões de administrador');
       }
     } else {
-      // Buscar dados do admin no Firestore
       adminData = await checkAdminInFirestore(user.uid);
       if (!adminData) {
-        // Criar registro básico se não existir
         if (!db) throw new Error('Firestore não inicializado');
         
         adminData = {
@@ -153,13 +134,11 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
       }
     }
 
-    // Verificar se a conta está ativa
     if (!adminData.isActive) {
       await signOut(auth);
       throw new Error('Conta de administrador desativada');
     }
 
-    // Atualizar último login
     if (db) {
       await updateDoc(doc(db, 'admins', user.uid), {
         lastLogin: serverTimestamp()
@@ -178,23 +157,18 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
   }
 };
 
-/**
- * Verifica código 2FA (implementação básica - em produção usar biblioteca real)
- */
+
 export const verifyTwoFactor = async (uid: string, code: string): Promise<AdminSession | null> => {
   try {
     if (!auth?.currentUser || auth.currentUser.uid !== uid) {
       throw new Error('Usuário não autenticado');
     }
 
-    // Buscar dados do admin
     const adminData = await checkAdminInFirestore(uid);
     if (!adminData) {
       throw new Error('Admin não encontrado');
     }
 
-    // TODO: Implementar verificação real de 2FA usando biblioteca como 'otplib'
-    // Por enquanto, apenas verificar se o código não está vazio
     if (!code || code.trim().length === 0) {
       throw new Error('Código 2FA inválido');
     }
@@ -211,9 +185,7 @@ export const verifyTwoFactor = async (uid: string, code: string): Promise<AdminS
   }
 };
 
-/**
- * Faz logout do administrador
- */
+
 export const logoutAdmin = async (): Promise<void> => {
   try {
     if (auth) {
@@ -225,9 +197,7 @@ export const logoutAdmin = async (): Promise<void> => {
   }
 };
 
-/**
- * Obtém a sessão atual do admin
- */
+
 export const getCurrentAdminSession = async (): Promise<AdminSession | null> => {
   try {
     if (!auth?.currentUser) {
@@ -236,7 +206,6 @@ export const getCurrentAdminSession = async (): Promise<AdminSession | null> => 
 
     const user = auth.currentUser;
     
-    // Verificar se é admin
     const hasAdminClaim = await checkAdminClaim(user);
     if (!hasAdminClaim) {
       const adminData = await checkAdminInFirestore(user.uid);
@@ -245,7 +214,6 @@ export const getCurrentAdminSession = async (): Promise<AdminSession | null> => 
       }
     }
 
-    // Buscar dados do admin
     const adminData = await checkAdminInFirestore(user.uid);
     if (!adminData || !adminData.isActive) {
       return null;
@@ -263,17 +231,13 @@ export const getCurrentAdminSession = async (): Promise<AdminSession | null> => 
   }
 };
 
-/**
- * Verifica se há um admin logado
- */
+
 export const isAdminLoggedIn = async (): Promise<boolean> => {
   const session = await getCurrentAdminSession();
   return session?.isAuthenticated === true;
 };
 
-/**
- * Observa mudanças no estado de autenticação
- */
+
 export const onAdminAuthStateChanged = (
   callback: (session: AdminSession | null) => void
 ): (() => void) => {
@@ -291,4 +255,3 @@ export const onAdminAuthStateChanged = (
     }
   });
 };
-

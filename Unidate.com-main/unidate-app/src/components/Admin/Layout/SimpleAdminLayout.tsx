@@ -26,7 +26,6 @@ interface AdminLayoutProps {
 const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(() => {
-    // Verificar se há preferência salva, senão usar modo escuro por padrão
     const saved = localStorage.getItem('admin-dark-mode');
     return saved ? JSON.parse(saved) : true;
   });
@@ -67,13 +66,13 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     <div className={`min-h-screen transition-colors duration-300 ${
       darkMode ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
-      {/* Sidebar */}
+      {}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 ${
         darkMode ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200'
       }`}>
-        {/* Sidebar Header */}
+        {}
         <div className={`flex items-center justify-between h-16 px-6 border-b ${
           darkMode ? 'border-gray-700' : 'border-gray-200'
         }`}>
@@ -99,7 +98,7 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </button>
         </div>
 
-        {/* Navigation */}
+        {}
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="px-4 space-y-2">
             {menuItems.map((item) => {
@@ -128,7 +127,7 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {/* Sidebar Footer */}
+        {}
         <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -170,9 +169,9 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {}
       <div className="lg:pl-64">
-        {/* Top Bar */}
+        {}
         <header className={`sticky top-0 z-40 h-16 border-b transition-colors ${
           darkMode 
             ? 'bg-gray-800 border-gray-700' 
@@ -223,7 +222,7 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Page Content */}
+        {}
         <main className={`transition-colors duration-300 ${
           darkMode ? 'bg-gray-900' : 'bg-gray-50'
         }`}>
@@ -231,7 +230,7 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </main>
       </div>
 
-      {/* Mobile Overlay */}
+      {}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"

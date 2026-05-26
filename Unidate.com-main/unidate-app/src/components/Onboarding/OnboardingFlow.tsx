@@ -195,7 +195,7 @@ const OnboardingFlow: React.FC = () => {
           return false;
         }
         if (!isInstitutionalEmail(formData.email)) {
-          setError('Insira um e-mail válido');
+          setError('Insira um e-mail válido (ex: nome@email.com)');
           return false;
         }
         if (!formData.registrationNumber.trim()) {
@@ -204,7 +204,7 @@ const OnboardingFlow: React.FC = () => {
         }
         return true;
       
-      case 3:
+      case 4:
         if (!formData.university) {
           setError('Selecione sua universidade');
           return false;
@@ -215,7 +215,7 @@ const OnboardingFlow: React.FC = () => {
         }
         return true;
       
-      case 4:
+      case 5:
         if (!formData.password) {
           setError('Senha é obrigatória');
           return false;
@@ -264,9 +264,7 @@ const OnboardingFlow: React.FC = () => {
         formData.userType
       );
 
-      navigate('/verify-email', { 
-        state: { email: formData.email } 
-      });
+      navigate('/dashboard');
     } catch (error: any) {
       setError(error.message);
     } finally {

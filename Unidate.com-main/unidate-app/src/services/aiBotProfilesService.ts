@@ -25,9 +25,9 @@ export interface BotProfile {
   period: number;
   avatar: string;
   bio: string;
-  writingStyle: string; // Descrição do estilo de escrita
-  personality: string; // Personalidade do bot
-  interests: string[]; // Interesses/tópicos preferidos
+  writingStyle: string;
+  personality: string;
+  interests: string[];
   postingFrequency: {
     enabled: boolean;
     intervalMinutes: number;
@@ -40,9 +40,7 @@ export interface BotProfile {
 }
 
 export class AIBotProfilesService {
-  /**
-   * Cria um novo perfil de bot
-   */
+  
   static async createProfile(profileData: Omit<BotProfile, 'id' | 'postsCount' | 'lastPostTime' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
       if (!db) throw new Error('Firebase não inicializado');
@@ -62,9 +60,7 @@ export class AIBotProfilesService {
     }
   }
 
-  /**
-   * Busca todos os perfis
-   */
+  
   static async getProfiles(): Promise<BotProfile[]> {
     try {
       if (!db) throw new Error('Firebase não inicializado');
@@ -83,17 +79,13 @@ export class AIBotProfilesService {
     }
   }
 
-  /**
-   * Atualiza um perfil
-   */
+  
   static async updateProfile(profileId: string, updates: Partial<BotProfile>): Promise<void> {
     try {
       if (!db) throw new Error('Firebase não inicializado');
 
-      // Remover campos que não devem ser atualizados diretamente
       const { id, createdAt, ...updateData } = updates;
       
-      // Converter lastPostTime para Timestamp se for Date
       const updateFields: any = { ...updateData };
       if (updateFields.lastPostTime instanceof Date) {
         updateFields.lastPostTime = updateFields.lastPostTime;
@@ -109,9 +101,7 @@ export class AIBotProfilesService {
     }
   }
 
-  /**
-   * Deleta um perfil
-   */
+  
   static async deleteProfile(profileId: string): Promise<void> {
     try {
       if (!db) throw new Error('Firebase não inicializado');
@@ -122,9 +112,7 @@ export class AIBotProfilesService {
     }
   }
 
-  /**
-   * Gera um post personalizado para um perfil específico
-   */
+  
   static async generatePostForProfile(profile: BotProfile): Promise<string> {
     const prompt = `Você é ${profile.name}, um estudante universitário brasileiro.
 
@@ -180,7 +168,6 @@ Responda APENAS com o texto do tweet, sem aspas, sem explicações.`;
       const data = await response.json();
       let content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
-      // Limpar o texto
       content = content.trim();
       content = content.replace(/^["']|["']$/g, '');
       content = content.replace(/\n/g, ' ');
@@ -200,9 +187,7 @@ Responda APENAS com o texto do tweet, sem aspas, sem explicações.`;
     }
   }
 
-  /**
-   * Posts de fallback personalizados por perfil
-   */
+  
   private static getFallbackPost(profile: BotProfile): string {
     const fallbackPosts: Record<string, string[]> = {
       'sarcástico': [
@@ -232,9 +217,7 @@ Responda APENAS com o texto do tweet, sem aspas, sem explicações.`;
     return posts[Math.floor(Math.random() * posts.length)];
   }
 
-  /**
-   * Cria um post no Firebase usando um perfil
-   */
+  
   static async createPostForProfile(profile: BotProfile): Promise<string> {
     if (!db) throw new Error('Firebase não inicializado');
     
@@ -259,7 +242,6 @@ Responda APENAS com o texto do tweet, sem aspas, sem explicações.`;
 
     const postId = await PostsService.createPost(postData);
     
-    // Atualizar contador de posts do perfil
     if (!db) {
       console.error('❌ Firestore não está disponível para atualizar contador de posts');
       return postId;
@@ -275,22 +257,17 @@ Responda APENAS com o texto do tweet, sem aspas, sem explicações.`;
     return postId;
   }
 
-  /**
-   * Extrai hashtags do conteúdo
-   */
+  
   private static extractHashtags(content: string): string[] {
     const hashtagRegex = /#(\w+)/g;
     const matches = content.match(hashtagRegex);
     return matches ? matches.map(tag => tag.substring(1)) : [];
   }
 
-  /**
-   * Gera avatar baseado no nome
-   */
+  
   static generateAvatar(name: string, course: string): string {
     const colors = ['8b5cf6', 'ec4899', '06b6d4', '10b981', 'f59e0b', 'ef4444'];
     const color = colors[name.length % colors.length];
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${color}&color=fff&size=128&bold=true`;
   }
 }
-

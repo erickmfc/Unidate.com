@@ -64,18 +64,15 @@ const OnboardingComplete: React.FC = () => {
       setUploadingPhoto(true);
       setError('');
 
-      // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
         throw new Error('Por favor, selecione uma imagem válida');
       }
 
-      // Validar tamanho (máximo 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         throw new Error('A imagem deve ter no máximo 5MB');
       }
 
-      // Mostrar preview imediatamente
       const reader = new FileReader();
       reader.onload = (e) => {
         setProfileData(prev => ({
@@ -104,19 +101,16 @@ const OnboardingComplete: React.FC = () => {
     try {
       let photoURL = profileData.photoURL;
 
-      // Se houver arquivo selecionado, fazer upload para o Firebase Storage
       if (selectedFile) {
         try {
           photoURL = await ProfilePhotoService.uploadProfilePhoto(selectedFile, currentUser.uid);
           showSuccess('Foto de perfil salva com sucesso! 📸');
         } catch (uploadError: any) {
           console.error('Erro ao fazer upload da foto:', uploadError);
-          // Continuar mesmo se o upload falhar, mas usar a URL base64 como fallback
           showError('Erro ao salvar foto. Continuando sem foto...');
         }
       }
 
-      // Atualizar perfil no Firestore
       await updateUserProfile(currentUser.uid, {
         photoURL: photoURL || undefined,
         bio: profileData.bio,
@@ -124,12 +118,10 @@ const OnboardingComplete: React.FC = () => {
         displayName: profileData.nickname || currentUser.displayName || 'Usuário',
         onboardingCompleted: true,
         isVerified: true
-        // userType já foi salvo no registro inicial, não precisa atualizar aqui
       });
 
       showSuccess('Perfil criado com sucesso! 🎉');
       
-      // Redirecionar para o dashboard
       setTimeout(() => {
         navigate('/dashboard');
       }, 1000);
@@ -174,19 +166,19 @@ const OnboardingComplete: React.FC = () => {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handlePhotoUpload}
                     className="hidden"
+                    onChange={handlePhotoUpload}
                     disabled={uploadingPhoto}
                   />
                 </label>
               </div>
             </div>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-500">
-                Pular por enquanto
-              </p>
-            </div>
+            {profileData.photoURL && (
+              <div className="text-center">
+                <p className="text-sm text-green-600 font-medium">✓ Foto selecionada com sucesso!</p>
+              </div>
+            )}
           </div>
         );
 
@@ -194,44 +186,21 @@ const OnboardingComplete: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Como a galera vai te chamar?</h2>
-              <p className="text-gray-600">Escolha um apelido para o UniDate</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Como quer ser chamado?</h2>
+              <p className="text-gray-600">Escolha um apelido ou use seu nome mesmo</p>
             </div>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Apelido
+                Apelido / Nome de exibição
               </label>
-              <div className="relative">
-                <Smile className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                <input
-                  type="text"
-                  value={profileData.nickname}
-                  onChange={(e) => handleInputChange('nickname', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder="Ex: João, Jão, JS..."
-                />
-              </div>
-              <p className="text-xs text-gray-500 mt-1">
-                Este será seu nome no UniDate
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bio (opcional)
-              </label>
-              <textarea
-                value={profileData.bio}
-                onChange={(e) => handleInputChange('bio', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
-                rows={3}
-                placeholder="Conte um pouco sobre você..."
-                maxLength={150}
+              <input
+                type="text"
+                value={profileData.nickname}
+                onChange={(e) => handleInputChange('nickname', e.target.value)}
+                placeholder="Ex: João, Jão, Joãozinho..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
               />
-              <p className="text-xs text-gray-500 mt-1">
-                {profileData.bio.length}/150 caracteres
-              </p>
             </div>
           </div>
         );
@@ -241,19 +210,18 @@ const OnboardingComplete: React.FC = () => {
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Seus interesses</h2>
-              <p className="text-gray-600">Selecione até 5 interesses para conectar com pessoas similares</p>
+              <p className="text-gray-600">Selecione pelo menos 3 coisas que você curte</p>
             </div>
-            
-            <div className="grid grid-cols-3 gap-3">
+
+            <div className="flex flex-wrap gap-2">
               {interestOptions.map((interest) => (
                 <button
                   key={interest}
                   onClick={() => handleInterestToggle(interest)}
-                  disabled={!profileData.interests.includes(interest) && profileData.interests.length >= 5}
-                  className={`p-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
                     profileData.interests.includes(interest)
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-md scale-105'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
                   {interest}
@@ -261,11 +229,11 @@ const OnboardingComplete: React.FC = () => {
               ))}
             </div>
 
-            <div className="text-center">
-              <p className="text-sm text-gray-500">
-                {profileData.interests.length}/5 selecionados
+            {profileData.interests.length > 0 && (
+              <p className="text-sm text-purple-600 font-medium text-center">
+                {profileData.interests.length} interesse(s) selecionado(s)
               </p>
-            </div>
+            )}
           </div>
         );
 
@@ -273,44 +241,41 @@ const OnboardingComplete: React.FC = () => {
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tudo pronto! 🎉</h2>
-              <p className="text-gray-600">Você está pronto para começar sua jornada no UniDate</p>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-                <CheckCircle className="h-6 w-6 text-green-500" />
-                <div>
-                  <h3 className="font-medium text-green-900">Conta verificada</h3>
-                  <p className="text-sm text-green-700">E-mail confirmado</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                <Users className="h-6 w-6 text-blue-500" />
-                <div>
-                  <h3 className="font-medium text-blue-900">Pronto para conectar</h3>
-                  <p className="text-sm text-blue-700">Descubra pessoas incríveis do seu campus</p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3 p-4 bg-purple-50 border border-purple-200 rounded-xl">
-                <MessageSquare className="h-6 w-6 text-purple-500" />
-                <div>
-                  <h3 className="font-medium text-purple-900">UniVerso ativo</h3>
-                  <p className="text-sm text-purple-700">Participe do feed da sua universidade</p>
-                </div>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Fale um pouco sobre você</h2>
+              <p className="text-gray-600">Uma bio curta para se apresentar</p>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-200 rounded-xl p-4">
-              <div className="text-center">
-                <h4 className="font-medium text-purple-900 mb-2">Bem-vindo ao UniDate!</h4>
-                <p className="text-sm text-purple-700">
-                  Sua faculdade, conectada. Suas histórias, compartilhadas. 
-                  Suas conexões, reais.
-                </p>
-              </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Biografia
+              </label>
+              <textarea
+                value={profileData.bio}
+                onChange={(e) => handleInputChange('bio', e.target.value)}
+                placeholder="Ex: Estudante de Engenharia apaixonado por tecnologia e café..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                rows={4}
+                maxLength={200}
+              />
+              <p className="text-xs text-gray-400 text-right mt-1">
+                {profileData.bio.length}/200
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-4 space-y-3">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                <Smile className="h-5 w-5 text-purple-500" />
+                Resumo do seu perfil
+              </h3>
+              {profileData.photoURL && (
+                <p className="text-sm text-green-600">✓ Foto de perfil adicionada</p>
+              )}
+              {profileData.nickname && (
+                <p className="text-sm text-green-600">✓ Nome: {profileData.nickname}</p>
+              )}
+              {profileData.interests.length > 0 && (
+                <p className="text-sm text-green-600">✓ {profileData.interests.length} interesses selecionados</p>
+              )}
             </div>
           </div>
         );
@@ -321,10 +286,9 @@ const OnboardingComplete: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-lg">
+        <div className="text-center mb-8">
           <div className="flex justify-center mb-6">
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -335,16 +299,16 @@ const OnboardingComplete: React.FC = () => {
           </p>
         </div>
 
-        {/* Progress Bar */}
-        <div className="w-full bg-gray-200 rounded-full h-2">
+        {}
+        <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
           <div 
             className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
             style={{ width: `${(currentStep / 4) * 100}%` }}
           ></div>
         </div>
 
-        {/* Step Indicator */}
-        <div className="flex justify-center space-x-2">
+        {}
+        <div className="flex justify-center space-x-2 mb-6">
           {[1, 2, 3, 4].map((step) => (
             <div
               key={step}
@@ -359,11 +323,11 @@ const OnboardingComplete: React.FC = () => {
           ))}
         </div>
 
-        {/* Form */}
+        {}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {renderStep()}
 
-          {/* Error Message */}
+          {}
           {error && (
             <div className="mt-6 flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
               <X className="h-5 w-5 text-red-500" />
@@ -371,7 +335,7 @@ const OnboardingComplete: React.FC = () => {
             </div>
           )}
 
-          {/* Navigation Buttons */}
+          {}
           <div className="mt-8 flex justify-between">
             <button
               onClick={() => setCurrentStep(prev => Math.max(prev - 1, 1))}
@@ -411,9 +375,9 @@ const OnboardingComplete: React.FC = () => {
           </div>
         </div>
 
-        {/* Skip Option */}
+        {}
         {currentStep < 4 && (
-          <div className="text-center">
+          <div className="text-center mt-4">
             <button
               onClick={() => navigate('/dashboard')}
               className="text-sm text-gray-500 hover:text-gray-700"

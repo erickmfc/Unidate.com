@@ -281,7 +281,7 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
         </div>
       </div>
 
-      {/* Post Type Selector */}
+      {}
       <div className="flex space-x-2 mb-4">
         <button
           onClick={() => setPostType('text')}
@@ -313,7 +313,7 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
         </button>
       </div>
 
-      {/* Content Input */}
+      {}
       <div className="mb-4">
         <textarea
           value={content}
@@ -324,7 +324,7 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
         />
       </div>
 
-      {/* Popular Hashtags */}
+      {}
       <div className="mb-4">
         <p className="text-sm text-gray-600 mb-2">Hashtags populares:</p>
         <div className="flex flex-wrap gap-2">
@@ -340,7 +340,7 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
+      {}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <button className="flex items-center space-x-2 text-gray-600 hover:text-primary-500 transition-colors duration-200">
@@ -367,4 +367,3 @@ const PostComposer: React.FC<PostComposerProps> = ({ onSubmit, onClose }) => {
 };
 
 export default PostComposer;
-

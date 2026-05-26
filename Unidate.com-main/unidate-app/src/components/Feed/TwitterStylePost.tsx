@@ -45,7 +45,6 @@ const TwitterStylePost: React.FC<TwitterStylePostProps> = ({
       if (hours < 24) return `${hours}h`;
       if (days < 7) return `${days}d`;
       
-      // Formato simples para datas mais antigas
       const months = Math.floor(days / 30);
       if (months < 12) return `${months}meses`;
       const years = Math.floor(months / 12);
@@ -71,10 +70,10 @@ const TwitterStylePost: React.FC<TwitterStylePostProps> = ({
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
-      {/* Header */}
+      {}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center space-x-3">
-          {/* Avatar */}
+          {}
           <div className="flex-shrink-0">
             <img
               src={post.author.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.author.name)}&background=8b5cf6&color=fff`}
@@ -82,7 +81,7 @@ const TwitterStylePost: React.FC<TwitterStylePostProps> = ({
               className="w-12 h-12 rounded-full object-cover"
             />
           </div>
-          {/* Nome e Handle */}
+          {}
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-2">
               <h3 className="font-bold text-gray-900 truncate">
@@ -99,20 +98,20 @@ const TwitterStylePost: React.FC<TwitterStylePostProps> = ({
             </p>
           </div>
         </div>
-        {/* Menu */}
+        {}
         <button className="text-gray-400 hover:text-gray-600 transition-colors">
           <MoreHorizontal className="h-5 w-5" />
         </button>
       </div>
 
-      {/* Content */}
+      {}
       <div className="mb-4">
         <p className="text-gray-900 text-base leading-relaxed whitespace-pre-wrap">
           {post.content}
         </p>
       </div>
 
-      {/* Metadata */}
+      {}
       <div className="mb-4">
         <div className="flex items-center space-x-2 text-gray-500 text-sm">
           <span>{formatFullDate(post.timestamp)}</span>
@@ -127,7 +126,7 @@ const TwitterStylePost: React.FC<TwitterStylePostProps> = ({
         </div>
       </div>
 
-      {/* Actions */}
+      {}
       <div className="flex items-center justify-between pt-3 border-t border-gray-100">
         <button
           onClick={() => onComment?.(post.id)}
@@ -169,4 +168,3 @@ const TwitterStylePost: React.FC<TwitterStylePostProps> = ({
 };
 
 export default TwitterStylePost;
-

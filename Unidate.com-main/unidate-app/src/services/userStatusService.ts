@@ -12,7 +12,7 @@ export interface UserStatus {
   userId: string;
   isOnline: boolean;
   lastSeen: Timestamp;
-  currentGroup?: string; // ID do grupo onde o usuário está ativo
+  currentGroup?: string;
 }
 
 export class UserStatusService {

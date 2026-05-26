@@ -15,7 +15,6 @@ import {
 import { PersonalNote, Highlight } from '../types/subjects';
 
 export class NotesService {
-  // Criar anotação
   static async createNote(noteData: Omit<PersonalNote, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
     try {
       if (!db) {
@@ -38,7 +37,6 @@ export class NotesService {
     }
   }
 
-  // Obter anotações do usuário
   static async getUserNotes(userId: string, subjectId?: string, lessonId?: string): Promise<PersonalNote[]> {
     try {
       if (!db) {
@@ -82,7 +80,6 @@ export class NotesService {
     }
   }
 
-  // Atualizar anotação
   static async updateNote(noteId: string, userId: string, updates: Partial<PersonalNote>): Promise<void> {
     try {
       if (!db) {
@@ -100,7 +97,6 @@ export class NotesService {
     }
   }
 
-  // Deletar anotação
   static async deleteNote(noteId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -115,7 +111,6 @@ export class NotesService {
     }
   }
 
-  // Adicionar highlight
   static async addHighlight(
     userId: string,
     lessonId: string,
@@ -127,14 +122,12 @@ export class NotesService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Buscar ou criar anotação para esta lição
       const notesRef = collection(db, 'personalNotes', userId, 'notes');
       const q = query(notesRef, where('lessonId', '==', lessonId));
       const snapshot = await getDocs(q);
 
       let noteId: string;
       if (snapshot.empty) {
-        // Criar nova anotação
         const docRef = doc(notesRef);
         noteId = docRef.id;
         await setDoc(docRef, {
@@ -149,7 +142,6 @@ export class NotesService {
           updatedAt: serverTimestamp(),
         });
       } else {
-        // Adicionar highlight à anotação existente
         const noteDoc = snapshot.docs[0];
         noteId = noteDoc.id;
         const data = noteDoc.data();
@@ -167,7 +159,6 @@ export class NotesService {
     }
   }
 
-  // Adicionar tag à anotação
   static async addTag(noteId: string, userId: string, tag: string): Promise<void> {
     try {
       if (!db) {
@@ -195,7 +186,6 @@ export class NotesService {
     }
   }
 
-  // Criar resumo
   static async createSummary(
     userId: string,
     lessonId: string,
@@ -229,7 +219,6 @@ export class NotesService {
     }
   }
 
-  // Obter anotações por tag
   static async getNotesByTag(userId: string, tag: string): Promise<PersonalNote[]> {
     try {
       if (!db) {
@@ -264,4 +253,3 @@ export class NotesService {
     }
   }
 }
-

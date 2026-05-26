@@ -36,7 +36,7 @@ export interface PresentationSection {
   content: SectionContent;
   visualElements: VisualElement[];
   layout: 'full-width' | 'split' | 'grid' | 'centered' | 'card';
-  hasImage: boolean; // Indica se tem imagem
+  hasImage: boolean;
 }
 
 export interface SectionContent {
@@ -77,4 +77,3 @@ export interface PresentationTemplate {
     body: 'serif' | 'sans-serif';
   };
 }
-

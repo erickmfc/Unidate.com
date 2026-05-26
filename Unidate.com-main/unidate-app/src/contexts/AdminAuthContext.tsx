@@ -38,7 +38,6 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar sessão inicial
     const checkInitialSession = async () => {
       try {
         const currentSession = await getCurrentAdminSession();
@@ -53,7 +52,6 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
 
     checkInitialSession();
 
-    // Observar mudanças no estado de autenticação
     const unsubscribe = onAdminAuthStateChanged((session) => {
       setAdminSession(session);
       setLoading(false);
@@ -67,12 +65,10 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const handleLoginAdmin = async (email: string, password: string): Promise<void> => {
     try {
       setLoading(true);
-      // loginAdmin já faz autenticação com Firebase Auth
       const session = await loginAdmin(email, password);
       setAdminSession(session);
     } catch (error: any) {
       console.error('Erro no login de admin:', error);
-      // Limpar sessão em caso de erro
       setAdminSession(null);
       throw new Error(error.message || 'Erro na autenticação');
     } finally {

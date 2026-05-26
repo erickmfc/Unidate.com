@@ -21,7 +21,7 @@ interface AdminLayoutProps {
 
 const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pendingReports] = useState(0); // Dados reais
+  const [pendingReports] = useState(0);
   const { adminSession, logoutAdmin } = useAdminAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
+      {}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0`}>
@@ -134,7 +134,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {/* Admin Info */}
+        {}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
@@ -154,7 +154,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Overlay para mobile */}
+      {}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
@@ -162,9 +162,9 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         />
       )}
 
-      {/* Main Content */}
+      {}
       <div className="lg:ml-64">
-        {/* Header */}
+        {}
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center space-x-4">
@@ -180,7 +180,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </div>
 
             <div className="flex items-center space-x-4">
-              {/* Notificações */}
+              {}
               <button className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg">
                 <Bell className="h-5 w-5" />
                 {pendingReports > 0 && (
@@ -190,7 +190,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 )}
               </button>
 
-              {/* Quick Actions */}
+              {}
               <div className="hidden md:flex items-center space-x-2">
                 <Link
                   to="/admin/moderation"
@@ -201,7 +201,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 </Link>
               </div>
 
-              {/* Logout */}
+              {}
               <button
                 onClick={handleLogout}
                 className="flex items-center space-x-2 px-3 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -213,7 +213,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Page Content */}
+        {}
         <main className="p-6">
           {children}
         </main>

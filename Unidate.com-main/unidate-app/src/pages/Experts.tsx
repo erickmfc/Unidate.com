@@ -54,7 +54,6 @@ const Experts: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [progressMessage, setProgressMessage] = useState('Iniciando...');
 
-  // Verificar se há um tema na URL
   useEffect(() => {
     const theme = searchParams.get('theme');
     if (theme) {
@@ -62,7 +61,6 @@ const Experts: React.FC = () => {
     }
   }, [searchParams]);
 
-  // Fechar menu ao clicar fora
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -102,13 +100,11 @@ const Experts: React.FC = () => {
       setProgress(0);
       setProgressMessage('Analisando tema...');
       
-      // Callback de progresso
       const updateProgress = (newProgress: number, message: string) => {
         setProgress(newProgress);
         setProgressMessage(message);
       };
       
-      // Simular progresso inicial
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev < 10) {
@@ -118,7 +114,6 @@ const Experts: React.FC = () => {
         });
       }, 100);
       
-      // Gerar apresentação com callback de progresso
       const newPresentation = await PresentationService.getOrGeneratePresentation(
         theme, 
         currentUser?.uid,
@@ -129,7 +124,6 @@ const Experts: React.FC = () => {
       setProgress(100);
       setProgressMessage('Concluído!');
       
-      // Pequeno delay para mostrar 100%
       await new Promise(resolve => setTimeout(resolve, 500));
       
       setPresentation(newPresentation);
@@ -162,15 +156,14 @@ const Experts: React.FC = () => {
     setSearchParams({});
   };
 
-  // Se não há apresentação, mostrar página inicial
   if (!presentation) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900 text-white pt-16">
-        {/* Menu Superior */}
+        {}
         <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-40">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
-              {/* Logo e Navegação */}
+              {}
               <div className="flex items-center space-x-8">
                 <Link to="/" className="flex items-center space-x-2">
                   <div className="w-8 h-8 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center">
@@ -200,7 +193,7 @@ const Experts: React.FC = () => {
                     <span>Especialistas</span>
                   </Link>
                 </nav>
-                {/* Botão Menu Mobile */}
+                {}
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                   className="md:hidden p-2 text-gray-300 hover:text-yellow-400 transition-colors"
@@ -209,7 +202,7 @@ const Experts: React.FC = () => {
                 </button>
               </div>
 
-              {/* Menu do Usuário */}
+              {}
               <div className="flex items-center space-x-4">
                 {currentUser ? (
                   <div className="relative user-menu-container" ref={menuRef}>
@@ -226,7 +219,7 @@ const Experts: React.FC = () => {
                       <ChevronDown className={`h-4 w-4 text-gray-300 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                     </button>
 
-                    {/* Menu Suspenso */}
+                    {}
                     {isUserMenuOpen && (
                       <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-xl shadow-lg py-2 z-50">
                         {userDropdownItems.map((item) => (
@@ -275,7 +268,7 @@ const Experts: React.FC = () => {
           </div>
         </header>
 
-        {/* Menu Mobile */}
+        {}
         {isMobileMenuOpen && (
           <div className="md:hidden bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
             <nav className="px-4 py-4 space-y-2">
@@ -324,7 +317,7 @@ const Experts: React.FC = () => {
         )}
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          {/* Header */}
+          {}
           <div className="text-center mb-12">
             <div className="flex items-center justify-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center">
@@ -339,7 +332,7 @@ const Experts: React.FC = () => {
             </p>
           </div>
 
-          {/* Botão de Busca Flutuante */}
+          {}
           <div className="flex justify-center mb-8">
             <button
               onClick={() => setShowSearchModal(true)}
@@ -350,7 +343,7 @@ const Experts: React.FC = () => {
             </button>
           </div>
 
-          {/* Sugestões de Temas */}
+          {}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             {['Filosofia Estoica', 'Cálculo Diferencial', 'Física Quântica', 'Ética e Virtude', 'Matemática Avançada', 'Biologia Molecular'].map((suggestion) => (
               <button
@@ -371,7 +364,7 @@ const Experts: React.FC = () => {
             ))}
           </div>
 
-          {/* Modal de Busca */}
+          {}
           {showSearchModal && (
             <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
               <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
@@ -432,14 +425,13 @@ const Experts: React.FC = () => {
     );
   }
 
-  // Renderizar apresentação
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-blue-900 to-gray-900 text-white pt-16">
-      {/* Menu Superior */}
+      {}
       <header className="bg-gray-900/80 backdrop-blur-sm border-b border-gray-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo e Navegação */}
+            {}
             <div className="flex items-center space-x-8">
               <Link to="/" className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -469,7 +461,7 @@ const Experts: React.FC = () => {
                   <span>Especialistas</span>
                 </Link>
               </nav>
-              {/* Botão Menu Mobile */}
+              {}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 className="md:hidden p-2 text-gray-300 hover:text-yellow-400 transition-colors"
@@ -478,7 +470,7 @@ const Experts: React.FC = () => {
               </button>
             </div>
 
-            {/* Menu do Usuário */}
+            {}
             <div className="flex items-center space-x-4">
               {currentUser ? (
                 <div className="relative user-menu-container" ref={menuRef}>
@@ -495,7 +487,7 @@ const Experts: React.FC = () => {
                       <ChevronDown className={`h-4 w-4 text-gray-300 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                     </button>
 
-                  {/* Menu Suspenso */}
+                  {}
                   {isUserMenuOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                       {userDropdownItems.map((item) => (
@@ -544,7 +536,7 @@ const Experts: React.FC = () => {
         </div>
       </header>
 
-      {/* Menu Mobile */}
+      {}
       {isMobileMenuOpen && (
         <div className="md:hidden bg-gray-900/95 backdrop-blur-sm border-b border-gray-800">
           <nav className="px-4 py-4 space-y-2">
@@ -593,7 +585,7 @@ const Experts: React.FC = () => {
       )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header da Apresentação */}
+        {}
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-700 p-6 mb-8">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -626,7 +618,7 @@ const Experts: React.FC = () => {
           </div>
         </div>
 
-        {/* Seções da Apresentação */}
+        {}
         {presentation.sections.map((section, index) => (
           <div key={section.id} className="mb-8">
             {section.type === 'hero' && (
@@ -884,7 +876,7 @@ const Experts: React.FC = () => {
           </div>
         ))}
 
-        {/* Loading Overlay com Barra de Progresso */}
+        {}
         {isGenerating && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <ProgressBar 

@@ -22,7 +22,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
 
   return (
     <div className={`flex items-center ${className}`}>
-      {/* Logo Icon - sempre oculto */}
+      {}
       {false && (
         <div className={`${currentSize.icon} relative`}>
         <svg
@@ -37,9 +37,9 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
             </linearGradient>
           </defs>
           
-          {/* Graduation Cap */}
+          {}
           <g transform="translate(50, 20)">
-            {/* Cap top (square) */}
+            {}
             <rect
               x="-8"
               y="-8"
@@ -49,7 +49,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="url(#logoGradient)"
             />
             
-            {/* Cap band */}
+            {}
             <rect
               x="-10"
               y="6"
@@ -59,7 +59,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="url(#logoGradient)"
             />
             
-            {/* Tassel */}
+            {}
             <line
               x1="8"
               y1="8"
@@ -70,7 +70,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               strokeLinecap="round"
             />
             
-            {/* Tassel end */}
+            {}
             <circle
               cx="12"
               cy="12"
@@ -79,9 +79,9 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
             />
           </g>
           
-          {/* Infinity Symbol */}
+          {}
           <g transform="translate(50, 50)">
-            {/* Left loop */}
+            {}
             <ellipse
               cx="-12"
               cy="0"
@@ -90,7 +90,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="url(#logoGradient)"
             />
             
-            {/* Right loop */}
+            {}
             <ellipse
               cx="12"
               cy="0"
@@ -99,7 +99,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="url(#logoGradient)"
             />
             
-            {/* Center connection */}
+            {}
             <rect
               x="-4"
               y="-8"
@@ -108,7 +108,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="url(#logoGradient)"
             />
             
-            {/* Left circle */}
+            {}
             <circle
               cx="-12"
               cy="0"
@@ -116,7 +116,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="#EC4899"
             />
             
-            {/* Right circle */}
+            {}
             <circle
               cx="12"
               cy="0"
@@ -125,15 +125,15 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
             />
           </g>
           
-          {/* Open Book */}
+          {}
           <g transform="translate(70, 25)">
-            {/* Book pages */}
+            {}
             <path
               d="M-8 -6 L8 -6 L6 6 L-6 6 Z"
               fill="url(#logoGradient)"
             />
             
-            {/* Book spine */}
+            {}
             <rect
               x="-2"
               y="-6"
@@ -142,7 +142,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
               fill="url(#logoGradient)"
             />
             
-            {/* Book lines */}
+            {}
             <line
               x1="-6"
               y1="-2"
@@ -172,7 +172,7 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
         </div>
       )}
 
-      {/* Logo Text - sempre visível */}
+      {}
       <div className="flex flex-col">
         <h1 className={`font-bold bg-gradient-to-r from-pink-500 to-purple-600 bg-clip-text text-transparent ${currentSize.text}`}>
           UniDate
@@ -189,4 +189,3 @@ const UniDateLogo: React.FC<UniDateLogoProps> = ({
 };
 
 export default UniDateLogo;
-

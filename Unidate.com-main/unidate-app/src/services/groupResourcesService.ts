@@ -25,16 +25,15 @@ export interface GroupResource {
   url: string;
   category: 'link' | 'documento' | 'ferramenta' | 'video' | 'outro';
   tags: string[];
-  addedBy: string; // UID
+  addedBy: string;
   addedByName: string;
   clicks: number;
-  likes: string[]; // Array de UIDs
+  likes: string[];
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
 
 export class GroupResourcesService {
-  // Adicionar recurso
   static async addResource(
     groupId: string,
     resourceData: {
@@ -69,7 +68,6 @@ export class GroupResourcesService {
     }
   }
 
-  // Buscar recursos do grupo
   static async getGroupResources(
     groupId: string,
     category?: GroupResource['category']
@@ -109,7 +107,6 @@ export class GroupResourcesService {
     }
   }
 
-  // Incrementar cliques
   static async incrementClicks(resourceId: string): Promise<void> {
     try {
       if (!db) return;
@@ -128,7 +125,6 @@ export class GroupResourcesService {
     }
   }
 
-  // Curtir/descurtir recurso
   static async toggleLike(resourceId: string, userId: string, isLiking: boolean): Promise<void> {
     try {
       if (!db) {
@@ -154,7 +150,6 @@ export class GroupResourcesService {
     }
   }
 
-  // Deletar recurso
   static async deleteResource(resourceId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -181,4 +176,3 @@ export class GroupResourcesService {
     }
   }
 }
-

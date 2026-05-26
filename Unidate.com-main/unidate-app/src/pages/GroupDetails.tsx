@@ -70,12 +70,10 @@ const GroupDetails: React.FC = () => {
     try {
       setLoading(true);
       
-      // Buscar detalhes do grupo
       const groups = await GroupsService.getGroups(100);
       const foundGroup = groups.find(g => g.id === groupId);
       
       if (foundGroup) {
-        // Verificar corretamente se o usuário é membro do grupo
         const isUserMember = currentUser ? foundGroup.members.includes(currentUser.uid) : false;
         const isUserOwner = currentUser ? foundGroup.createdBy === currentUser.uid : false;
         const isUserEditor = currentUser ? (foundGroup.editors?.includes(currentUser.uid) || false) : false;
@@ -105,10 +103,8 @@ const GroupDetails: React.FC = () => {
       const isJoining = !group.isJoined;
       await GroupsService.toggleGroupMembership(group.id, currentUser.uid, isJoining);
       
-      // Recarregar dados do grupo do servidor para garantir sincronização
       await loadGroupDetails();
       
-      // Mostrar feedback
       if (isJoining) {
         showSuccess(`Você entrou no grupo "${group.name}"! 🎉`);
       } else {
@@ -124,7 +120,6 @@ const GroupDetails: React.FC = () => {
         stack: error.stack
       });
       
-      // Mostrar erro mais específico
       let errorMessage = 'Erro ao atualizar grupo. Tente novamente.';
       
       if (error.message.includes('Firebase não inicializado')) {
@@ -152,7 +147,6 @@ const GroupDetails: React.FC = () => {
       await GroupsService.updateGroupImage(groupId, currentUser.uid, imageUrl);
       showSuccess('Foto do grupo atualizada com sucesso! 📸');
       
-      // Recarregar dados do grupo
       loadGroupDetails();
     } catch (error) {
       console.error('Erro ao atualizar foto do grupo:', error);
@@ -195,7 +189,7 @@ const GroupDetails: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
-      {/* Header */}
+      {}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center space-x-4 mb-6">
@@ -211,7 +205,7 @@ const GroupDetails: React.FC = () => {
             </div>
           </div>
 
-          {/* Group Image */}
+          {}
           <div className="w-full h-64 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl mb-6 flex items-center justify-center overflow-hidden">
             {group.image ? (
               <img 
@@ -224,11 +218,11 @@ const GroupDetails: React.FC = () => {
             )}
           </div>
 
-          {/* Group Info */}
+          {}
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Main Info */}
+            {}
             <div className="lg:col-span-2 space-y-6">
-              {/* Stats */}
+              {}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Informações do Grupo</h3>
                 <div className="grid grid-cols-2 gap-4">
@@ -270,7 +264,7 @@ const GroupDetails: React.FC = () => {
                 </div>
               </div>
 
-              {/* Tags */}
+              {}
               {group.tags.length > 0 && (
                 <div className="bg-white border border-gray-200 rounded-lg p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Tags</h3>
@@ -287,7 +281,7 @@ const GroupDetails: React.FC = () => {
                 </div>
               )}
 
-              {/* Events Section */}
+              {}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <EventsList
                   groupId={group.id}
@@ -296,7 +290,7 @@ const GroupDetails: React.FC = () => {
                 />
               </div>
 
-              {/* Group Tabs - Materiais, Posts, Anúncios, etc */}
+              {}
               <GroupTabs
                 groupId={group.id}
                 isMember={group.isJoined}
@@ -304,9 +298,9 @@ const GroupDetails: React.FC = () => {
               />
             </div>
 
-            {/* Sidebar */}
+            {}
             <div className="space-y-6">
-              {/* Actions */}
+              {}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <div className="space-y-3">
                   <button
@@ -340,7 +334,7 @@ const GroupDetails: React.FC = () => {
                 </div>
               </div>
 
-              {/* Group Status */}
+              {}
               <div className="bg-white border border-gray-200 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Status</h3>
                 <div className="space-y-3">
@@ -375,7 +369,7 @@ const GroupDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de Gerenciar Editores */}
+      {}
       {group && (
         <GroupEditorsModal
           isOpen={showEditorsModal}
@@ -387,7 +381,7 @@ const GroupDetails: React.FC = () => {
         />
       )}
 
-      {/* Modal do Chat */}
+      {}
       {showChat && group && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg w-full max-w-4xl h-[80vh] flex flex-col">

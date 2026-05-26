@@ -31,7 +31,6 @@ const BotProfilesManager: React.FC = () => {
     loadProfiles();
     loadSchedulesStatus();
 
-    // Atualizar status a cada 10 segundos
     const interval = setInterval(() => {
       loadSchedulesStatus();
     }, 10000);
@@ -45,8 +44,6 @@ const BotProfilesManager: React.FC = () => {
       const loadedProfiles = await AIBotProfilesService.getProfiles();
       setProfiles(loadedProfiles);
       
-      // Os agendamentos são gerenciados automaticamente pelo botInitializer
-      // Não precisamos iniciar manualmente aqui
     } catch (err) {
       console.error('Erro ao carregar perfis:', err);
       error('Erro ao carregar perfis', 'Tente novamente.');
@@ -82,7 +79,6 @@ const BotProfilesManager: React.FC = () => {
         await AIBotProfilesService.updateProfile(editingProfile.id, profileData);
         success('Perfil atualizado com sucesso!');
         
-        // Atualizar agendamento
         const updatedProfile = { ...editingProfile, ...profileData } as BotProfile;
         await multiBotScheduler.updateProfileSchedule(updatedProfile, userId);
       } else {
@@ -112,7 +108,6 @@ const BotProfilesManager: React.FC = () => {
         const profileId = await AIBotProfilesService.createProfile(newProfile);
         success('Perfil criado com sucesso!');
         
-        // Se estiver ativo, iniciar agendamento
         if (newProfile.status === 'active' && newProfile.postingFrequency.enabled) {
           const fullProfile = { 
             ...newProfile, 
@@ -201,7 +196,7 @@ const BotProfilesManager: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Perfis de Bot</h2>
@@ -216,7 +211,7 @@ const BotProfilesManager: React.FC = () => {
         </button>
       </div>
 
-      {/* Estatísticas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
@@ -271,7 +266,7 @@ const BotProfilesManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Lista de Perfis */}
+      {}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Perfis Cadastrados</h3>
@@ -298,7 +293,7 @@ const BotProfilesManager: React.FC = () => {
                 <div key={profile.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start space-x-4 flex-1">
-                      {/* Avatar */}
+                      {}
                       <img
                         src={profile.avatar}
                         alt={profile.name}
@@ -308,7 +303,7 @@ const BotProfilesManager: React.FC = () => {
                         }}
                       />
 
-                      {/* Informações */}
+                      {}
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
                           <h4 className="text-lg font-bold text-gray-900 dark:text-white">{profile.name}</h4>
@@ -364,7 +359,7 @@ const BotProfilesManager: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Ações */}
+                    {}
                     <div className="flex items-center space-x-2 ml-4">
                       <button
                         onClick={() => handleCreatePostNow(profile)}
@@ -411,7 +406,7 @@ const BotProfilesManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal */}
+      {}
       <BotProfileModal
         isOpen={showModal}
         onClose={() => {
@@ -426,4 +421,3 @@ const BotProfilesManager: React.FC = () => {
 };
 
 export default BotProfilesManager;
-

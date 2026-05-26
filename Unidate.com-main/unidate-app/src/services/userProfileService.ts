@@ -15,6 +15,8 @@ import {
 import { getAuth } from 'firebase/auth';
 import { db } from '../firebase/config';
 
+const API_URL = 'http://localhost:3001/api';
+
 export interface UserProfile {
   uid: string;
   name: string;
@@ -45,7 +47,73 @@ export class UserProfileService {
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        // Try active profile first (logged in user)
+        const activeProfileStr = localStorage.getItem('unidate_offline_profile');
+        if (activeProfileStr) {
+          const activeProfile = JSON.parse(activeProfileStr);
+          if (activeProfile.uid === userId) {
+            return {
+              uid: activeProfile.uid,
+              name: activeProfile.displayName || activeProfile.name || 'Usuário',
+              email: activeProfile.email || '',
+              course: activeProfile.course || 'Curso não informado',
+              university: activeProfile.university || 'Universidade não informada',
+              bio: activeProfile.bio || '',
+              avatar: activeProfile.photoURL || activeProfile.avatar || '',
+              joinDate: activeProfile.createdAt ? new Date(activeProfile.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              postsCount: 0,
+              friendsCount: await this.getUserFriendsCount(userId),
+              isFriend: false,
+              userType: activeProfile.userType || 'aluno'
+            };
+          }
+        }
+
+        // Fetch from backend (SQLite)
+        try {
+          const response = await fetch(`${API_URL}/users/${userId}`);
+          if (response.ok) {
+            const u = await response.json();
+            return {
+              uid: u.uid,
+              name: u.displayName || 'Usuário',
+              email: u.email || '',
+              course: u.course || 'Curso não informado',
+              university: u.university || 'Universidade não informada',
+              bio: u.bio || '',
+              avatar: u.photoURL || '',
+              joinDate: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+              postsCount: 0,
+              friendsCount: await this.getUserFriendsCount(userId),
+              isFriend: false,
+              userType: u.userType || 'aluno'
+            };
+          }
+        } catch (fetchError) {
+          console.error('Erro ao buscar perfil offline do backend:', fetchError);
+        }
+
+        // Fallback to local storage mock if any
+        const mockProfiles = JSON.parse(localStorage.getItem('unidate_mock_profiles') || '[]');
+        const localProfile = mockProfiles.find((p: any) => p.uid === userId);
+        if (localProfile) {
+          return {
+            uid: localProfile.uid,
+            name: localProfile.displayName || localProfile.name || 'Usuário',
+            email: localProfile.email || '',
+            course: localProfile.course || 'Curso não informado',
+            university: localProfile.university || 'Universidade não informada',
+            bio: localProfile.bio || '',
+            avatar: localProfile.photoURL || localProfile.avatar || '',
+            joinDate: localProfile.createdAt ? new Date(localProfile.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            postsCount: 0,
+            friendsCount: await this.getUserFriendsCount(userId),
+            isFriend: false,
+            userType: localProfile.userType || 'aluno'
+          };
+        }
+        
+        throw new Error('Firebase não inicializado e usuário não encontrado no SQLite');
       }
 
       console.log('🔍 Buscando perfil do usuário:', userId);
@@ -365,7 +433,11 @@ export class UserProfileService {
   static async getUserFriendsCount(userId: string): Promise<number> {
     try {
       if (!db) {
-        return 0;
+        const friendships = JSON.parse(localStorage.getItem('unidate_offline_friendships') || '[]');
+        const userFriendships = friendships.filter((f: any) => 
+          (f.user1Id === userId || f.user2Id === userId) && f.status === 'accepted'
+        );
+        return userFriendships.length;
       }
 
       const friendshipsQuery1 = query(
@@ -394,7 +466,11 @@ export class UserProfileService {
   static async checkFriendship(userId1: string, userId2: string): Promise<boolean> {
     try {
       if (!db) {
-        return false;
+        const friendships = JSON.parse(localStorage.getItem('unidate_offline_friendships') || '[]');
+        return friendships.some((f: any) => 
+          ((f.user1Id === userId1 && f.user2Id === userId2) || (f.user1Id === userId2 && f.user2Id === userId1)) && 
+          f.status === 'accepted'
+        );
       }
 
       const friendshipQuery1 = query(
@@ -425,7 +501,23 @@ export class UserProfileService {
   static async addFriend(userId1: string, userId2: string): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔄 [FRIENDSHIP] Adicionando amizade offline entre:', userId1, 'e', userId2);
+        const friendships = JSON.parse(localStorage.getItem('unidate_offline_friendships') || '[]');
+        const exists = friendships.some((f: any) => 
+          (f.user1Id === userId1 && f.user2Id === userId2) || (f.user1Id === userId2 && f.user2Id === userId1)
+        );
+        if (!exists) {
+          friendships.push({
+            user1Id: userId1,
+            user2Id: userId2,
+            status: 'accepted',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          });
+          localStorage.setItem('unidate_offline_friendships', JSON.stringify(friendships));
+          window.dispatchEvent(new Event('local-friendships-updated'));
+        }
+        return;
       }
 
       if (!userId1 || !userId2 || userId1 === userId2) {
@@ -462,7 +554,7 @@ export class UserProfileService {
         console.log('✅ [FRIENDSHIP] Amizade atualizada com sucesso');
       } else {
         const [user1, user2] = userId1 < userId2 ? [userId1, userId2] : [userId2, userId1];
-        
+
         console.log('🔄 [FRIENDSHIP] Criando nova amizade...');
         await addDoc(collection(db, 'friendships'), {
           user1Id: user1,
@@ -483,7 +575,7 @@ export class UserProfileService {
       } else if (error.code === 'unavailable') {
         throw new Error('Serviço temporariamente indisponível. Tente novamente.');
       } else {
-        throw new Error(`Erro ao adicionar colega: ${error.message || 'Erro desconhecido'}`);
+        throw new Error("Erro ao adicionar colega: " + (error.message || "Erro desconhecido"));
       }
     }
   }
@@ -491,7 +583,11 @@ export class UserProfileService {
   static async searchUsers(searchTerm: string): Promise<UserProfile[]> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('🔍 [USER PROFILE] Buscando usuários offline do SQLite:', searchTerm);
+        const allUsers = await this.getAllUsers();
+        return allUsers.filter((u: any) => 
+          (u.name || '').toLowerCase().includes(searchTerm.toLowerCase())
+        );
       }
 
       console.log('🔍 Buscando usuários com termo:', searchTerm);
@@ -499,7 +595,7 @@ export class UserProfileService {
       const nameQuery = query(
         collection(db, 'users'),
         where('displayName', '>=', searchTerm),
-        where('displayName', '<=', searchTerm + '\uf8ff'),
+        where('displayName', '<=', searchTerm + '\\uf8ff'),
         limit(10)
       );
 
@@ -516,14 +612,15 @@ export class UserProfileService {
           university: data.university || data.universidade || 'Universidade não informada',
           bio: data.bio || '',
           avatar: data.photoURL || data.avatar || '',
-          joinDate: data.createdAt ? data.createdAt.toDate().toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          joinDate: data.createdAt ? data.createdAt.toDate().toISOString().split('T')[0] : new Date(data.createdAt).toISOString().split('T')[0],
           postsCount: 0,
           friendsCount: 0,
-          isFriend: false
+          isFriend: false,
+          userType: data.userType || 'aluno'
         });
       });
 
-      console.log(`✅ ${users.length} usuários encontrados`);
+      console.log("✅ " + users.length + " usuários encontrados");
       return users;
     } catch (error) {
       console.error('❌ Erro ao buscar usuários:', error);
@@ -531,25 +628,62 @@ export class UserProfileService {
     }
   }
 
-  /**
-   * Busca todos os usuários do sistema (limitado)
-   */
-  static async getAllUsers(limitCount: number = 50): Promise<UserProfile[]> {
+  static async getAllUsers(limitCount: number = 200): Promise<UserProfile[]> {
     try {
       if (!db) {
-        throw new Error('Firebase não inicializado');
+        console.log('⚡ [USER PROFILE] Carregando todos os usuários offline do SQLite');
+        try {
+          const response = await fetch(`${API_URL}/users`);
+          if (response.ok) {
+            const usersData = await response.json();
+            const mappedUsers = await Promise.all(usersData.map(async (u: any) => {
+              const friendsCount = await this.getUserFriendsCount(u.uid);
+              return {
+                uid: u.uid,
+                name: u.displayName || 'Usuário',
+                email: u.email || '',
+                course: u.course || 'Curso não informado',
+                university: u.university || 'Universidade não informada',
+                bio: u.bio || '',
+                avatar: u.photoURL || '',
+                joinDate: u.createdAt ? new Date(u.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+                postsCount: 0,
+                friendsCount,
+                isFriend: false,
+                userType: u.userType || 'aluno'
+              };
+            }));
+            return mappedUsers;
+          }
+        } catch (fetchError) {
+          console.error('Erro ao buscar usuários do SQLite, usando fallback de mock:', fetchError);
+        }
+
+        // Fallback
+        const mockProfiles = JSON.parse(localStorage.getItem('unidate_mock_profiles') || '[]');
+        return mockProfiles.map((p: any) => ({
+          uid: p.uid,
+          name: p.displayName || p.name || 'Usuário',
+          email: p.email || '',
+          course: p.course || 'Curso não informado',
+          university: p.university || 'Universidade não informada',
+          bio: p.bio || '',
+          avatar: p.photoURL || p.avatar || '',
+          joinDate: p.createdAt ? new Date(p.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+          postsCount: 0,
+          friendsCount: 0,
+          isFriend: false,
+          userType: p.userType || 'aluno'
+        }));
       }
 
+      console.log('⚡ Buscando todos os usuários no Firebase...');
       const usersRef = collection(db, 'users');
-      const q = query(usersRef, limit(limitCount));
-      const snapshot = await getDocs(q);
-
+      const usersSnapshot = await getDocs(query(usersRef, limit(limitCount)));
       const users: UserProfile[] = [];
-      const userIds: string[] = [];
-      
-      snapshot.forEach((doc) => {
+
+      usersSnapshot.forEach((doc) => {
         const data = doc.data();
-        userIds.push(doc.id);
         users.push({
           uid: doc.id,
           name: data.displayName || data.name || 'Usuário',
@@ -559,89 +693,12 @@ export class UserProfileService {
           bio: data.bio || '',
           avatar: data.photoURL || data.avatar || '',
           joinDate: data.createdAt ? (data.createdAt.toDate ? data.createdAt.toDate().toISOString().split('T')[0] : new Date(data.createdAt).toISOString().split('T')[0]) : new Date().toISOString().split('T')[0],
-          postsCount: data.postsCount || 0,
-          friendsCount: data.friendsCount || 0,
-          isFriend: false
+          postsCount: 0,
+          friendsCount: 0,
+          isFriend: false,
+          userType: data.userType || 'aluno'
         });
       });
-
-      if (userIds.length > 0) {
-        const postsPromises = userIds.map(async (userId) => {
-          try {
-            if (!db) return { userId, count: 0 };
-            const postsQuery = query(
-              collection(db, 'posts'),
-              where('autorId', '==', userId)
-            );
-            const postsSnapshot = await getDocs(postsQuery);
-            return { userId, count: postsSnapshot.size };
-          } catch (error) {
-            console.error(`Erro ao contar posts do usuário ${userId}:`, error);
-            return { userId, count: 0 };
-          }
-        });
-
-        const postsCounts = await Promise.all(postsPromises);
-        postsCounts.forEach(({ userId, count }) => {
-          const user = users.find(u => u.uid === userId);
-          if (user) {
-            user.postsCount = count;
-          }
-        });
-      }
-
-      if (users.length < limitCount) {
-        const userProfilesRef = collection(db, 'userProfiles');
-        const profilesQuery = query(userProfilesRef, limit(limitCount - users.length));
-        const profilesSnapshot = await getDocs(profilesQuery);
-
-        const additionalUserIds: string[] = [];
-        
-        profilesSnapshot.forEach((doc) => {
-          if (!users.find(u => u.uid === doc.id)) {
-            const data = doc.data();
-            additionalUserIds.push(doc.id);
-            users.push({
-              uid: doc.id,
-              name: data.name || data.displayName || 'Usuário',
-              email: data.email || '',
-              course: data.course || 'Curso não informado',
-              university: data.university || 'Universidade não informada',
-              bio: data.bio || '',
-              avatar: data.avatar || data.photoURL || '',
-              joinDate: data.joinDate || new Date().toISOString().split('T')[0],
-              postsCount: data.postsCount || 0,
-              friendsCount: data.friendsCount || 0,
-              isFriend: false
-            });
-          }
-        });
-
-        if (additionalUserIds.length > 0) {
-          const additionalPostsPromises = additionalUserIds.map(async (userId) => {
-            try {
-              if (!db) return { userId, count: 0 };
-              const postsQuery = query(
-                collection(db, 'posts'),
-                where('autorId', '==', userId)
-              );
-              const postsSnapshot = await getDocs(postsQuery);
-              return { userId, count: postsSnapshot.size };
-            } catch (error) {
-              console.error(`Erro ao contar posts do usuário ${userId}:`, error);
-              return { userId, count: 0 };
-            }
-          });
-
-          const additionalPostsCounts = await Promise.all(additionalPostsPromises);
-          additionalPostsCounts.forEach(({ userId, count }) => {
-            const user = users.find(u => u.uid === userId);
-            if (user) {
-              user.postsCount = count;
-            }
-          });
-        }
-      }
 
       return users;
     } catch (error) {

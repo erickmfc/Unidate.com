@@ -32,13 +32,11 @@ export interface UserProfile {
   updatedAt: Date;
 }
 
-// Validar e-mail (aceita qualquer e-mail válido)
 export const isInstitutionalEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-// Registrar novo usuário
 export const registerUser = async (
   email: string,
   password: string,
@@ -51,19 +49,16 @@ export const registerUser = async (
   userType: 'aluno' | 'professor' | 'uni' = 'aluno'
 ): Promise<UserCredential> => {
   try {
-    // Verificar se é um e-mail válido
     if (!isInstitutionalEmail(email)) {
       throw new Error('Por favor, insira um e-mail válido');
     }
 
-    // Se Firebase não estiver disponível, usar sistema offline
     if (!auth || !db) {
       console.log('🔄 Firebase não disponível, usando sistema offline...');
       const result = await offlineAuth.registerUserOffline(
         email, password, displayName, registrationNumber, university, course, year, period, userType
       );
       
-      // Simular UserCredential para compatibilidade
       return {
         user: {
           uid: result.user.uid,
@@ -79,15 +74,12 @@ export const registerUser = async (
     const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
     const user = userCredential.user;
 
-    // Atualizar perfil do usuário
     await updateProfile(user, {
       displayName: displayName,
     });
 
-    // Enviar e-mail de verificação
     await sendEmailVerification(user);
 
-    // Criar perfil do usuário no Firestore
     const userProfile: UserProfile = {
       uid: user.uid,
       email: user.email!,
@@ -114,15 +106,12 @@ export const registerUser = async (
   }
 };
 
-// Fazer login
 export const loginUser = async (email: string, password: string): Promise<UserCredential> => {
   try {
-    // Se Firebase não estiver disponível, usar sistema offline
     if (!auth) {
       console.log('🔄 Firebase não disponível, usando sistema offline...');
       const result = await offlineAuth.loginUserOffline(email, password);
       
-      // Simular UserCredential para compatibilidade
       return {
         user: {
           uid: result.user.uid,
@@ -141,15 +130,12 @@ export const loginUser = async (email: string, password: string): Promise<UserCr
   }
 };
 
-// Fazer login com matrícula
 export const loginWithRegistration = async (registrationNumber: string, password: string): Promise<UserCredential> => {
   try {
-    // Se Firebase não estiver disponível, usar sistema offline
     if (!auth || !db) {
       console.log('🔄 Firebase não disponível, usando sistema offline...');
       const result = await offlineAuth.loginUserOfflineByRegistration(registrationNumber, password);
       
-      // Simular UserCredential para compatibilidade
       return {
         user: {
           uid: result.user.uid,
@@ -162,7 +148,6 @@ export const loginWithRegistration = async (registrationNumber: string, password
       } as UserCredential;
     }
 
-    // Buscar usuário pela matrícula
     const userProfile = await getUserByRegistration(registrationNumber);
     if (!userProfile) {
       throw new Error('Matrícula não encontrada');
@@ -174,10 +159,8 @@ export const loginWithRegistration = async (registrationNumber: string, password
   }
 };
 
-// Buscar usuário por matrícula
 export const getUserByRegistration = async (registrationNumber: string): Promise<UserProfile | null> => {
   try {
-    // Se Firebase não estiver disponível, usar sistema offline
     if (!db) {
       console.log('🔄 Firebase não disponível, usando sistema offline...');
       return await offlineAuth.getUserByRegistrationOffline(registrationNumber);
@@ -197,7 +180,6 @@ export const getUserByRegistration = async (registrationNumber: string): Promise
   }
 };
 
-// Fazer logout
 export const logoutUser = async (): Promise<void> => {
   try {
     await signOut(auth!);
@@ -206,7 +188,6 @@ export const logoutUser = async (): Promise<void> => {
   }
 };
 
-// Recuperar senha
 export const resetPassword = async (email: string): Promise<void> => {
   try {
     await sendPasswordResetEmail(auth!, email);
@@ -215,7 +196,6 @@ export const resetPassword = async (email: string): Promise<void> => {
   }
 };
 
-// Buscar perfil do usuário
 export const getUserProfile = async (uid: string): Promise<UserProfile | null> => {
   try {
     const userDoc = await getDoc(doc(db!, 'users', uid));
@@ -228,7 +208,6 @@ export const getUserProfile = async (uid: string): Promise<UserProfile | null> =
   }
 };
 
-// Atualizar perfil do usuário
 export const updateUserProfile = async (uid: string, updates: Partial<UserProfile>): Promise<void> => {
   try {
     const userRef = doc(db!, 'users', uid);

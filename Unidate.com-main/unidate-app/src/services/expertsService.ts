@@ -17,7 +17,6 @@ import {
 import { Expert, MentorshipSession } from '../types/subjects';
 
 export class ExpertsService {
-  // Obter todos os especialistas
   static async getExperts(): Promise<Expert[]> {
     try {
       if (!db) {
@@ -55,7 +54,6 @@ export class ExpertsService {
     }
   }
 
-  // Obter especialistas por matéria
   static async getExpertsBySubject(subjectId: string): Promise<Expert[]> {
     try {
       if (!db) {
@@ -94,7 +92,6 @@ export class ExpertsService {
     }
   }
 
-  // Obter especialista por ID
   static async getExpertById(expertId: string): Promise<Expert | null> {
     try {
       if (!db) {
@@ -131,7 +128,6 @@ export class ExpertsService {
     }
   }
 
-  // Toggle favorito
   static async toggleFavorite(expertId: string, userId: string): Promise<boolean> {
     try {
       if (!db) {
@@ -142,13 +138,11 @@ export class ExpertsService {
       const snapshot = await getDoc(favoriteRef);
 
       if (snapshot.exists()) {
-        // Remover dos favoritos
         await updateDoc(favoriteRef, {
           removedAt: serverTimestamp(),
         });
         return false;
       } else {
-        // Adicionar aos favoritos
         await setDoc(favoriteRef, {
           expertId,
           addedAt: serverTimestamp(),
@@ -161,7 +155,6 @@ export class ExpertsService {
     }
   }
 
-  // Verificar se é favorito
   static async isFavorite(expertId: string, userId: string): Promise<boolean> {
     try {
       if (!db) {
@@ -177,7 +170,6 @@ export class ExpertsService {
     }
   }
 
-  // Avaliar especialista
   static async rateExpert(
     expertId: string, 
     userId: string, 
@@ -188,7 +180,6 @@ export class ExpertsService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Salvar avaliação
       const ratingRef = doc(db, 'expertRatings', expertId, 'ratings', userId);
       await setDoc(ratingRef, {
         userId,
@@ -196,7 +187,6 @@ export class ExpertsService {
         createdAt: serverTimestamp(),
       });
 
-      // Atualizar média de avaliações
       const expertRef = doc(db, 'experts', expertId);
       const expertDoc = await getDoc(expertRef);
       
@@ -205,7 +195,6 @@ export class ExpertsService {
         const currentRating = data.rating || 0;
         const totalRatings = data.totalRatings || 0;
         
-        // Calcular nova média
         const newTotalRatings = totalRatings + 1;
         const newRating = ((currentRating * totalRatings) + rating) / newTotalRatings;
 
@@ -221,7 +210,6 @@ export class ExpertsService {
     }
   }
 
-  // Solicitar mentoria
   static async requestMentorship(
     expertId: string, 
     userId: string, 
@@ -259,7 +247,6 @@ export class ExpertsService {
     }
   }
 
-  // Obter sessões de mentoria do usuário
   static async getUserMentorshipSessions(userId: string): Promise<MentorshipSession[]> {
     try {
       if (!db) {
@@ -295,4 +282,3 @@ export class ExpertsService {
     }
   }
 }
-

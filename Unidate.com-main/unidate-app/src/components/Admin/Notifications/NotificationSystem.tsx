@@ -59,10 +59,8 @@ const NotificationSystem: React.FC = () => {
       try {
         setLoading(true);
         
-        // Simular delay de API
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Dados simulados - em produção viriam do Firebase
         const mockNotifications: Notification[] = [];
         
         setNotifications(mockNotifications);
@@ -75,7 +73,6 @@ const NotificationSystem: React.FC = () => {
 
     loadNotifications();
 
-    // Auto refresh a cada 10 segundos
     let interval: NodeJS.Timeout;
     if (autoRefresh) {
       interval = setInterval(loadNotifications, 10000);
@@ -89,19 +86,16 @@ const NotificationSystem: React.FC = () => {
   useEffect(() => {
     let filtered = notifications;
 
-    // Filtrar por status
     if (filter === 'unread') {
       filtered = filtered.filter(n => !n.isRead);
     } else if (filter === 'important') {
       filtered = filtered.filter(n => n.isImportant);
     }
 
-    // Filtrar por categoria
     if (category !== 'all') {
       filtered = filtered.filter(n => n.category === category);
     }
 
-    // Filtrar por busca
     if (searchTerm) {
       filtered = filtered.filter(n => 
         n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -346,7 +340,7 @@ const NotificationSystem: React.FC = () => {
         </div>
       </div>
 
-      {/* Lista de Notificações */}
+      {}
       <div className="space-y-4">
         {filteredNotifications.length === 0 ? (
           <div className="text-center py-12">

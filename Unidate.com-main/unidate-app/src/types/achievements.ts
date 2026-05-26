@@ -7,10 +7,10 @@ export interface Achievement {
   title: string;
   description: string;
   category: AchievementCategory;
-  icon: string; // Emoji ou nome do ícone
+  icon: string;
   rarity: AchievementRarity;
-  target: number; // Meta para desbloquear
-  type: 'count' | 'average' | 'max' | 'total'; // Tipo de cálculo
+  target: number;
+  type: 'count' | 'average' | 'max' | 'total';
   metric: 'materials_shared' | 'average_rating' | 'max_downloads' | 'max_views' | 'total_downloads';
 }
 
@@ -37,4 +37,3 @@ export interface AchievementStats {
   unlocked: number;
   byCategory: Record<AchievementCategory, { total: number; unlocked: number }>;
 }
-

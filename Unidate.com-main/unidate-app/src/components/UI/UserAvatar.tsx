@@ -18,7 +18,6 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   className = '',
   showGraduationCap = true,
 }) => {
-  // Tamanhos do avatar
   const sizeClasses = {
     sm: 'w-8 h-8',
     md: 'w-10 h-10',
@@ -26,7 +25,6 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     xl: 'w-24 h-24',
   };
 
-  // Tamanhos do chapéu de formatura
   const capSizeClasses = {
     sm: 'w-4 h-4 -top-1 -right-1',
     md: 'w-5 h-5 -top-1 -right-1',
@@ -34,7 +32,6 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     xl: 'w-10 h-10 -top-3 -right-3',
   };
 
-  // Tamanhos do texto
   const textSizeClasses = {
     sm: 'text-xs',
     md: 'text-sm',
@@ -42,7 +39,6 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     xl: 'text-3xl',
   };
 
-  // Obter inicial
   const getInitial = () => {
     if (displayName) {
       return displayName.charAt(0).toUpperCase();
@@ -53,14 +49,13 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
     return 'U';
   };
 
-  // Classe de gradiente base
   const gradientClass = 'bg-gradient-to-r from-indigo-500 to-pink-500';
 
   const [imageError, setImageError] = React.useState(false);
 
   return (
     <div className={`relative ${sizeClasses[size]} ${className}`}>
-      {/* Avatar */}
+      {}
       <div className={`${sizeClasses[size]} rounded-full overflow-hidden ${!photoURL || imageError ? gradientClass : ''} flex items-center justify-center relative`}>
         {photoURL && !imageError ? (
           <img
@@ -76,7 +71,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         )}
       </div>
 
-      {/* Chapéu de Formatura */}
+      {}
       {showGraduationCap && (
         <div className={`absolute ${capSizeClasses[size]} bg-yellow-400 rounded-full p-0.5 shadow-lg border-2 border-white z-10`}>
           <GraduationCap className="w-full h-full text-yellow-600" fill="currentColor" />
@@ -87,4 +82,3 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
 };
 
 export default UserAvatar;
-

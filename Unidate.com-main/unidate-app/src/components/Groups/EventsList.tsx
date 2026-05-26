@@ -52,7 +52,7 @@ const EventsList: React.FC<EventsListProps> = ({
 
     try {
       await GroupEventsService.toggleEventAttendance(eventId, currentUser.uid, isAttending);
-      await loadEvents(); // Recarregar eventos
+      await loadEvents();
     } catch (error: any) {
       console.error('Erro ao atualizar participação:', error);
       alert(error.message || 'Erro ao atualizar participação no evento.');
@@ -66,7 +66,7 @@ const EventsList: React.FC<EventsListProps> = ({
 
     try {
       await GroupEventsService.deleteEvent(eventId, currentUser.uid);
-      await loadEvents(); // Recarregar eventos
+      await loadEvents();
     } catch (error: any) {
       console.error('Erro ao deletar evento:', error);
       alert(error.message || 'Erro ao deletar evento.');
@@ -74,7 +74,7 @@ const EventsList: React.FC<EventsListProps> = ({
   };
 
   const handleEventSaved = (event?: GroupEvent) => {
-    loadEvents(); // Recarregar eventos do servidor para garantir dados atualizados
+    loadEvents();
   };
 
   const formatDate = (timestamp: any) => {
@@ -110,7 +110,7 @@ const EventsList: React.FC<EventsListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">Eventos do Grupo</h3>
@@ -130,7 +130,7 @@ const EventsList: React.FC<EventsListProps> = ({
         )}
       </div>
 
-      {/* Lista de Eventos */}
+      {}
       {events.length === 0 ? (
         <div className="text-center py-8">
           <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -161,7 +161,7 @@ const EventsList: React.FC<EventsListProps> = ({
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  {/* Título e Status */}
+                  {}
                   <div className="flex items-center space-x-3 mb-2">
                     <h4 className="text-lg font-semibold text-gray-900">{event.title}</h4>
                     {isEventPast(event.date) && (
@@ -176,12 +176,12 @@ const EventsList: React.FC<EventsListProps> = ({
                     )}
                   </div>
 
-                  {/* Descrição */}
+                  {}
                   {event.description && (
                     <p className="text-gray-600 mb-3">{event.description}</p>
                   )}
 
-                  {/* Informações do Evento */}
+                  {}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Calendar className="h-4 w-4" />
@@ -202,7 +202,7 @@ const EventsList: React.FC<EventsListProps> = ({
                     </div>
                   </div>
 
-                  {/* Tags */}
+                  {}
                   {event.tags && event.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-4">
                       {event.tags.map((tag, index) => (
@@ -217,7 +217,7 @@ const EventsList: React.FC<EventsListProps> = ({
                   )}
                 </div>
 
-                {/* Ações */}
+                {}
                 <div className="flex flex-col space-y-2 ml-4">
                   {event.canEdit && (
                     <div className="flex space-x-2">
@@ -270,7 +270,7 @@ const EventsList: React.FC<EventsListProps> = ({
         </div>
       )}
 
-      {/* Modais */}
+      {}
       {showCreateModal && (
         <EventModal
           isOpen={showCreateModal}

@@ -21,7 +21,7 @@ import { db } from '../firebase/config';
 export interface GroupMaterial {
   id: string;
   groupId: string;
-  materialId?: string; // ID do material global (opcional)
+  materialId?: string;
   title: string;
   description: string;
   type: 'resumo' | 'livro' | 'video' | 'link' | 'exercicio' | 'prova';
@@ -31,18 +31,17 @@ export interface GroupMaterial {
   tags: string[];
   fileUrl?: string;
   externalUrl?: string;
-  sharedBy: string; // UID do usuário que compartilhou
+  sharedBy: string;
   sharedByName: string;
   downloads: number;
   views: number;
-  likes: string[]; // Array de UIDs que curtiram
+  likes: string[];
   comments: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
 
 export class GroupMaterialsService {
-  // Compartilhar material no grupo
   static async shareMaterial(
     groupId: string,
     materialData: {
@@ -83,7 +82,6 @@ export class GroupMaterialsService {
     }
   }
 
-  // Buscar materiais do grupo
   static async getGroupMaterials(
     groupId: string,
     filters?: {
@@ -132,7 +130,6 @@ export class GroupMaterialsService {
           updatedAt: data.updatedAt
         };
 
-        // Aplicar filtros
         if (filters) {
           if (filters.type && filters.type.length > 0 && !filters.type.includes(material.type)) {
             return;
@@ -163,7 +160,6 @@ export class GroupMaterialsService {
     }
   }
 
-  // Incrementar visualizações
   static async incrementViews(materialId: string): Promise<void> {
     try {
       if (!db) return;
@@ -178,7 +174,6 @@ export class GroupMaterialsService {
     }
   }
 
-  // Curtir/descurtir material
   static async toggleLike(materialId: string, userId: string, isLiking: boolean): Promise<void> {
     try {
       if (!db) {
@@ -204,7 +199,6 @@ export class GroupMaterialsService {
     }
   }
 
-  // Deletar material do grupo
   static async deleteMaterial(materialId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -231,4 +225,3 @@ export class GroupMaterialsService {
     }
   }
 }
-

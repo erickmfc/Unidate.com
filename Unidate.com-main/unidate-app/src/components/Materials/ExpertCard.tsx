@@ -1,54 +1,47 @@
 import React from 'react';
-import { User, Award, BookOpen } from 'lucide-react';
-import StatueBust from './StatueBust';
+import { GraduationCap, Star } from 'lucide-react';
 
 interface Expert {
   id: string;
   name: string;
   title: string;
   expertise: string[];
-  image?: string;
-  bio?: string;
+  bio: string;
 }
 
 interface ExpertCardProps {
   expert: Expert;
-  onClick?: () => void;
 }
 
-const ExpertCard: React.FC<ExpertCardProps> = ({ expert, onClick }) => {
+const ExpertCard: React.FC<ExpertCardProps> = ({ expert }) => {
   return (
-    <div
-      onClick={onClick}
-      className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700 hover:border-yellow-400 transition-all duration-300 cursor-pointer group"
-    >
-      <div className="flex items-start space-x-4">
-        <div className="flex-shrink-0">
-          <StatueBust size="medium" variant="gold" />
+    <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl border border-gray-700 p-6 hover:border-yellow-500/50 transition-all duration-300">
+      <div className="flex items-center space-x-4 mb-4">
+        <div className="p-3 bg-yellow-500/20 rounded-full">
+          <GraduationCap className="h-6 w-6 text-yellow-400" />
         </div>
-        
-        <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
-            <User className="h-5 w-5 text-yellow-400" />
-            <h3 className="text-lg font-serif text-yellow-400">{expert.name}</h3>
-          </div>
-          
-          <p className="text-gray-400 text-sm mb-3">{expert.title}</p>
-          
-          {expert.bio && (
-            <p className="text-gray-300 text-sm mb-4 line-clamp-2">{expert.bio}</p>
-          )}
-          
-          <div className="flex flex-wrap gap-2">
-            {expert.expertise.map((skill, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-gray-700 text-gray-300 rounded-full text-xs"
-              >
-                {skill}
-              </span>
-            ))}
-          </div>
+        <div>
+          <h3 className="text-lg font-semibold text-white">{expert.name}</h3>
+          <p className="text-sm text-yellow-400">{expert.title}</p>
+        </div>
+      </div>
+
+      <p className="text-gray-400 text-sm mb-4 leading-relaxed">{expert.bio}</p>
+
+      <div className="space-y-2">
+        <div className="flex items-center space-x-1 text-yellow-400">
+          <Star className="h-3 w-3" />
+          <span className="text-xs font-medium uppercase tracking-wider">Expertise</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {expert.expertise.map((skill) => (
+            <span
+              key={skill}
+              className="px-2 py-1 text-xs bg-gray-700 text-gray-300 rounded-full"
+            >
+              {skill}
+            </span>
+          ))}
         </div>
       </div>
     </div>
@@ -56,4 +49,3 @@ const ExpertCard: React.FC<ExpertCardProps> = ({ expert, onClick }) => {
 };
 
 export default ExpertCard;
-

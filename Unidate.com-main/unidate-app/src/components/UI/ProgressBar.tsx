@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Sparkles, Brain } from 'lucide-react';
 
 interface ProgressBarProps {
-  progress: number; // 0-100
+  progress: number;
   message?: string;
   showIcon?: boolean;
 }
@@ -15,7 +15,6 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   const [displayProgress, setDisplayProgress] = useState(0);
 
   useEffect(() => {
-    // Animar progresso suavemente
     const interval = setInterval(() => {
       setDisplayProgress(prev => {
         if (prev < progress) {
@@ -41,7 +40,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   return (
     <div className="w-full max-w-2xl mx-auto">
       <div className="bg-gray-800/90 backdrop-blur-sm rounded-2xl p-8 border border-gray-700 shadow-2xl">
-        {/* Header */}
+        {}
         <div className="flex items-center justify-center space-x-4 mb-6">
           {showIcon && (
             <div className="relative">
@@ -57,21 +56,21 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
           </div>
         </div>
 
-        {/* Barra de Progresso */}
+        {}
         <div className="relative">
-          {/* Barra de fundo */}
+          {}
           <div className="w-full h-4 bg-gray-700 rounded-full overflow-hidden">
-            {/* Barra de progresso animada */}
+            {}
             <div
               className="h-full bg-gradient-to-r from-yellow-500 via-yellow-400 to-yellow-500 rounded-full transition-all duration-300 ease-out relative overflow-hidden"
               style={{ width: `${Math.min(displayProgress, 100)}%` }}
             >
-              {/* Efeito de brilho animado */}
+              {}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
             </div>
           </div>
 
-          {/* Indicador de porcentagem */}
+          {}
           <div className="flex justify-between items-center mt-3">
             <span className="text-sm text-gray-400 font-medium">
               {Math.round(displayProgress)}%
@@ -91,7 +90,7 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
           </div>
         </div>
 
-        {/* Mensagens de estágio */}
+        {}
         <div className="mt-6 space-y-2">
           {stages.map((stage, index) => (
             <div
@@ -119,4 +118,3 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 };
 
 export default ProgressBar;
-

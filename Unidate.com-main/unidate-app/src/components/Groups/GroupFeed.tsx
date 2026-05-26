@@ -116,7 +116,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
 
   return (
     <div className="space-y-6">
-      {/* Post Composer */}
+      {}
       {isMember && (
         <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-3xl p-6 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3),0_4px_20px_rgba(0,0,0,0.2)] backdrop-blur-sm border border-purple-500/20">
           {!showComposer ? (
@@ -162,7 +162,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
         </div>
       )}
 
-      {/* Posts List */}
+      {}
       <div className="space-y-4">
         {posts.length === 0 ? (
           <div className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-3xl p-12 text-center shadow-[inset_0_2px_10px_rgba(0,0,0,0.3)] border border-purple-500/20">
@@ -184,7 +184,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
                 key={post.id}
                 className="bg-gradient-to-br from-purple-900/50 to-blue-900/50 rounded-3xl p-6 shadow-[inset_0_2px_10px_rgba(0,0,0,0.3),0_4px_20px_rgba(0,0,0,0.2)] backdrop-blur-sm border border-purple-500/20 hover:border-purple-500/30 transition-all duration-200"
               >
-                {/* Post Header */}
+                {}
                 <div className="flex items-start space-x-4 mb-4">
                   <button
                     onClick={() => handleProfileClick(post.author.uid)}
@@ -221,7 +221,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
                   </button>
                 </div>
 
-                {/* Post Content */}
+                {}
                 <div className="mb-4">
                   <p className="text-purple-100 leading-relaxed whitespace-pre-wrap">{post.content}</p>
                   {post.image && (
@@ -262,7 +262,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
                   )}
                 </div>
 
-                {/* Hashtags */}
+                {}
                 {post.hashtags.length > 0 && (
                   <div className="flex flex-wrap gap-2 mb-4">
                     {post.hashtags.map((tag, index) => (
@@ -276,7 +276,7 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
                   </div>
                 )}
 
-                {/* Post Actions */}
+                {}
                 <div className="flex items-center space-x-6 pt-4 border-t border-purple-500/20">
                   <button
                     onClick={() => handleToggleLike(post.id, isLiked)}
@@ -308,4 +308,3 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
 };
 
 export default GroupFeed;
-

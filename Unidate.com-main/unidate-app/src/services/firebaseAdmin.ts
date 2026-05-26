@@ -1,4 +1,3 @@
-// Serviço Firebase para integração com dados reais do painel administrativo
 import {
   collection,
   doc,
@@ -18,7 +17,6 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-// Interfaces para tipagem
 export interface AdminUser {
   id: string;
   email: string;
@@ -67,7 +65,6 @@ export interface AdminReport {
   exportFormats: string[];
 }
 
-// Serviço de Métricas
 export class AdminMetricsService {
   static async getMetrics(): Promise<AdminMetrics> {
     try {
@@ -75,7 +72,6 @@ export class AdminMetricsService {
         throw new Error('Firebase não inicializado');
       }
 
-      // Buscar dados reais do Firebase
       const [usersSnapshot, postsSnapshot, groupsSnapshot] = await Promise.all([
         getDocs(collection(db, 'users')),
         getDocs(collection(db, 'posts')),
@@ -86,7 +82,6 @@ export class AdminMetricsService {
       const totalPosts = postsSnapshot.size;
       const totalGroups = groupsSnapshot.size;
 
-      // Calcular usuários ativos (últimos 24h)
       const now = new Date();
       const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const activeUsers = usersSnapshot.docs.filter(doc => {
@@ -94,14 +89,12 @@ export class AdminMetricsService {
         return userData.lastLoginAt && userData.lastLoginAt.toDate() > yesterday;
       }).length;
 
-      // Calcular novos usuários (últimos 7 dias)
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const newUsers = usersSnapshot.docs.filter(doc => {
         const userData = doc.data();
         return userData.createdAt && userData.createdAt.toDate() > weekAgo;
       }).length;
 
-      // Calcular taxa de engajamento (posts por usuário)
       const engagementRate = totalUsers > 0 ? Math.round((totalPosts / totalUsers) * 100) / 100 : 0;
 
       const metrics: AdminMetrics = {
@@ -110,7 +103,7 @@ export class AdminMetricsService {
         newUsers,
         totalPosts,
         totalGroups,
-        pendingReports: 0, // Implementar quando tiver sistema de denúncias
+        pendingReports: 0,
         engagementRate,
         lastUpdated: serverTimestamp() as Timestamp
       };
@@ -118,7 +111,6 @@ export class AdminMetricsService {
       return metrics;
     } catch (error) {
       console.error('Erro ao buscar métricas:', error);
-      // Fallback para dados mock
       return {
         totalUsers: 0,
         activeUsers: 0,
@@ -146,7 +138,6 @@ export class AdminMetricsService {
   }
 }
 
-// Serviço de Usuários
 export class AdminUsersService {
   static async getUsers(limitCount: number = 50, lastDoc?: any): Promise<AdminUser[]> {
     try {
@@ -216,7 +207,6 @@ export class AdminUsersService {
   }
 }
 
-// Serviço de Conteúdo
 export class AdminContentService {
   static async getPosts(limitCount: number = 50): Promise<any[]> {
     try {
@@ -255,7 +245,6 @@ export class AdminContentService {
   }
 }
 
-// Serviço de Notificações
 export class AdminNotificationsService {
   static async getNotifications(limitCount: number = 100): Promise<AdminNotification[]> {
     try {
@@ -290,7 +279,6 @@ export class AdminNotificationsService {
   }
 }
 
-// Serviço de Relatórios
 export class AdminReportsService {
   static async getReports(): Promise<AdminReport[]> {
     try {
@@ -321,7 +309,6 @@ export class AdminReportsService {
   }
 }
 
-// Serviço de Feature Flags
 export class AdminFeatureFlagsService {
   static async getFeatureFlags(): Promise<any[]> {
     try {
@@ -342,7 +329,6 @@ export class AdminFeatureFlagsService {
   }
 }
 
-// Serviço de Analytics
 export class AdminAnalyticsService {
   static async getAnalyticsData(timeRange: string): Promise<any> {
     try {
@@ -393,7 +379,6 @@ export class AdminAnalyticsService {
   }
 }
 
-// Exportar todos os serviços
 export const AdminServices = {
   metrics: AdminMetricsService,
   users: AdminUsersService,

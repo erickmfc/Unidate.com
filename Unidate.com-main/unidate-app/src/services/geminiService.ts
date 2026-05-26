@@ -8,21 +8,19 @@ export interface PhilosophicalThought {
   author?: string;
   timestamp: Date;
   category: 'stoic' | 'existential' | 'wisdom' | 'reflection' | 'motivation';
-  hash: string; // Para verificação de duplicatas
+  hash: string;
 }
 
 interface DailyThoughts {
-  date: string; // YYYY-MM-DD
-  thoughts: string[]; // Array de hashes das frases do dia
+  date: string;
+  thoughts: string[];
 }
 
 export class GeminiService {
   private static readonly STORAGE_KEY = 'philosophical_thoughts_daily';
-  private static readonly MAX_ATTEMPTS = 10; // Máximo de tentativas para evitar duplicata
+  private static readonly MAX_ATTEMPTS = 10;
 
-  /**
-   * Gera um pensamento filosófico único (não repetido no dia)
-   */
+  
   static async generateUniquePhilosophicalThought(
     theme?: string,
     context?: string
@@ -30,7 +28,6 @@ export class GeminiService {
     const today = this.getTodayString();
     const dailyThoughts = this.getDailyThoughts();
     
-    // Se não é o mesmo dia, limpar histórico
     if (dailyThoughts.date !== today) {
       this.clearDailyThoughts();
       dailyThoughts.date = today;
@@ -40,14 +37,11 @@ export class GeminiService {
     let attempts = 0;
     let thought: PhilosophicalThought | null = null;
 
-    // Tentar gerar até conseguir uma frase única
     while (attempts < this.MAX_ATTEMPTS && !thought) {
       const generatedThought = await this.generatePhilosophicalThought(theme, context);
       const thoughtHash = this.hashContent(generatedThought.content);
 
-      // Verificar se já foi gerada hoje
       if (!dailyThoughts.thoughts.includes(thoughtHash)) {
-        // Adicionar ao histórico do dia
         dailyThoughts.thoughts.push(thoughtHash);
         this.saveDailyThoughts(dailyThoughts);
         
@@ -60,13 +54,11 @@ export class GeminiService {
 
       attempts++;
       
-      // Pequeno delay entre tentativas
       if (attempts < this.MAX_ATTEMPTS) {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
-    // Se não conseguiu gerar uma única após várias tentativas, usar fallback
     if (!thought) {
       const fallbackThought = this.getUniqueFallbackThought(dailyThoughts.thoughts);
       const thoughtHash = this.hashContent(fallbackThought.content);
@@ -82,9 +74,7 @@ export class GeminiService {
     return thought;
   }
 
-  /**
-   * Gera um pensamento filosófico (sem verificação de duplicata)
-   */
+  
   private static async generatePhilosophicalThought(
     theme?: string,
     context?: string
@@ -138,36 +128,29 @@ export class GeminiService {
     }
   }
 
-  /**
-   * Gera hash MD5 simples do conteúdo para verificação de duplicatas
-   */
+  
   private static hashContent(content: string): string {
-    // Hash simples baseado no conteúdo normalizado
     const normalized = content
       .toLowerCase()
       .replace(/[^\w\s]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
     
-    // Usar um hash simples (em produção, usar crypto.subtle)
     let hash = 0;
     for (let i = 0; i < normalized.length; i++) {
       const char = normalized.charCodeAt(i);
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = hash & hash;
     }
     return Math.abs(hash).toString(36);
   }
 
-  /**
-   * Obtém pensamentos do dia atual
-   */
+  
   private static getDailyThoughts(): DailyThoughts {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Verificar se é do dia atual
         if (parsed.date === this.getTodayString()) {
           return parsed;
         }
@@ -182,9 +165,7 @@ export class GeminiService {
     };
   }
 
-  /**
-   * Salva pensamentos do dia
-   */
+  
   private static saveDailyThoughts(dailyThoughts: DailyThoughts): void {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(dailyThoughts));
@@ -193,9 +174,7 @@ export class GeminiService {
     }
   }
 
-  /**
-   * Limpa pensamentos do dia
-   */
+  
   private static clearDailyThoughts(): void {
     try {
       localStorage.removeItem(this.STORAGE_KEY);
@@ -204,17 +183,13 @@ export class GeminiService {
     }
   }
 
-  /**
-   * Retorna string do dia atual (YYYY-MM-DD)
-   */
+  
   private static getTodayString(): string {
     const today = new Date();
     return today.toISOString().split('T')[0];
   }
 
-  /**
-   * Gera um pensamento fallback único
-   */
+  
   private static getUniqueFallbackThought(existingHashes: string[]): Omit<PhilosophicalThought, 'hash'> {
     const fallbackThoughts = [
       'O conhecimento é a única riqueza que cresce quando compartilhada.',
@@ -249,13 +224,11 @@ export class GeminiService {
       'A mente que se estende a uma nova ideia jamais retorna às suas dimensões originais.'
     ];
 
-    // Filtrar pensamentos já usados hoje
     const availableThoughts = fallbackThoughts.filter(thought => {
       const hash = this.hashContent(thought);
       return !existingHashes.includes(hash);
     });
 
-    // Se todos foram usados, usar um aleatório mesmo assim
     const selectedThought = availableThoughts.length > 0
       ? availableThoughts[Math.floor(Math.random() * availableThoughts.length)]
       : fallbackThoughts[Math.floor(Math.random() * fallbackThoughts.length)];
@@ -318,7 +291,7 @@ Gere APENAS o pensamento, sem explicações, sem título, sem formatação.`;
       .map(line => line.trim())
       .filter(line => line.length > 0)
       .join(' ')
-      .substring(0, 300); // Limitar tamanho
+      .substring(0, 300);
   }
 
   private static categorizeThought(text: string): PhilosophicalThought['category'] {
@@ -370,9 +343,7 @@ Gere APENAS o pensamento, sem explicações, sem título, sem formatação.`;
     };
   }
 
-  /**
-   * Obtém estatísticas do dia
-   */
+  
   static getDailyStats(): { count: number; date: string } {
     const dailyThoughts = this.getDailyThoughts();
     return {
@@ -381,9 +352,7 @@ Gere APENAS o pensamento, sem explicações, sem título, sem formatação.`;
     };
   }
 
-  /**
-   * Gera conteúdo detalhado sobre um tema
-   */
+  
   static async generateDetailedContent(
     theme: string,
     type: 'lesson' | 'philosophy' | 'research' | 'doubt' | 'module'

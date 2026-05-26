@@ -30,16 +30,13 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      // Verificar se todos os campos estão preenchidos
       if (!formData.email || !formData.password || !formData.twoFactorCode) {
         setError('Por favor, preencha todos os campos');
         return;
       }
 
-      // Fazer login
       await loginAdmin(formData.email, formData.password);
       
-      // Verificar 2FA
       const isValid = await verifyTwoFactor(formData.twoFactorCode);
       if (isValid) {
         navigate('/admin/dashboard');
@@ -216,4 +213,3 @@ const AdminLogin: React.FC = () => {
 };
 
 export default AdminLogin;
-

@@ -69,7 +69,7 @@
   }
 }
 
-/* Custom scrollbar */
+
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -86,7 +86,7 @@
   @apply bg-gray-400;
 }
 
-/* Custom animations */
+
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -131,12 +131,12 @@
   animation: shimmer 2s infinite;
 }
 
-/* Loading spinner */
+
 .spinner {
   @apply animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500;
 }
 
-/* Notification styles */
+
 .notification {
   @apply fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg transform transition-all duration-300 ease-in-out;
 }

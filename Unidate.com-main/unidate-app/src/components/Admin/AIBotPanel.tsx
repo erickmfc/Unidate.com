@@ -16,7 +16,6 @@ const AIBotPanel: React.FC = () => {
     setIntervalMinutes(status.intervalMinutes);
     setLastPostTime(status.lastPostTime);
 
-    // Atualizar status a cada 5 segundos
     const interval = setInterval(() => {
       const currentStatus = botScheduler.getScheduleStatus();
       setIsActive(currentStatus.isActive);
@@ -93,7 +92,7 @@ const AIBotPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Status */}
+      {}
       <div className="mb-6 p-4 bg-gray-50 rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Status:</span>
@@ -114,7 +113,7 @@ const AIBotPanel: React.FC = () => {
         )}
       </div>
 
-      {/* Intervalo */}
+      {}
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Intervalo entre posts (minutos)
@@ -135,7 +134,7 @@ const AIBotPanel: React.FC = () => {
         </div>
       </div>
 
-      {/* Controles */}
+      {}
       <div className="flex items-center space-x-3 mb-4">
         {!isActive ? (
           <button
@@ -173,7 +172,7 @@ const AIBotPanel: React.FC = () => {
         </button>
       </div>
 
-      {/* Info */}
+      {}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <div className="flex items-start space-x-2">
           <Settings className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -194,4 +193,3 @@ const AIBotPanel: React.FC = () => {
 };
 
 export default AIBotPanel;
-

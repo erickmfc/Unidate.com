@@ -62,7 +62,6 @@ const FeatureFlags: React.FC = () => {
       try {
         setLoading(true);
         
-        // Verificar se há dados salvos no localStorage
         const savedFeatures = localStorage.getItem('feature-flags');
         if (savedFeatures) {
           setFeatures(JSON.parse(savedFeatures));
@@ -70,10 +69,8 @@ const FeatureFlags: React.FC = () => {
           return;
         }
         
-        // Simular delay de API
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Dados simulados - em produção viriam do Firebase
         const mockFeatures: FeatureFlag[] = [
           {
             id: 'battle-courses',
@@ -199,10 +196,8 @@ const FeatureFlags: React.FC = () => {
     );
     setFeatures(updatedFeatures);
     
-    // Persistir no localStorage
     localStorage.setItem('feature-flags', JSON.stringify(updatedFeatures));
     
-    // Feedback visual
     const feature = features.find(f => f.id === featureId);
     if (feature) {
       alert(`Funcionalidade "${feature.name}" ${!feature.isEnabled ? 'ativada' : 'desativada'} com sucesso!`);
@@ -271,7 +266,7 @@ const FeatureFlags: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header */}
+      {}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Controle de Funcionalidades</h1>
@@ -294,7 +289,7 @@ const FeatureFlags: React.FC = () => {
         </div>
       </div>
 
-      {/* Estatísticas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -339,7 +334,7 @@ const FeatureFlags: React.FC = () => {
         </div>
       </div>
 
-      {/* Filtros */}
+      {}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-64">
@@ -374,7 +369,7 @@ const FeatureFlags: React.FC = () => {
         </div>
       </div>
 
-      {/* Lista de Funcionalidades */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredFeatures.map((feature) => {
           const CategoryIcon = getCategoryIcon(feature.category);

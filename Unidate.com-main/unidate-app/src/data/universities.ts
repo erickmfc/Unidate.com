@@ -1,4 +1,3 @@
-// Lista expandida de universidades brasileiras
 export interface University {
   id: string;
   name: string;
@@ -9,7 +8,6 @@ export interface University {
 }
 
 export const universities: University[] = [
-  // Universidades Federais
   { id: 'ufrj', name: 'Universidade Federal do Rio de Janeiro', city: 'Rio de Janeiro', state: 'RJ', type: 'federal', acronym: 'UFRJ' },
   { id: 'usp', name: 'Universidade de São Paulo', city: 'São Paulo', state: 'SP', type: 'federal', acronym: 'USP' },
   { id: 'unb', name: 'Universidade de Brasília', city: 'Brasília', state: 'DF', type: 'federal', acronym: 'UnB' },
@@ -31,7 +29,6 @@ export const universities: University[] = [
   { id: 'unifesp', name: 'Universidade Federal de São Paulo', city: 'São Paulo', state: 'SP', type: 'federal', acronym: 'UNIFESP' },
   { id: 'ufabc', name: 'Universidade Federal do ABC', city: 'Santo André', state: 'SP', type: 'federal', acronym: 'UFABC' },
 
-  // Universidades Estaduais
   { id: 'uerj', name: 'Universidade do Estado do Rio de Janeiro', city: 'Rio de Janeiro', state: 'RJ', type: 'estadual', acronym: 'UERJ' },
   { id: 'unesp', name: 'Universidade Estadual Paulista', city: 'São Paulo', state: 'SP', type: 'estadual', acronym: 'UNESP' },
   { id: 'unicamp', name: 'Universidade Estadual de Campinas', city: 'Campinas', state: 'SP', type: 'estadual', acronym: 'UNICAMP' },
@@ -43,7 +40,6 @@ export const universities: University[] = [
   { id: 'uefs', name: 'Universidade Estadual de Feira de Santana', city: 'Feira de Santana', state: 'BA', type: 'estadual', acronym: 'UEFS' },
   { id: 'uesc', name: 'Universidade Estadual de Santa Cruz', city: 'Ilhéus', state: 'BA', type: 'estadual', acronym: 'UESC' },
 
-  // Universidades Privadas
   { id: 'puc-rio', name: 'Pontifícia Universidade Católica do Rio de Janeiro', city: 'Rio de Janeiro', state: 'RJ', type: 'privada', acronym: 'PUC-Rio' },
   { id: 'puc-sp', name: 'Pontifícia Universidade Católica de São Paulo', city: 'São Paulo', state: 'SP', type: 'privada', acronym: 'PUC-SP' },
   { id: 'puc-mg', name: 'Pontifícia Universidade Católica de Minas Gerais', city: 'Belo Horizonte', state: 'MG', type: 'privada', acronym: 'PUC-MG' },
@@ -60,7 +56,6 @@ export const universities: University[] = [
   { id: 'unicesumar', name: 'Universidade Cesumar', city: 'Maringá', state: 'PR', type: 'privada', acronym: 'UNICESUMAR' },
   { id: 'unifor', name: 'Universidade de Fortaleza', city: 'Fortaleza', state: 'CE', type: 'privada', acronym: 'UNIFOR' },
 
-  // Centros Universitários
   { id: 'unifacs', name: 'Universidade Salvador', city: 'Salvador', state: 'BA', type: 'privada', acronym: 'UNIFACS' },
   { id: 'unifor', name: 'Universidade de Fortaleza', city: 'Fortaleza', state: 'CE', type: 'privada', acronym: 'UNIFOR' },
   { id: 'unifor', name: 'Centro Universitário de Belo Horizonte', city: 'Belo Horizonte', state: 'MG', type: 'privada', acronym: 'UNI-BH' },
@@ -72,7 +67,6 @@ export const universities: University[] = [
   { id: 'unifor', name: 'Centro Universitário de Salvador', city: 'Salvador', state: 'BA', type: 'privada', acronym: 'UniSalvador' },
   { id: 'unifor', name: 'Centro Universitário de São Paulo', city: 'São Paulo', state: 'SP', type: 'privada', acronym: 'UniSP' },
 
-  // Faculdades Regionais
   { id: 'fatec', name: 'Faculdade de Tecnologia de São Paulo', city: 'São Paulo', state: 'SP', type: 'estadual', acronym: 'FATEC-SP' },
   { id: 'fatec-rio', name: 'Faculdade de Tecnologia do Rio de Janeiro', city: 'Rio de Janeiro', state: 'RJ', type: 'estadual', acronym: 'FATEC-RJ' },
   { id: 'fatec-mg', name: 'Faculdade de Tecnologia de Minas Gerais', city: 'Belo Horizonte', state: 'MG', type: 'estadual', acronym: 'FATEC-MG' },
@@ -85,17 +79,14 @@ export const universities: University[] = [
   { id: 'fatec-am', name: 'Faculdade de Tecnologia do Amazonas', city: 'Manaus', state: 'AM', type: 'estadual', acronym: 'FATEC-AM' },
 ];
 
-// Função para buscar universidades por estado
 export const getUniversitiesByState = (state: string): University[] => {
   return universities.filter(uni => uni.state === state);
 };
 
-// Função para buscar universidades por tipo
 export const getUniversitiesByType = (type: 'federal' | 'estadual' | 'municipal' | 'privada'): University[] => {
   return universities.filter(uni => uni.type === type);
 };
 
-// Função para buscar universidade por ID
 export const getUniversityById = (id: string): University | undefined => {
   return universities.find(uni => uni.id === id);
 };

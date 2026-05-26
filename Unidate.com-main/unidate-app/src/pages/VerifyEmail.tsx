@@ -22,7 +22,6 @@ const VerifyEmail: React.FC = () => {
   const email = location.state?.email || '';
 
   useEffect(() => {
-    // Verificar se o e-mail foi verificado
     const unsubscribe = onAuthStateChanged(auth!, (user) => {
       if (user && user.emailVerified) {
         navigate('/onboarding-complete');
@@ -50,7 +49,7 @@ const VerifyEmail: React.FC = () => {
       if (auth!.currentUser) {
         await sendEmailVerification(auth!.currentUser);
         setSuccess('E-mail de verificação reenviado!');
-        setCountdown(60); // 60 segundos de cooldown
+        setCountdown(60);
       }
     } catch (error: any) {
       setError('Erro ao reenviar e-mail. Tente novamente.');
@@ -82,7 +81,7 @@ const VerifyEmail: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-pink-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        {/* Header */}
+        {}
         <div className="text-center">
           <div className="flex justify-center mb-6">
           </div>
@@ -95,15 +94,15 @@ const VerifyEmail: React.FC = () => {
           <p className="text-purple-600 font-medium mt-1">{email}</p>
         </div>
 
-        {/* Main Content */}
+        {}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center space-y-6">
-            {/* Icon */}
+            {}
             <div className="w-20 h-20 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto">
               <Mail className="h-10 w-10 text-purple-600" />
             </div>
 
-            {/* Instructions */}
+            {}
             <div className="space-y-4">
               <h2 className="text-xl font-semibold text-gray-900">
                 Quase lá! 🎉
@@ -130,7 +129,7 @@ const VerifyEmail: React.FC = () => {
               </div>
             </div>
 
-            {/* Info Box */}
+            {}
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <div className="flex items-start space-x-3">
                 <Clock className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -144,7 +143,7 @@ const VerifyEmail: React.FC = () => {
               </div>
             </div>
 
-            {/* Error Message */}
+            {}
             {error && (
               <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-red-500" />
@@ -152,7 +151,7 @@ const VerifyEmail: React.FC = () => {
               </div>
             )}
 
-            {/* Success Message */}
+            {}
             {success && (
               <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                 <CheckCircle className="h-5 w-5 text-green-500" />
@@ -160,7 +159,7 @@ const VerifyEmail: React.FC = () => {
               </div>
             )}
 
-            {/* Action Buttons */}
+            {}
             <div className="space-y-3">
               <button
                 onClick={handleCheckVerification}
@@ -206,7 +205,7 @@ const VerifyEmail: React.FC = () => {
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="text-center">
           <p className="text-sm text-gray-500">
             Não recebeu o e-mail? Verifique sua pasta de spam ou{' '}

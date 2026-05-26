@@ -1,85 +1,71 @@
 import React, { useState } from 'react';
-import { Edit3, Save, X, BookOpen } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { Edit3, Save } from 'lucide-react';
 
 interface EditableContentBlockProps {
-  title?: string;
+  title: string;
   content: string;
-  onSave?: (content: string) => void;
+  onSave: (content: string) => void;
   isEditable?: boolean;
   maxLength?: number;
-  className?: string;
 }
 
 const EditableContentBlock: React.FC<EditableContentBlockProps> = ({
   title,
   content,
   onSave,
-  isEditable = true,
-  maxLength = 1000,
-  className = ''
+  isEditable = false,
+  maxLength = 500,
 }) => {
-  const { currentUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(content);
+  const [editContent, setEditContent] = useState(content);
 
   const handleSave = () => {
-    if (onSave) {
-      onSave(editedContent);
-    }
+    onSave(editContent);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditedContent(content);
+    setEditContent(content);
     setIsEditing(false);
   };
 
-  const canEdit = isEditable && currentUser;
-
   return (
-    <div className={`bg-gray-800/50 backdrop-blur-sm rounded-lg p-6 border border-gray-700 ${className}`}>
-      {title && (
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-serif text-yellow-400 flex items-center space-x-2">
-            <BookOpen className="h-5 w-5" />
-            <span>{title}</span>
-          </h3>
-          {canEdit && !isEditing && (
-            <button
-              onClick={() => setIsEditing(true)}
-              className="text-yellow-400 hover:text-yellow-300 transition-colors"
-            >
-              <Edit3 className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      )}
+    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-semibold text-white">{title}</h3>
+        {isEditable && !isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="p-2 text-gray-400 hover:text-yellow-400 transition-colors"
+            title="Editar conteúdo"
+          >
+            <Edit3 className="h-4 w-4" />
+          </button>
+        )}
+      </div>
 
       {isEditing ? (
         <div className="space-y-4">
           <textarea
-            value={editedContent}
-            onChange={(e) => setEditedContent(e.target.value)}
-            className="w-full bg-gray-900 text-white rounded-lg p-4 border border-gray-600 focus:border-yellow-400 focus:outline-none resize-none"
-            rows={6}
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
             maxLength={maxLength}
+            className="w-full bg-gray-800 text-white rounded-lg p-4 border border-gray-600 focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 min-h-[120px] resize-y"
           />
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-400">
-              {editedContent.length}/{maxLength} caracteres
+              {editContent.length}/{maxLength}
             </span>
-            <div className="flex items-center space-x-2">
+            <div className="flex space-x-3">
               <button
                 onClick={handleCancel}
-                className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
               >
-                <X className="h-4 w-4" />
-                <span>Cancelar</span>
+                Cancelar
               </button>
               <button
                 onClick={handleSave}
-                className="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white rounded-lg hover:from-yellow-600 hover:to-yellow-700 transition-colors flex items-center space-x-2"
+                className="px-4 py-2 bg-yellow-500 text-gray-900 rounded-lg font-medium hover:bg-yellow-600 transition-colors flex items-center space-x-2"
               >
                 <Save className="h-4 w-4" />
                 <span>Salvar</span>
@@ -88,13 +74,10 @@ const EditableContentBlock: React.FC<EditableContentBlockProps> = ({
           </div>
         </div>
       ) : (
-        <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-          {content}
-        </p>
+        <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">{content}</p>
       )}
     </div>
   );
 };
 
 export default EditableContentBlock;
-

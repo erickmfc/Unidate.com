@@ -41,7 +41,6 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({ children }) => {
     
     setToasts(prev => [...prev, newToast]);
 
-    // Auto remove after duration
     const duration = toast.duration || 4000;
     setTimeout(() => {
       hideToast(id);
@@ -157,7 +156,6 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onHide }) => {
   );
 };
 
-// Hook para notificações específicas do UniDate
 export const useUniDateToast = () => {
   const { showToast } = useToast();
 
@@ -231,7 +229,6 @@ export const useUniDateToast = () => {
       action: {
         label: 'Ver perfil',
         onClick: () => {
-          // Navegar para o perfil
         }
       }
     });

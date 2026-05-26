@@ -35,7 +35,6 @@ const Profile: React.FC = () => {
   const [newInterest, setNewInterest] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  // Atualizar formData quando userProfile mudar
   useEffect(() => {
     if (userProfile && !isEditing) {
       setFormData({
@@ -82,18 +81,15 @@ const Profile: React.FC = () => {
       setUploadingPhoto(true);
       showSuccess('Fazendo upload da foto...');
 
-      // Validar tipo de arquivo
       if (!file.type.startsWith('image/')) {
         throw new Error('Por favor, selecione uma imagem válida');
       }
 
-      // Validar tamanho (máximo 5MB)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      const maxSize = 5 * 1024 * 1024;
       if (file.size > maxSize) {
         throw new Error('A imagem deve ter no máximo 5MB');
       }
 
-      // Mostrar preview imediatamente
       const reader = new FileReader();
       reader.onload = (e) => {
         setFormData(prev => ({
@@ -119,10 +115,8 @@ const Profile: React.FC = () => {
       setUploadingPhoto(true);
       let photoURL = formData.photoURL;
 
-      // Se houver arquivo selecionado, fazer upload para o Firebase Storage
       if (selectedFile) {
         try {
-          // Deletar foto antiga se existir e for do Firebase Storage
           if (userProfile?.photoURL && userProfile.photoURL.includes('firebasestorage.googleapis.com')) {
             await ProfilePhotoService.deleteProfilePhoto(userProfile.photoURL);
           }
@@ -135,7 +129,6 @@ const Profile: React.FC = () => {
         }
       }
 
-      // Atualizar perfil no Firestore
       await updateUserProfile(currentUser.uid, {
         displayName: formData.displayName,
         bio: formData.bio,
@@ -212,88 +205,45 @@ const Profile: React.FC = () => {
             </div>
 
             <div className="flex-1">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex flex-col space-y-2 flex-1">
-                  <div className="flex items-center space-x-4">
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        name="displayName"
-                        value={formData.displayName}
-                        onChange={handleInputChange}
-                        className="text-3xl font-bold text-gray-900 bg-transparent border-b-2 border-primary-500 focus:outline-none flex-1"
-                      />
-                    ) : (
-                      <h1 className="text-3xl font-bold text-gray-900">
-                        {userProfile?.displayName || 'Usuário'}
-                      </h1>
-                    )}
-                  </div>
-                  
-                  {/* Badge do Tipo de Usuário */}
-                  {!isEditing && userProfile?.userType && (
-                    <div>
-                      {userProfile.userType === 'aluno' && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
-                          <GraduationCap className="h-4 w-4 mr-1" />
-                          Aluno • Sou estudante universitário e quero me conectar com outros alunos
-                        </span>
-                      )}
-                      {userProfile.userType === 'professor' && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
-                          <GraduationCap className="h-4 w-4 mr-1" />
-                          Professor • Sou docente e quero compartilhar conhecimento e materiais
-                        </span>
-                      )}
-                      {userProfile.userType === 'uni' && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
-                          <GraduationCap className="h-4 w-4 mr-1" />
-                          Uni • Represento uma universidade ou instituição de ensino
-                        </span>
-                      )}
-                    </div>
+              {isEditing ? (
+                <input
+                  type="text"
+                  name="displayName"
+                  value={formData.displayName}
+                  onChange={handleInputChange}
+                  className="text-2xl font-bold text-gray-900 w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 mb-2"
+                  placeholder="Seu nome completo"
+                />
+              ) : (
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">
+                  {userProfile?.displayName || 'Usuário'}
+                </h1>
+              )}
+
+              {!isEditing && userProfile?.userType && (
+                <div className="mb-2">
+                  {userProfile.userType === 'aluno' && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                      <GraduationCap className="h-4 w-4 mr-1" />
+                      Aluno
+                    </span>
+                  )}
+                  {userProfile.userType === 'professor' && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800 border border-purple-200">
+                      <GraduationCap className="h-4 w-4 mr-1" />
+                      Professor
+                    </span>
+                  )}
+                  {userProfile.userType === 'uni' && (
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                      <GraduationCap className="h-4 w-4 mr-1" />
+                      Uni
+                    </span>
                   )}
                 </div>
-                
-                {!isEditing && (
-                  <button
-                    onClick={() => setIsEditing(!isEditing)}
-                    className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-                  >
-                    <Edit3 className="h-5 w-5 text-gray-600" />
-                  </button>
-                )}
+              )}
 
-                {isEditing && (
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={handleCancel}
-                      className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                    >
-                      Cancelar
-                    </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={uploadingPhoto}
-                      className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {uploadingPhoto ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          <span>Salvando...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4" />
-                          <span>Salvar</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex items-center space-x-2 text-gray-600">
                   <GraduationCap className="h-4 w-4" />
                   <span>{userProfile?.course || 'Curso não informado'}</span>
@@ -307,6 +257,45 @@ const Profile: React.FC = () => {
                   <span>Ingresso em {userProfile?.year || 'N/A'}</span>
                 </div>
               </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              {!isEditing && (
+                <button
+                  onClick={() => setIsEditing(!isEditing)}
+                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                >
+                  <Edit3 className="h-5 w-5 text-gray-600" />
+                </button>
+              )}
+
+              {isEditing && (
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={handleCancel}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleSave}
+                    disabled={uploadingPhoto}
+                    className="btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {uploadingPhoto ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        <span>Salvando...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        <span>Salvar</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

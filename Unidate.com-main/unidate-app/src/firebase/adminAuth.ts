@@ -1,14 +1,7 @@
-/**
- * Sistema de autenticação de administradores
- * Usa Firebase Auth com Custom Claims - SEGURO
- * 
- * IMPORTANTE: NÃO armazena credenciais no frontend
- * Custom Claims devem ser definidos no backend (Cloud Functions)
- */
+
 
 import * as secureAdminAuth from './secureAdminAuth';
 
-// Re-exportar todas as funções seguras
 export const {
   loginAdmin,
   verifyTwoFactor,
@@ -18,15 +11,12 @@ export const {
   onAdminAuthStateChanged
 } = secureAdminAuth;
 
-// Re-exportar tipos
 export type AdminSession = secureAdminAuth.AdminSession;
 export type AdminUser = secureAdminAuth.AdminUser;
 
-// Funções adicionais para compatibilidade
 export const signInAdmin = loginAdmin;
 export const signOutAdmin = logoutAdmin;
 
-// Funções que requerem backend (Cloud Functions)
 export const createAdminUser = async () => { 
   throw new Error('Criação de admin requer Cloud Functions. Use o backend para criar admins.'); 
 };

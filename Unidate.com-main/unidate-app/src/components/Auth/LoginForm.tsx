@@ -47,8 +47,6 @@ const LoginForm: React.FC = () => {
         await loginUser(formData.email, formData.password);
       }
 
-      // O redirecionamento será feito automaticamente pelo ProtectedRoute
-      // baseado no status do onboarding do usuário
       navigate('/dashboard');
     } catch (error: any) {
       setError(error.message);
@@ -60,7 +58,7 @@ const LoginForm: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-pink-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-6">
-        {/* Header */}
+        {}
         <div className="text-center">
           <div className="flex justify-center mb-6">
           </div>
@@ -72,10 +70,10 @@ const LoginForm: React.FC = () => {
           </p>
         </div>
 
-        {/* Estatísticas */}
+        {}
         <LoginStats className="mb-6" />
         
-        {/* Login Method Toggle */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1">
           <div className="flex">
             <button
@@ -107,7 +105,7 @@ const LoginForm: React.FC = () => {
 
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
-            {/* Login Field */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {loginMethod === 'registration' ? 'Número de Matrícula' : 'E-mail Institucional'}
@@ -137,7 +135,7 @@ const LoginForm: React.FC = () => {
               )}
             </div>
 
-            {/* Password Field */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Senha
@@ -168,7 +166,7 @@ const LoginForm: React.FC = () => {
               </div>
             </div>
 
-            {/* Error Message */}
+            {}
             {error && (
               <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-red-500" />
@@ -176,7 +174,7 @@ const LoginForm: React.FC = () => {
               </div>
             )}
 
-            {/* Submit Button */}
+            {}
             <button
               type="submit"
               disabled={loading}
@@ -195,7 +193,7 @@ const LoginForm: React.FC = () => {
               )}
             </button>
 
-            {/* Divider */}
+            {}
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300" />
@@ -205,11 +203,10 @@ const LoginForm: React.FC = () => {
               </div>
             </div>
 
-            {/* Google Sign In Button */}
+            {}
             <GoogleSignInButton
               onSuccess={(result) => {
                 console.log('Login com Google bem-sucedido:', result);
-                // O redirecionamento será feito automaticamente pelo ProtectedRoute
                 navigate('/dashboard');
               }}
               onError={(error) => {
@@ -217,7 +214,7 @@ const LoginForm: React.FC = () => {
               }}
             />
 
-            {/* Forgot Password */}
+            {}
             <div className="text-center">
               <Link
                 to="/forgot-password"
@@ -229,7 +226,7 @@ const LoginForm: React.FC = () => {
           </div>
         </form>
 
-        {/* Sign Up Link */}
+        {}
         <div className="text-center">
           <p className="text-sm text-gray-600">
             Não tem uma conta?{' '}

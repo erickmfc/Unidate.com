@@ -16,7 +16,6 @@ import {
   Printer
 } from 'lucide-react';
 
-// Componente para imagem com múltiplos fallbacks
 interface ImageWithFallbackProps {
   src: string;
   alt: string;
@@ -39,13 +38,11 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    // Reset quando src mudar
     setImgSrc(src || fallbackSrc || '');
     setErrorCount(0);
     setHasError(false);
   }, [src, fallbackSrc]);
 
-  // Usar fallbackSources do elemento visual se disponível, senão usar padrão
   const defaultFallbacks = [
     fallbackSrc,
     `https://picsum.photos/seed/${encodeURIComponent(theme || 'default')}${Date.now()}/1200/800`,
@@ -66,7 +63,6 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
         setErrorCount(errorCount + 1);
       }
     } else {
-      // Último fallback: gradiente CSS
       console.log('⚠️ Todas as fontes de imagem falharam, usando gradiente');
       setHasError(true);
       setImgSrc('');
@@ -97,7 +93,6 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
       onError={handleError}
       loading="lazy"
       onLoad={(e) => {
-        // Garantir que a imagem está visível
         const target = e.target as HTMLImageElement;
         target.style.opacity = '1';
         console.log('✅ Imagem carregada com sucesso:', imgSrc);
@@ -151,7 +146,6 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
         console.log('Erro ao compartilhar:', error);
       }
     } else {
-      // Copiar link para clipboard
       navigator.clipboard.writeText(window.location.href);
       alert('Link copiado para a área de transferência!');
     }
@@ -164,7 +158,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
       case 'hero':
         return (
           <section key={section.id} className="relative min-h-screen flex items-center justify-center overflow-hidden">
-            {/* Background Image */}
+            {}
             {visualElement && (
               <div 
                 className="absolute inset-0 bg-cover bg-center"
@@ -175,7 +169,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
                 }}
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/70 to-black/90"></div>
-                {/* Imagem de fundo com fallback */}
+                {}
                 <ImageWithFallback
                   src={visualElement.imageUrl || ''}
                   alt={visualElement.caption || presentation.theme}
@@ -186,7 +180,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
               </div>
             )}
 
-            {/* Content */}
+            {}
             <div className="relative z-10 container mx-auto px-4 py-20 text-center">
               <div className="max-w-5xl mx-auto space-y-8 presentation-section">
                 <p className="text-yellow-400 font-serif uppercase tracking-[0.3em] text-sm">
@@ -230,7 +224,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
               </div>
             </div>
 
-            {/* Scroll Indicator */}
+            {}
             <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
               <ChevronDown className="h-10 w-10 text-yellow-400" />
             </div>
@@ -244,7 +238,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
           <section key={section.id} className="min-h-screen py-20 bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900">
             <div className="container mx-auto px-4">
               <div className={`grid ${section.layout === 'split' ? 'lg:grid-cols-2' : 'grid-cols-1'} gap-12 items-center max-w-7xl mx-auto`}>
-                {/* Image Side */}
+                {}
                 {visualElement && (
                   <div className={`${section.layout === 'split' && visualElement.position === 'left' ? 'order-1' : 'lg:order-2'}`}>
                     <div className="relative group">
@@ -280,7 +274,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
                   </div>
                 )}
 
-                {/* Text Side */}
+                {}
                 <div className={`${section.layout === 'split' && visualElement?.position === 'left' ? 'lg:order-2' : 'order-1'} space-y-8`}>
                   <div className="space-y-4">
                     <div className="flex items-center space-x-3">
@@ -352,7 +346,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
       case 'conclusion':
         return (
           <section key={section.id} className="min-h-screen py-20 bg-gradient-to-b from-gray-900 via-amber-900/20 to-black relative overflow-hidden">
-            {/* Background Pattern */}
+            {}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4af37' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -383,7 +377,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
                   ))}
                 </div>
 
-                {/* Philosophical Thought */}
+                {}
                 {section.content.philosophicalThought && (
                   <div className="mt-16 bg-gradient-to-br from-yellow-500/20 via-amber-600/20 to-orange-600/20 rounded-3xl p-12 border-2 border-yellow-500/40 backdrop-blur-md relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-500/10 rounded-full blur-3xl"></div>
@@ -402,7 +396,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
                   </div>
                 )}
 
-                {/* Key Points */}
+                {}
                 {section.content.keyPoints && section.content.keyPoints.length > 0 && (
                   <div className="grid md:grid-cols-2 gap-6 mt-16">
                     {section.content.keyPoints.map((point, idx) => (
@@ -419,7 +413,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
                   </div>
                 )}
 
-                {/* Actions */}
+                {}
                 <div className="flex items-center justify-center flex-wrap gap-4 mt-16 pt-8 border-t border-white/10">
                   <button
                     onClick={handleLike}
@@ -458,7 +452,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
 
   return (
     <div className="bg-black text-white min-h-screen">
-      {/* Header Actions - Fixed */}
+      {}
       <div className="fixed top-20 right-4 z-50 flex flex-col items-end space-y-2">
         <button
           onClick={handleLike}
@@ -478,12 +472,12 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
         </div>
       </div>
 
-      {/* Render Sections */}
+      {}
       {presentation.sections
         .sort((a, b) => a.order - b.order)
         .map(section => renderSection(section))}
 
-      {/* Footer */}
+      {}
       <footer className="bg-gradient-to-b from-black to-gray-900 border-t border-yellow-500/20 py-12">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-6">
@@ -543,7 +537,7 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
           scroll-behavior: smooth;
         }
 
-        /* Sepia filter custom */
+        
         .sepia {
           filter: sepia(100%) contrast(125%) brightness(90%);
         }
@@ -553,4 +547,3 @@ const ResearchPresentationComponent: React.FC<ResearchPresentationProps> = ({
 };
 
 export default ResearchPresentationComponent;
-

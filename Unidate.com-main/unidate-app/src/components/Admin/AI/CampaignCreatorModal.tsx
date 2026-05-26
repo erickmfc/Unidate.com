@@ -77,7 +77,6 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
       };
       onSave(campaign);
       onClose();
-      // Reset form
       setFormData({
         name: '',
         centralTopic: '',
@@ -113,7 +112,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
-        {/* Header */}
+        {}
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <div className="flex items-center space-x-3">
             <Target className="h-6 w-6 text-blue-600" />
@@ -127,9 +126,9 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
           </button>
         </div>
 
-        {/* Content */}
+        {}
         <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
-          {/* Nome da Campanha */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Nome da Campanha
@@ -146,7 +145,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
             {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
           </div>
 
-          {/* Tópico Central */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Tópico Central
@@ -166,7 +165,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
             </p>
           </div>
 
-          {/* Personas Participantes */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Personas Participantes
@@ -219,7 +218,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
             </p>
           </div>
 
-          {/* Duração */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -251,7 +250,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
             </div>
           </div>
 
-          {/* Resumo da Campanha */}
+          {}
           {formData.name && formData.centralTopic && formData.participatingPersonas.length > 0 && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-blue-900 mb-2">Resumo da Campanha</h3>
@@ -264,7 +263,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
             </div>
           )}
 
-          {/* Status */}
+          {}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Status Inicial
@@ -280,7 +279,7 @@ const CampaignCreatorModal: React.FC<CampaignCreatorModalProps> = ({
           </div>
         </div>
 
-        {/* Footer */}
+        {}
         <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200">
           <button
             onClick={onClose}

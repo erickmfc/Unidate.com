@@ -30,7 +30,6 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
     try {
       setLoading(true);
       
-      // Buscar usuários reais do Firebase
       const allUsers = await UserProfileService.getAllUsers(200);
       
       console.log('📊 Total de usuários encontrados:', allUsers.length);
@@ -39,11 +38,9 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
         course: userProfile.course
       });
       
-      // Filtrar: remover o próprio usuário
       const otherUsers = allUsers.filter(user => user.uid !== currentUser.uid);
       console.log('👥 Usuários após remover próprio:', otherUsers.length);
       
-      // Verificar friendships em lote (mais eficiente)
       const usersWithFriendshipStatus = await Promise.all(
         otherUsers.map(async (user) => {
           const isAlreadyColleague = await UserProfileService.checkFriendship(
@@ -54,35 +51,29 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
         })
       );
 
-      // Filtrar apenas os que não são colegas
       const notColleagues = usersWithFriendshipStatus
         .filter(({ isAlreadyColleague }) => !isAlreadyColleague)
         .map(({ user }) => user);
       
       console.log('✅ Usuários que não são colegas:', notColleagues.length);
 
-      // Ordenar por relevância com pontuação mais detalhada
       const sorted = notColleagues
         .map(user => {
           let score = 0;
           
-          // Priorizar mesma universidade (peso alto)
           if (user.university && userProfile.university && 
               user.university.toLowerCase() === userProfile.university.toLowerCase()) {
             score += 20;
           }
           
-          // Priorizar mesmo curso (peso médio)
           if (user.course && userProfile.course && 
               user.course.toLowerCase() === userProfile.course.toLowerCase()) {
             score += 15;
           }
           
-          // Priorizar usuários com perfil completo (tem avatar, bio, etc.)
           if (user.avatar) score += 3;
           if (user.bio && user.bio.length > 10) score += 2;
           
-          // Priorizar usuários ativos (com posts)
           if (user.postsCount && user.postsCount > 0) score += user.postsCount;
           
           return { user, score };
@@ -90,7 +81,6 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
         .sort((a, b) => b.score - a.score)
         .map(({ user }) => user);
 
-      // Limitar quantidade e garantir que temos dados válidos
       const finalProfiles = sorted
         .filter(user => user.name && user.name !== 'Usuário')
         .slice(0, maxProfiles);
@@ -126,16 +116,13 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
       console.log('✅ [SUGGESTED] Colega adicionado com sucesso');
       success(`${userName} foi adicionado(a) como colega!`);
       
-      // Remover da lista de sugeridos
       setSuggestedProfiles(prev => prev.filter(p => p.uid !== userId));
       
-      // Recarregar lista
       await loadSuggestedProfiles();
     } catch (err: any) {
       console.error('❌ [SUGGESTED] Erro ao adicionar colega:', err);
       console.error('❌ [SUGGESTED] Detalhes do erro:', err.message);
       
-      // Mostrar mensagem de erro mais específica
       const errorMessage = err.message || 'Tente novamente.';
       error('Erro ao adicionar colega', errorMessage);
     } finally {
@@ -194,7 +181,7 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
             key={profile.uid}
             className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
           >
-            {/* Avatar */}
+            {}
             <button
               onClick={() => handleViewProfile(profile.uid)}
               className="flex-shrink-0"
@@ -207,7 +194,7 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
               />
             </button>
 
-            {/* Informações */}
+            {}
             <div className="flex-1 min-w-0">
               <button
                 onClick={() => handleViewProfile(profile.uid)}
@@ -241,7 +228,7 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
                 )}
               </button>
 
-              {/* Botão Adicionar como Colega */}
+              {}
               <button
                 onClick={() => handleAddAsColleague(profile.uid, profile.name)}
                 disabled={addingIds.has(profile.uid)}
@@ -264,7 +251,7 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
         ))}
       </div>
 
-      {/* Link para ver mais */}
+      {}
       <button
         onClick={() => navigate('/discover')}
         className="mt-4 w-full text-center text-sm text-indigo-600 hover:text-indigo-700 font-medium py-2"
@@ -276,4 +263,3 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
 };
 
 export default SuggestedProfiles;
-

@@ -56,14 +56,12 @@ const AIBotPostsControl: React.FC = () => {
   const [timeUntilNext, setTimeUntilNext] = useState<string>('N/A');
   const [loading, setLoading] = useState(true);
 
-  // ETAPA 1: Carregar configuração do Firestore ao montar
   useEffect(() => {
     const loadInitialConfig = async () => {
       try {
         setLoading(true);
         console.log('🔄 [AIBotPostsControl] Carregando configuração inicial...');
         
-        // Carregar configuração do Firestore
         const config = await botPersistenceService.loadScheduleConfig();
         const botProfileId = 'unidate-ai-bot';
         
@@ -73,24 +71,20 @@ const AIBotPostsControl: React.FC = () => {
           if (botProfile) {
             console.log('✅ [AIBotPostsControl] Configuração encontrada:', botProfile);
             
-            // Restaurar estados com valores salvos
             setIsActive(true);
             setIntervalMinutes(botProfile.intervalMinutes);
             setLastPostTime(botProfile.lastPostTime);
             
-            // Calcular próximo post baseado em lastPostTime ou nextPostTime
             if (botProfile.nextPostTime) {
               setNextPostTime(botProfile.nextPostTime);
             } else if (botProfile.lastPostTime) {
               const next = new Date(botProfile.lastPostTime.getTime() + botProfile.intervalMinutes * 60 * 1000);
               setNextPostTime(next);
             } else {
-              // Se não há lastPostTime, próximo post será em intervalMinutes
               const next = new Date(Date.now() + botProfile.intervalMinutes * 60 * 1000);
               setNextPostTime(next);
             }
             
-            // Garantir que o bot está rodando
             if (!botScheduler.getScheduleStatus().isActive) {
               console.log('🔄 [AIBotPostsControl] Reiniciando bot...');
               await botScheduler.startSchedule(botProfile.intervalMinutes, 'system');
@@ -100,10 +94,8 @@ const AIBotPostsControl: React.FC = () => {
           console.log('ℹ️ [AIBotPostsControl] Nenhuma configuração ativa encontrada');
         }
         
-        // Carregar status atual do bot
         loadBotStatus();
         
-        // Carregar dados
         await Promise.all([
           loadRecentPosts(),
           loadStats()
@@ -119,7 +111,6 @@ const AIBotPostsControl: React.FC = () => {
     loadInitialConfig();
   }, []);
 
-  // ETAPA 5: Observador do Firestore para mudanças em tempo real
   useEffect(() => {
     console.log('🔄 [AIBotPostsControl] Configurando observador do Firestore...');
     
@@ -130,7 +121,6 @@ const AIBotPostsControl: React.FC = () => {
         const botProfile = config.profiles.find(p => p.profileId === botProfileId);
         
         if (botProfile) {
-          // Atualizar estados quando houver mudanças
           setIsActive(config.isActive && botProfile.intervalMinutes > 0);
           setIntervalMinutes(botProfile.intervalMinutes);
           setLastPostTime(botProfile.lastPostTime);
@@ -158,7 +148,6 @@ const AIBotPostsControl: React.FC = () => {
     };
   }, []);
 
-  // Atualizar status a cada 5 segundos (backup)
   useEffect(() => {
     const statusInterval = setInterval(() => {
       loadBotStatus();
@@ -168,7 +157,6 @@ const AIBotPostsControl: React.FC = () => {
     return () => clearInterval(statusInterval);
   }, [isActive, lastPostTime, intervalMinutes]);
 
-  // ETAPA 4: Contador regressivo em tempo real (atualiza a cada segundo)
   useEffect(() => {
     const updateCountdown = () => {
       if (nextPostTime) {
@@ -177,7 +165,6 @@ const AIBotPostsControl: React.FC = () => {
         
         if (diff <= 0) {
           setTimeUntilNext('Agora');
-          // Se passou do horário, recalcular baseado no intervalo
           if (isActive && lastPostTime) {
             const newNext = new Date(lastPostTime.getTime() + intervalMinutes * 60 * 1000);
             setNextPostTime(newNext);
@@ -190,10 +177,8 @@ const AIBotPostsControl: React.FC = () => {
       }
     };
 
-    // Atualizar imediatamente
     updateCountdown();
 
-    // Atualizar a cada segundo
     const countdownInterval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(countdownInterval);
@@ -212,7 +197,6 @@ const AIBotPostsControl: React.FC = () => {
       const next = new Date(lastPostTime.getTime() + intervalMinutes * 60 * 1000);
       setNextPostTime(next);
     } else if (isActive && !lastPostTime) {
-      // Se está ativo mas não há lastPostTime, próximo será em intervalMinutes
       const next = new Date(Date.now() + intervalMinutes * 60 * 1000);
       setNextPostTime(next);
     } else {
@@ -222,7 +206,6 @@ const AIBotPostsControl: React.FC = () => {
 
   const loadRecentPosts = async () => {
     try {
-      // Buscar posts do bot
       const botProfile = AIBotService.getBotProfile();
       const allPosts = await PostsService.getPosts(50);
       
@@ -230,14 +213,12 @@ const AIBotPostsControl: React.FC = () => {
         .filter(post => post.author.uid === botProfile.uid)
         .slice(0, 10)
         .map(post => {
-          // Converter timestamp do Firestore para Date
           let timestamp: Date;
           if (post.timestamp instanceof Timestamp) {
             timestamp = post.timestamp.toDate();
           } else if (post.timestamp && typeof post.timestamp === 'object' && 'toDate' in post.timestamp) {
             timestamp = (post.timestamp as any).toDate();
           } else {
-            // Fallback para data atual se não conseguir converter
             timestamp = new Date();
           }
 
@@ -257,9 +238,7 @@ const AIBotPostsControl: React.FC = () => {
     }
   };
 
-  // ETAPA 4 (continuação): Carregar estatísticas periodicamente
   useEffect(() => {
-    // Carregar estatísticas a cada 30 segundos
     const statsInterval = setInterval(() => {
       loadStats();
       loadRecentPosts();
@@ -370,7 +349,6 @@ const AIBotPostsControl: React.FC = () => {
     try {
       console.log('🔄 [AIBotPostsControl] Iniciando criação de post...');
       
-      // Validação: verificar se há conteúdo para publicar
       const contentToPublish = previewContent || testPostContent;
       if (!contentToPublish || contentToPublish.trim().length === 0) {
         showError('Nenhum conteúdo para publicar. Gere um post primeiro.');
@@ -378,8 +356,6 @@ const AIBotPostsControl: React.FC = () => {
         return;
       }
       
-      // AUTENTICAR ADMIN ANTES DE CRIAR POST
-      // Garantir que o admin está autenticado no Firebase Auth
       const { signInWithEmailAndPassword } = await import('firebase/auth');
       const { auth } = await import('../../../firebase/config');
       
@@ -391,14 +367,11 @@ const AIBotPostsControl: React.FC = () => {
           console.log('✅ [AIBotPostsControl] Admin autenticado para criar post');
         } catch (authError) {
           console.warn('⚠️ [AIBotPostsControl] Erro ao autenticar admin:', authError);
-          // Continuar mesmo assim - pode funcionar se as regras permitirem
         }
       }
       
-      // Se estiver usando preview, usar o conteúdo do preview
       let postId: string;
       if (previewContent) {
-        // Criar post com conteúdo do preview
         const { PostsService } = await import('../../../services/postsService');
         const botProfile = AIBotService.getBotProfile();
         postId = await PostsService.createPost({
@@ -417,11 +390,9 @@ const AIBotPostsControl: React.FC = () => {
           hashtags: (previewContent.match(/#\w+/g) || []).map(tag => tag.substring(1))
         });
       } else {
-        // Usar método padrão
         postId = await AIBotService.createAIPost();
       }
       
-      // Validação: verificar se o post foi criado
       if (!postId || postId.trim().length === 0) {
         throw new Error('Post não foi criado: postId vazio ou inválido');
       }
@@ -429,18 +400,15 @@ const AIBotPostsControl: React.FC = () => {
       console.log('✅ [AIBotPostsControl] Post criado:', postId);
       showSuccess('Post criado com sucesso!');
       
-      // Atualizar timestamps
       const now = new Date();
       setLastPostTime(now);
       const nextTime = new Date(now.getTime() + intervalMinutes * 60 * 1000);
       setNextPostTime(nextTime);
       
-      // Limpar preview e teste
       setPreviewContent('');
       setTestPostContent('');
       setShowPreview(false);
       
-      // Aguardar um pouco antes de recarregar para garantir que o post foi salvo
       setTimeout(() => {
         loadRecentPosts();
         loadStats();
@@ -503,7 +471,6 @@ const AIBotPostsControl: React.FC = () => {
     return `${seconds}s`;
   };
 
-  // Mostrar loading durante carregamento inicial
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -517,7 +484,7 @@ const AIBotPostsControl: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
@@ -541,9 +508,9 @@ const AIBotPostsControl: React.FC = () => {
           </div>
         </div>
 
-        {/* Controles Principais */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-          {/* Status e Controle */}
+          {}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -568,7 +535,7 @@ const AIBotPostsControl: React.FC = () => {
               )}
             </div>
 
-            {/* Criar Post Agora */}
+            {}
             <button
               onClick={handleCreatePostNow}
               disabled={isCreatingPost}
@@ -588,7 +555,7 @@ const AIBotPostsControl: React.FC = () => {
             </button>
           </div>
 
-          {/* Intervalo */}
+          {}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -613,7 +580,7 @@ const AIBotPostsControl: React.FC = () => {
             </div>
           </div>
 
-          {/* Próximo Post */}
+          {}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -641,7 +608,7 @@ const AIBotPostsControl: React.FC = () => {
           </div>
         </div>
 
-        {/* Preview e Teste de Geração */}
+        {}
         <div className="border-t border-gray-200 pt-6">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Preview e Teste de Geração</h3>
           <div className="space-y-4">
@@ -735,7 +702,7 @@ const AIBotPostsControl: React.FC = () => {
         </div>
       </div>
 
-      {/* Estatísticas */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
@@ -788,7 +755,7 @@ const AIBotPostsControl: React.FC = () => {
         </div>
       </div>
 
-      {/* Posts Recentes */}
+      {}
       <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
@@ -838,7 +805,7 @@ const AIBotPostsControl: React.FC = () => {
         </div>
       </div>
 
-      {/* Informações */}
+      {}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <div className="flex items-start space-x-3">
           <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
@@ -860,4 +827,3 @@ const AIBotPostsControl: React.FC = () => {
 };
 
 export default AIBotPostsControl;
-

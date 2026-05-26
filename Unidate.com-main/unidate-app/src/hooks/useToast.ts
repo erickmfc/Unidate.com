@@ -32,7 +32,6 @@ export const useToast = () => {
     setToasts([]);
   }, []);
 
-  // Métodos de conveniência
   const success = useCallback((title: string, message?: string, options?: Partial<Toast>) => {
     return addToast({
       type: 'success',

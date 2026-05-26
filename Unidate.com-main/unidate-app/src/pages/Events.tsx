@@ -84,13 +84,10 @@ const Events: React.FC = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Carregar eventos reais
   useEffect(() => {
     const loadEvents = async () => {
       try {
         setLoading(true);
-        // TODO: Implementar carregamento de eventos do Firebase
-        // Por enquanto, deixar vazio para mostrar apenas eventos reais
         setEvents([]);
       } catch (error) {
         console.error('Erro ao carregar eventos:', error);
@@ -147,7 +144,6 @@ const Events: React.FC = () => {
   const getFilteredEvents = () => {
     let filtered = events;
 
-    // Filter by tab
     switch (activeTab) {
       case 'official':
         filtered = filtered.filter(event => event.isOfficial);
@@ -158,12 +154,10 @@ const Events: React.FC = () => {
       case 'my-events':
         filtered = filtered.filter(event => event.rsvpStatus === 'going' || event.rsvpStatus === 'maybe');
         break;
-      default: // upcoming
-        // Show all events
+      default:
         break;
     }
 
-    // Filter by search and category
     return filtered.filter(event => {
       const matchesSearch = event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            event.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -177,7 +171,7 @@ const Events: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-6">
             <div className="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
@@ -189,7 +183,7 @@ const Events: React.FC = () => {
             </div>
           </div>
 
-          {/* Tabs */}
+          {}
           <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
             {tabs.map((tab) => (
               <button
@@ -214,10 +208,10 @@ const Events: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
+            {}
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -231,7 +225,7 @@ const Events: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Filter */}
+            {}
             <div className="flex gap-2">
               {categories.map((category) => (
                 <button
@@ -248,7 +242,7 @@ const Events: React.FC = () => {
               ))}
             </div>
 
-            {/* Create Event Button */}
+            {}
             <button className="btn-primary flex items-center space-x-2">
               <Plus className="h-4 w-4" />
               <span>Criar Evento</span>
@@ -256,7 +250,7 @@ const Events: React.FC = () => {
           </div>
         </div>
 
-        {/* Events Grid */}
+        {}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredEvents.map((event) => (
             <div 
@@ -264,7 +258,7 @@ const Events: React.FC = () => {
               className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
               onClick={() => handleEventClick(event)}
             >
-              {/* Event Image */}
+              {}
               <div className="h-48 bg-gradient-to-br from-indigo-500 to-purple-500 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <Calendar className="h-16 w-16 text-white opacity-50" />
@@ -300,7 +294,7 @@ const Events: React.FC = () => {
                 </div>
               </div>
 
-              {/* Event Content */}
+              {}
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-xl font-bold text-gray-900 line-clamp-2">{event.title}</h3>
@@ -316,7 +310,7 @@ const Events: React.FC = () => {
 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{event.description}</p>
 
-                {/* Organizer Info */}
+                {}
                 <div className="flex items-center space-x-2 mb-4">
                   <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center">
                     <span className="text-white text-xs font-semibold">
@@ -329,7 +323,7 @@ const Events: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Event Details */}
+                {}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <Calendar className="h-4 w-4" />
@@ -349,7 +343,7 @@ const Events: React.FC = () => {
                   </div>
                 </div>
 
-                {/* RSVP Status */}
+                {}
                 {event.rsvpStatus && (
                   <div className="mb-4">
                     <span className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium ${
@@ -366,7 +360,7 @@ const Events: React.FC = () => {
                   </div>
                 )}
 
-                {/* Event Actions */}
+                {}
                 <div className="flex items-center justify-between">
                   <div className="flex space-x-2 flex-1">
                     <button
@@ -399,7 +393,6 @@ const Events: React.FC = () => {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle share
                     }}
                     className="p-2 text-gray-600 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors duration-200"
                   >
@@ -411,7 +404,7 @@ const Events: React.FC = () => {
           ))}
         </div>
 
-        {/* Empty State */}
+        {}
         {filteredEvents.length === 0 && (
           <div className="text-center py-12">
             <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />

@@ -21,11 +21,9 @@ const Discover: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [animationKey, setAnimationKey] = useState(0);
 
-  // Data de lançamento: 1 de dezembro de 2025
   const launchDate = new Date('2025-12-01T00:00:00');
   const [isLaunched, setIsLaunched] = useState(false);
 
-  // Verificar se já está na lista de espera
   useEffect(() => {
     const checkWaitlist = async () => {
       if (!currentUser?.uid || !db) {
@@ -48,7 +46,6 @@ const Discover: React.FC = () => {
     checkWaitlist();
   }, [currentUser?.uid]);
 
-  // Atualizar contador regressivo
   useEffect(() => {
     const calculateTimeLeft = () => {
       const now = new Date().getTime();
@@ -71,7 +68,6 @@ const Discover: React.FC = () => {
     calculateTimeLeft();
     const timer = setInterval(calculateTimeLeft, 1000);
 
-    // Animação divertida - mudar a cada 2 segundos
     const animationTimer = setInterval(() => {
       setAnimationKey(prev => prev + 1);
     }, 2000);
@@ -95,7 +91,6 @@ const Discover: React.FC = () => {
 
     setSubmitting(true);
     try {
-      // 1. Adicionar à lista de espera
       await addDoc(collection(db, 'discoverWaitlist'), {
         userId: currentUser.uid,
         email: currentUser.email,
@@ -106,18 +101,15 @@ const Discover: React.FC = () => {
         notified: false,
       });
 
-      // 2. Criar perfil na Descoberta para quando lançar
       const discoverProfileRef = doc(db, 'discoverProfiles', currentUser.uid);
       const profileExists = await getDoc(discoverProfileRef);
 
       if (!profileExists.exists()) {
-        // Buscar informações completas do perfil do usuário
         const userDocRef = doc(db, 'users', currentUser.uid);
         const userDoc = await getDoc(userDocRef);
         
         const userData = userDoc.exists() ? userDoc.data() : {};
         
-        // Criar perfil completo na Descoberta
         await setDoc(discoverProfileRef, {
           userId: currentUser.uid,
           email: currentUser.email || '',
@@ -130,17 +122,16 @@ const Discover: React.FC = () => {
           bio: userProfile?.bio || userData.bio || '',
           interests: userProfile?.interests || userData.interests || [],
           registrationNumber: userProfile?.registrationNumber || userData.registrationNumber || '',
-          isActive: false, // Será ativado quando a funcionalidade for lançada
+          isActive: false,
           isVerified: userProfile?.isVerified || userData.isVerified || false,
           joinedWaitlistAt: serverTimestamp(),
           profileCreatedAt: serverTimestamp(),
           lastUpdated: serverTimestamp(),
-          // Campos específicos da Descoberta
           discoverSettings: {
             showInDiscover: true,
             ageRange: null,
-            maxDistance: 50, // km
-            lookingFor: [], // tipos de conexão
+            maxDistance: 50,
+            lookingFor: [],
           },
           stats: {
             views: 0,
@@ -152,7 +143,6 @@ const Discover: React.FC = () => {
 
         console.log('✅ Perfil criado na Descoberta para quando lançar');
       } else {
-        // Atualizar perfil existente
         await setDoc(discoverProfileRef, {
           joinedWaitlistAt: serverTimestamp(),
           lastUpdated: serverTimestamp(),
@@ -170,7 +160,6 @@ const Discover: React.FC = () => {
     }
   };
 
-  // Se já foi lançado, mostrar página de disponibilidade
   if (isLaunched) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white flex items-center justify-center px-4">
@@ -251,7 +240,7 @@ const Discover: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-white flex items-center justify-center px-4">
       <div className="text-center max-w-2xl mx-auto">
-        {/* Animação Divertida - Coração Pulsante com Efeitos */}
+        {}
         <div className="relative mb-8">
           <div 
             key={animationKey}
@@ -260,12 +249,12 @@ const Discover: React.FC = () => {
               animation: `pulse 2s ease-in-out infinite, bounce 2s ease-in-out infinite`,
             }}
           >
-            {/* Coração Principal */}
+            {}
             <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform duration-300">
               <Heart className="h-24 w-24 text-white animate-pulse" />
             </div>
             
-            {/* Partículas flutuantes */}
+            {}
             <Sparkles className="absolute top-0 left-1/4 h-8 w-8 text-yellow-400 animate-ping" style={{ animationDelay: '0s' }} />
             <Sparkles className="absolute top-1/4 right-0 h-6 w-6 text-pink-400 animate-ping" style={{ animationDelay: '0.5s' }} />
             <Sparkles className="absolute bottom-0 left-0 h-7 w-7 text-purple-400 animate-ping" style={{ animationDelay: '1s' }} />
@@ -273,7 +262,7 @@ const Discover: React.FC = () => {
           </div>
         </div>
 
-        {/* Título */}
+        {}
         <h1 className="text-5xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
           Descoberta está chegando! 🎉
         </h1>
@@ -282,7 +271,7 @@ const Discover: React.FC = () => {
           Estamos preparando algo incrível para você!
         </p>
 
-        {/* Contador Regressivo */}
+        {}
         <div className="mb-12">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Clock className="h-6 w-6 text-purple-600 animate-pulse" />
@@ -292,7 +281,7 @@ const Discover: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-4 gap-4 max-w-2xl mx-auto">
-            {/* Dias */}
+            {}
             <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-purple-200 transform hover:scale-105 transition-transform duration-300">
               <div className="text-4xl font-bold text-purple-600 mb-2">
                 {String(timeLeft.days).padStart(2, '0')}
@@ -302,7 +291,7 @@ const Discover: React.FC = () => {
               </div>
             </div>
 
-            {/* Horas */}
+            {}
             <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-pink-200 transform hover:scale-105 transition-transform duration-300">
               <div className="text-4xl font-bold text-pink-600 mb-2">
                 {String(timeLeft.hours).padStart(2, '0')}
@@ -312,7 +301,7 @@ const Discover: React.FC = () => {
               </div>
             </div>
 
-            {/* Minutos */}
+            {}
             <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-purple-200 transform hover:scale-105 transition-transform duration-300">
               <div className="text-4xl font-bold text-purple-600 mb-2">
                 {String(timeLeft.minutes).padStart(2, '0')}
@@ -322,7 +311,7 @@ const Discover: React.FC = () => {
               </div>
             </div>
 
-            {/* Segundos */}
+            {}
             <div className="bg-white rounded-2xl p-6 shadow-xl border-2 border-pink-200 transform hover:scale-105 transition-transform duration-300 animate-pulse">
               <div className="text-4xl font-bold text-pink-600 mb-2">
                 {String(timeLeft.seconds).padStart(2, '0')}
@@ -334,7 +323,7 @@ const Discover: React.FC = () => {
           </div>
         </div>
 
-        {/* Mensagem */}
+        {}
         <div className="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">
             {isInWaitlist ? 'Você está na lista de espera! 🎊' : 'Nenhum perfil disponível ainda'}
@@ -346,7 +335,7 @@ const Discover: React.FC = () => {
             }
           </p>
 
-          {/* Botão de Lista de Espera */}
+          {}
           <button
             onClick={handleJoinWaitlist}
             disabled={isInWaitlist || submitting || loading}
@@ -392,7 +381,7 @@ const Discover: React.FC = () => {
           )}
         </div>
 
-        {/* Informações Adicionais */}
+        {}
         <div className="bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 border border-purple-200">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
             O que você vai encontrar na Descoberta?
@@ -414,7 +403,7 @@ const Discover: React.FC = () => {
         </div>
       </div>
 
-      {/* CSS para animações */}
+      {}
       <style>{`
         @keyframes pulse {
           0%, 100% {

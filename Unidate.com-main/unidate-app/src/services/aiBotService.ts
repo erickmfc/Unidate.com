@@ -4,7 +4,6 @@ import { auth } from '../firebase/config';
 const GEMINI_API_KEY = 'AIzaSyB64td1KPT4Y-ENAhGzwusiChhpwQ_VY-Q';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
-// Credenciais do admin para autenticação (usar variáveis de ambiente em produção)
 const ADMIN_EMAIL = process.env.REACT_APP_ADMIN_EMAIL || 'admin@unidate.com';
 const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
 
@@ -25,7 +24,6 @@ export interface AIPost {
 }
 
 export class AIBotService {
-  // Perfil fixo do bot
   private static readonly BOT_PROFILE = {
     uid: 'ai-bot-unidate',
     name: 'UniDate AI',
@@ -35,13 +33,9 @@ export class AIBotService {
     university: 'UniDate'
   };
 
-  /**
-   * Garante que o admin está autenticado no Firebase Auth
-   * Necessário para que as regras do Firestore permitam criar posts
-   */
+  
   private static async ensureAdminAuthenticated(): Promise<void> {
     try {
-      // Verificar se já está autenticado
       if (auth?.currentUser) {
         console.log('✅ [AIBotService] Admin já autenticado:', auth.currentUser.uid);
         return;
@@ -52,26 +46,19 @@ export class AIBotService {
         return;
       }
 
-      // Autenticar admin no Firebase Auth
       console.log('🔐 [AIBotService] Autenticando admin no Firebase Auth...');
       try {
         await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
         console.log('✅ [AIBotService] Admin autenticado com sucesso');
       } catch (authError: any) {
-        // Se falhar, pode ser que o admin não exista no Firebase Auth
-        // Tentar criar ou usar outra estratégia
         console.warn('⚠️ [AIBotService] Erro ao autenticar admin:', authError.message);
-        // Não lançar erro - tentar criar post mesmo assim (pode funcionar se as regras permitirem)
       }
     } catch (error: any) {
       console.error('❌ [AIBotService] Erro ao verificar autenticação:', error);
-      // Não lançar erro - tentar criar post mesmo assim
     }
   }
 
-  /**
-   * Gera um post no estilo Twitter sobre vida universitária
-   */
+  
   static async generateAIPost(): Promise<string> {
     const prompts = [
       `Crie um tweet curto e relatable sobre vida universitária. O tweet deve:
@@ -133,7 +120,6 @@ Responda só o texto do tweet.`,
       
       let content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
-      // Se não houver conteúdo na resposta, tentar outros formatos
       if (!content) {
         content = data.candidates?.[0]?.text || 
                  data.text || 
@@ -141,17 +127,14 @@ Responda só o texto do tweet.`,
                  '';
       }
       
-      // Limpar o texto
       content = content.trim();
       content = content.replace(/^["']|["']$/g, '');
       content = content.replace(/\n/g, ' ');
       
-      // Limitar a 280 caracteres
       if (content.length > 280) {
         content = content.substring(0, 277) + '...';
       }
 
-      // Se estiver vazio, usar fallback
       if (!content || content.length < 10) {
         console.log('⚠️ [AIBotService] Conteúdo vazio, usando fallback');
         return this.getFallbackPost();
@@ -165,9 +148,7 @@ Responda só o texto do tweet.`,
     }
   }
 
-  /**
-   * Posts de fallback caso a API falhe
-   */
+  
   private static getFallbackPost(): string {
     const fallbackPosts = [
       'estudando com brilhos nos olhos (lágrimas)',
@@ -184,14 +165,11 @@ Responda só o texto do tweet.`,
     return fallbackPosts[Math.floor(Math.random() * fallbackPosts.length)];
   }
 
-  /**
-   * Cria um post do bot no Firebase
-   */
+  
   static async createAIPost(): Promise<string> {
     try {
       console.log('🤖 [AIBotService] Iniciando criação de post...');
       
-      // AUTENTICAR ADMIN ANTES DE CRIAR POST
       await this.ensureAdminAuthenticated();
       
       const content = await this.generateAIPost();
@@ -201,7 +179,6 @@ Responda só o texto do tweet.`,
         throw new Error('Conteúdo do post está vazio');
       }
       
-      // Usar PostsService para criar o post no formato correto
       const { PostsService } = await import('./postsService');
       
       const postData = {
@@ -224,7 +201,6 @@ Responda só o texto do tweet.`,
       
       const postId = await PostsService.createPost(postData);
       
-      // Validação: verificar se o post foi criado
       if (!postId || postId.trim().length === 0) {
         throw new Error('Post não foi criado: postId vazio ou inválido');
       }
@@ -238,20 +214,15 @@ Responda só o texto do tweet.`,
     }
   }
 
-  /**
-   * Extrai hashtags do conteúdo (opcional)
-   */
+  
   private static extractHashtags(content: string): string[] {
     const hashtagRegex = /#(\w+)/g;
     const matches = content.match(hashtagRegex);
     return matches ? matches.map(tag => tag.substring(1)) : [];
   }
 
-  /**
-   * Retorna o perfil do bot
-   */
+  
   static getBotProfile() {
     return this.BOT_PROFILE;
   }
 }
-

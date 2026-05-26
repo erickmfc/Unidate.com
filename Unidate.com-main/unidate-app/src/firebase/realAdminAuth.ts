@@ -41,7 +41,6 @@ export interface AdminSession {
   twoFactorVerified: boolean;
 }
 
-// Função para criar um novo administrador
 export const createAdminUser = async (
   email: string, 
   password: string, 
@@ -49,11 +48,9 @@ export const createAdminUser = async (
   role: 'super-admin' | 'moderator'
 ): Promise<AdminUser> => {
   try {
-    // Criar usuário no Firebase Auth
     const userCredential = await createUserWithEmailAndPassword(auth!, email, password);
     const user = userCredential.user;
 
-    // Definir permissões baseadas no role
     const permissions = {
       'super-admin': {
         canManageUsers: true,
@@ -71,7 +68,6 @@ export const createAdminUser = async (
       }
     };
 
-    // Criar documento do admin no Firestore
     const adminData: AdminUser = {
       uid: user.uid,
       email: user.email!,
@@ -85,7 +81,6 @@ export const createAdminUser = async (
 
     await setDoc(doc(db!, 'admins', user.uid), adminData);
 
-    // Atualizar perfil do usuário
     await updateProfile(user, { displayName });
 
     return adminData;
@@ -95,13 +90,11 @@ export const createAdminUser = async (
   }
 };
 
-// Função para fazer login de administrador
 export const loginAdmin = async (email: string, password: string): Promise<AdminSession> => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth!, email, password);
     const user = userCredential.user;
 
-    // Buscar dados do admin no Firestore
     const adminDoc = await getDoc(doc(db!, 'admins', user.uid));
     
     if (!adminDoc.exists()) {
@@ -114,7 +107,6 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
       throw new Error('Conta de administrador desativada');
     }
 
-    // Atualizar último login
     await updateDoc(doc(db!, 'admins', user.uid), {
       lastLogin: new Date()
     });
@@ -131,14 +123,10 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
   }
 };
 
-// Função para verificar 2FA (simulada - em produção usar biblioteca real)
 export const verifyTwoFactor = async (secret: string, token: string): Promise<boolean> => {
-  // Em produção, usar biblioteca como 'speakeasy' ou similar
-  // Por agora, simular verificação
-  return token === '123456'; // Token de teste
+  return token === '123456';
 };
 
-// Função para habilitar 2FA
 export const enableTwoFactor = async (uid: string, secret: string): Promise<void> => {
   try {
     await updateDoc(doc(db!, 'admins', uid), {
@@ -151,7 +139,6 @@ export const enableTwoFactor = async (uid: string, secret: string): Promise<void
   }
 };
 
-// Função para fazer logout
 export const logoutAdmin = async (): Promise<void> => {
   try {
     await signOut(auth!);
@@ -161,7 +148,6 @@ export const logoutAdmin = async (): Promise<void> => {
   }
 };
 
-// Função para buscar todos os administradores
 export const getAllAdmins = async (): Promise<AdminUser[]> => {
   try {
     const adminsQuery = query(collection(db!, 'admins'));
@@ -174,7 +160,6 @@ export const getAllAdmins = async (): Promise<AdminUser[]> => {
   }
 };
 
-// Função para atualizar permissões de um admin
 export const updateAdminPermissions = async (
   uid: string, 
   permissions: Partial<AdminUser['permissions']>
@@ -189,7 +174,6 @@ export const updateAdminPermissions = async (
   }
 };
 
-// Função para desativar/ativar admin
 export const toggleAdminStatus = async (uid: string, isActive: boolean): Promise<void> => {
   try {
     await updateDoc(doc(db!, 'admins', uid), {

@@ -53,7 +53,6 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
         status: profile.status
       });
     } else {
-      // Reset form
       setFormData({
         name: '',
         handle: '',
@@ -122,7 +121,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Informações Básicas */}
+            {}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -219,7 +218,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
               />
             </div>
 
-            {/* Avatar */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Avatar URL
@@ -252,7 +251,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
               )}
             </div>
 
-            {/* Personalidade e Estilo */}
+            {}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -288,7 +287,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
               </div>
             </div>
 
-            {/* Interesses */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Interesses
@@ -334,7 +333,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
               </div>
             </div>
 
-            {/* Frequência de Postagem */}
+            {}
             <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -377,7 +376,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
               )}
             </div>
 
-            {/* Status */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Status
@@ -393,7 +392,7 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
               </select>
             </div>
 
-            {/* Botões */}
+            {}
             <div className="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
               <button
                 type="button"
@@ -417,4 +416,3 @@ const BotProfileModal: React.FC<BotProfileModalProps> = ({
 };
 
 export default BotProfileModal;
-

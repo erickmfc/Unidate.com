@@ -30,11 +30,9 @@ const PostComments: React.FC<PostCommentsProps> = ({
   const [unsubscribeComments, setUnsubscribeComments] = useState<(() => void) | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sincronizar com initialComments quando mudarem
   useEffect(() => {
     if (initialComments.length > 0 && !loading) {
       setComments(prev => {
-        // Mesclar comentários existentes com novos, evitando duplicatas
         const existingIds = new Set(prev.map(c => c.id));
         const newComments = initialComments.filter(c => !existingIds.has(c.id));
         return [...prev, ...newComments];
@@ -47,8 +45,6 @@ const PostComments: React.FC<PostCommentsProps> = ({
       setLoading(true);
       console.log('🔄 [POSTCOMMENTS] Carregando todos os comentários para post:', postId);
       
-      // Não limpar comentários existentes enquanto carrega
-      // Manter os comentários iniciais visíveis
       
       const unsubscribe = CommentsService.loadPostComments(
         postId,
@@ -60,7 +56,6 @@ const PostComments: React.FC<PostCommentsProps> = ({
         (error) => {
           console.error('❌ [POSTCOMMENTS] Erro ao carregar comentários:', error);
           setLoading(false);
-          // Manter comentários existentes em caso de erro
         }
       );
       
@@ -70,14 +65,13 @@ const PostComments: React.FC<PostCommentsProps> = ({
         unsubscribe();
       };
     } else if (!isOpen) {
-      // Limpar listener quando fechar
       if (unsubscribeComments) {
         console.log('🔄 [POSTCOMMENTS] Fechando comentários, parando listener...');
         unsubscribeComments();
         setUnsubscribeComments(null);
       }
     }
-  }, [isOpen, postId]); // Removido unsubscribeComments das dependências para evitar loops
+  }, [isOpen, postId]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -93,7 +87,6 @@ const PostComments: React.FC<PostCommentsProps> = ({
     const commentContent = newComment.trim();
     const tempId = `temp-${Date.now()}`;
     
-    // Optimistic update - adicionar comentário localmente imediatamente
     const optimisticComment: Comment = {
       id: tempId,
       postId,
@@ -101,13 +94,12 @@ const PostComments: React.FC<PostCommentsProps> = ({
       userName: currentUser.displayName || 'Você',
       userAvatar: currentUser.photoURL || '/api/placeholder/40/40',
       content: commentContent,
-      timestamp: new Date() as any, // Timestamp temporário
+      timestamp: new Date() as any,
       likes: 0,
       likedBy: [],
       edited: false
     };
 
-    // Adicionar comentário otimisticamente
     setComments(prev => [...prev, optimisticComment]);
     setNewComment('');
     setSending(true);
@@ -117,10 +109,8 @@ const PostComments: React.FC<PostCommentsProps> = ({
       await onAddComment(postId, commentContent);
       console.log('✅ [POSTCOMMENTS] Comentário enviado com sucesso');
       
-      // Aguardar um pouco para o listener atualizar
       await new Promise(resolve => setTimeout(resolve, 300));
       
-      // Remover comentário temporário (o listener já deve ter atualizado com o real)
       setComments(prev => prev.filter(c => c.id !== tempId));
       
       showSuccess('Comentário adicionado! 💬');
@@ -128,9 +118,8 @@ const PostComments: React.FC<PostCommentsProps> = ({
       console.error('❌ [POSTCOMMENTS] Erro ao adicionar comentário:', error);
       console.error('❌ [POSTCOMMENTS] Detalhes:', error.message);
       
-      // Reverter optimistic update em caso de erro
       setComments(prev => prev.filter(c => c.id !== tempId));
-      setNewComment(commentContent); // Restaurar texto do comentário
+      setNewComment(commentContent);
       
       const errorMessage = error.message || 'Ops! Não conseguimos adicionar seu comentário. Tente novamente.';
       showError(errorMessage);

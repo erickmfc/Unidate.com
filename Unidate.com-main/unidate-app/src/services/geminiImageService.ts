@@ -1,4 +1,3 @@
-// Múltiplas chaves da API para rotação
 const GEMINI_API_KEYS = [
   'AIzaSyDdymzukUt6h9-QsrPgHjwPmQCfneNAUGA',
   'AIzaSyDRfqv4mH5N5MvbrWogMOWJzN1IOL7vq8g',
@@ -21,18 +20,13 @@ export interface GeneratedImage {
 }
 
 export class GeminiImageService {
-  /**
-   * Gera uma imagem específica sobre o tema usando o Gemini
-   */
+  
   static async generateImage(prompt: string, theme: string, sectionType: string): Promise<GeneratedImage> {
     try {
-      // Criar prompt específico e detalhado sobre o tema
       const specificPrompt = await this.createThemeSpecificPrompt(theme, prompt, sectionType);
       
-      // Gerar descrição visual detalhada do tema
       const visualDescription = await this.generateVisualDescription(theme, sectionType);
       
-      // Gerar imagem SVG temática específica baseada no tema
       return await this.generateThemeSpecificImage(theme, visualDescription, sectionType, specificPrompt);
     } catch (error) {
       console.error('Erro ao gerar imagem:', error);
@@ -40,9 +34,7 @@ export class GeminiImageService {
     }
   }
 
-  /**
-   * Cria prompt específico sobre o tema
-   */
+  
   private static async createThemeSpecificPrompt(
     theme: string, 
     originalPrompt: string, 
@@ -58,7 +50,6 @@ export class GeminiImageService {
 
     const context = sectionContext[sectionType as keyof typeof sectionContext] || 'imagem representando';
 
-    // Buscar informações reais sobre o tema primeiro
     const realInfoPrompt = `Pesquise na internet informações REAIS e ESPECÍFICAS sobre "${theme}".
     
 Se "${theme}" é uma pessoa:
@@ -160,9 +151,7 @@ Responda APENAS com a descrição visual detalhada, sem explicações.`;
     return originalPrompt;
   }
 
-  /**
-   * Gera descrição visual detalhada do tema
-   */
+  
   private static async generateVisualDescription(theme: string, sectionType: string): Promise<{
     mainElements: string[];
     colors: string[];
@@ -233,13 +222,10 @@ Responda APENAS em JSON:
       console.error('Erro ao gerar descrição visual:', error);
     }
 
-    // Fallback baseado no tema
     return this.getDefaultVisualDescription(theme, sectionType);
   }
 
-  /**
-   * Gera imagem SVG específica do tema
-   */
+  
   private static async generateThemeSpecificImage(
     theme: string,
     visualDescription: any,
@@ -248,13 +234,10 @@ Responda APENAS em JSON:
   ): Promise<GeneratedImage> {
     const [bgColor, textColor, accentColor] = visualDescription.colors;
     
-    // Criar elementos SVG baseados nos elementos principais do tema
     const elements = this.createThemeElements(visualDescription.mainElements, visualDescription.symbols, textColor, accentColor);
     
-    // Criar padrão baseado no estilo
     const pattern = this.createStylePattern(visualDescription.style, accentColor);
     
-    // Criar composição baseada na descrição
     const composition = this.createComposition(visualDescription.composition, elements);
     
     const svg = `
@@ -272,15 +255,15 @@ Responda APENAS em JSON:
           ${pattern}
         </defs>
         
-        <!-- Background -->
+        
         <rect width="1200" height="800" fill="url(#bgGrad)"/>
         <rect width="1200" height="800" fill="url(#stylePattern)"/>
         <ellipse cx="600" cy="400" rx="500" ry="400" fill="url(#glowGrad)"/>
         
-        <!-- Elementos específicos do tema -->
+        
         ${composition}
         
-        <!-- Título do tema -->
+        
         <text x="600" y="650" font-family="Georgia, serif" font-size="48" fill="${textColor}" text-anchor="middle" font-weight="bold" opacity="0.95">
           ${theme.toUpperCase()}
         </text>
@@ -299,9 +282,7 @@ Responda APENAS em JSON:
     };
   }
 
-  /**
-   * Cria elementos SVG baseados nos elementos do tema
-   */
+  
   private static createThemeElements(
     mainElements: string[],
     symbols: string[],
@@ -310,12 +291,10 @@ Responda APENAS em JSON:
   ): string {
     let elements = '';
     
-    // Criar representações visuais dos elementos
     mainElements.forEach((element, index) => {
       const x = 200 + (index * 200);
       const y = 200 + (index % 2) * 150;
       
-      // Detectar tipo de elemento e criar representação apropriada
       const elementLower = element.toLowerCase();
       
       if (elementLower.includes('livro') || elementLower.includes('biblioteca') || elementLower.includes('texto')) {
@@ -346,7 +325,6 @@ Responda APENAS em JSON:
           <polygon points="${x + 60},${y + 30} ${x + 80},${y + 50} ${x + 60},${y + 70} ${x + 40},${y + 50}" fill="none" stroke="${accentColor}" stroke-width="3" opacity="0.5"/>
         `;
       } else {
-        // Elemento genérico
         elements += `
           <rect x="${x}" y="${y}" width="120" height="120" fill="none" stroke="${textColor}" stroke-width="4" opacity="0.6" rx="10"/>
           <circle cx="${x + 60}" cy="${y + 60}" r="30" fill="none" stroke="${accentColor}" stroke-width="3" opacity="0.5"/>
@@ -354,7 +332,6 @@ Responda APENAS em JSON:
       }
     });
     
-    // Adicionar símbolos
     symbols.forEach((symbol, index) => {
       const x = 900 + (index % 2) * 150;
       const y = 300 + Math.floor(index / 2) * 100;
@@ -380,9 +357,7 @@ Responda APENAS em JSON:
     return elements;
   }
 
-  /**
-   * Cria padrão baseado no estilo
-   */
+  
   private static createStylePattern(style: string, accentColor: string): string {
     if (style === 'vintage' || style === 'antigo' || style === 'histórico') {
       return `
@@ -408,12 +383,8 @@ Responda APENAS em JSON:
     }
   }
 
-  /**
-   * Cria composição baseada na descrição
-   */
+  
   private static createComposition(composition: string, elements: string): string {
-    // Por enquanto, retornar elementos centralizados
-    // Pode ser expandido para diferentes composições
     return `
       <g transform="translate(0, 0)">
         ${elements}
@@ -421,9 +392,7 @@ Responda APENAS em JSON:
     `;
   }
 
-  /**
-   * Descrição visual padrão baseada no tema
-   */
+  
   private static getDefaultVisualDescription(theme: string, sectionType: string): {
     mainElements: string[];
     colors: string[];
@@ -433,7 +402,6 @@ Responda APENAS em JSON:
   } {
     const themeLower = theme.toLowerCase();
     
-    // Detectar tipo de tema
     const isPerson = themeLower.includes('rei') || themeLower.includes('pelé') || 
                      themeLower.includes('presidente') || themeLower.includes('artista') ||
                      themeLower.includes('escritor') || themeLower.includes('cientista') ||
@@ -481,9 +449,7 @@ Responda APENAS em JSON:
     };
   }
 
-  /**
-   * Label da seção
-   */
+  
   private static getSectionLabel(sectionType: string): string {
     const labels: Record<string, string> = {
       'hero': 'Introdução',
@@ -495,9 +461,7 @@ Responda APENAS em JSON:
     return labels[sectionType] || 'Exploração';
   }
 
-  /**
-   * Gera imagem simples do tema como último fallback
-   */
+  
   private static generateSimpleThemeImage(theme: string, sectionType: string): GeneratedImage {
     const shortTheme = theme.substring(0, 40);
     const svg = `
@@ -517,9 +481,7 @@ Responda APENAS em JSON:
     };
   }
 
-  /**
-   * Gera múltiplas imagens específicas do tema
-   */
+  
   static async generateMultipleImages(
     prompts: string[], 
     theme: string,

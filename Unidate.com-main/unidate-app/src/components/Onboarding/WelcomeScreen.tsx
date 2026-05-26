@@ -23,14 +23,14 @@ const WelcomeScreen: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex flex-col">
-      {/* Header */}
+      {}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
-          {/* Logo */}
+          {}
           <div className="mb-12">
           </div>
 
-          {/* Main Message */}
+          {}
           <div className="mb-12">
             <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
               Sua faculdade,{' '}
@@ -42,7 +42,7 @@ const WelcomeScreen: React.FC = () => {
             </p>
           </div>
 
-          {/* Features */}
+          {}
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             {features.map((feature, index) => (
               <div key={index} className="text-center">
@@ -55,7 +55,7 @@ const WelcomeScreen: React.FC = () => {
             ))}
           </div>
 
-          {/* CTA Buttons */}
+          {}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               to="/register"
@@ -72,7 +72,7 @@ const WelcomeScreen: React.FC = () => {
             </Link>
           </div>
 
-          {/* Fun Message */}
+          {}
           <div className="mt-12 p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200 max-w-2xl mx-auto">
             <p className="text-gray-700 italic">
               "Não somos mais um aplicativo de relacionamento. Somos o mural de avisos, 
@@ -85,7 +85,7 @@ const WelcomeScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer Message */}
+      {}
       <div className="text-center py-8 px-4">
         <p className="text-gray-500 text-sm">
           Feito por estudantes, para estudantes • Transformando conexões perdidas em histórias vividas
@@ -96,4 +96,3 @@ const WelcomeScreen: React.FC = () => {
 };
 
 export default WelcomeScreen;
-

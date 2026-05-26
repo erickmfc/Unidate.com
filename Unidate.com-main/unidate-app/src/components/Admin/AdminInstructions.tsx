@@ -37,7 +37,7 @@ const AdminInstructions: React.FC = () => {
         </p>
       </div>
 
-      {/* URL de Acesso */}
+      {}
       <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
         <h2 className="text-xl font-semibold text-blue-900 mb-3 flex items-center">
           <ExternalLink className="h-5 w-5 mr-2" />
@@ -56,7 +56,7 @@ const AdminInstructions: React.FC = () => {
         </div>
       </div>
 
-      {/* Credenciais */}
+      {}
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-red-900 flex items-center">
@@ -74,7 +74,7 @@ const AdminInstructions: React.FC = () => {
 
         {showCredentials && (
           <div className="space-y-4">
-            {/* E-mail */}
+            {}
             <div>
               <label className="block text-sm font-medium text-red-800 mb-2">
                 E-mail de Administrador
@@ -92,7 +92,7 @@ const AdminInstructions: React.FC = () => {
               </div>
             </div>
 
-            {/* Senha */}
+            {}
             <div>
               <label className="block text-sm font-medium text-red-800 mb-2">
                 Senha de Administrador
@@ -110,7 +110,7 @@ const AdminInstructions: React.FC = () => {
               </div>
             </div>
 
-            {/* 2FA */}
+            {}
             <div>
               <label className="block text-sm font-medium text-red-800 mb-2">
                 Código 2FA (se solicitado)
@@ -131,7 +131,7 @@ const AdminInstructions: React.FC = () => {
         )}
       </div>
 
-      {/* Passo a Passo */}
+      {}
       <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
         <h2 className="text-xl font-semibold text-green-900 mb-4">
           📋 Passo a Passo
@@ -160,7 +160,7 @@ const AdminInstructions: React.FC = () => {
         </ol>
       </div>
 
-      {/* Funcionalidades */}
+      {}
       <div className="bg-purple-50 border border-purple-200 rounded-xl p-6">
         <h2 className="text-xl font-semibold text-purple-900 mb-4">
           🚀 Funcionalidades Disponíveis
@@ -185,7 +185,7 @@ const AdminInstructions: React.FC = () => {
         </div>
       </div>
 
-      {/* Aviso de Segurança */}
+      {}
       <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-xl p-4">
         <div className="flex items-center space-x-2">
           <Shield className="h-5 w-5 text-yellow-600" />

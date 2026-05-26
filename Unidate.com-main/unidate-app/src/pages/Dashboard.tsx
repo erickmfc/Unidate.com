@@ -4,10 +4,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useUniDateToast } from '../components/UI/Toast';
 import { DashboardService, UserStats, RecentActivity } from '../services/dashboardService';
 import { updateUserProfile } from '../firebase/auth';
-import { 
-  Heart, 
-  Users, 
-  Newspaper, 
+import {
+  Heart,
+  Users,
+  Newspaper,
   MessageCircle,
   Calendar,
   Bell,
@@ -25,7 +25,6 @@ import {
   Upload
 } from 'lucide-react';
 
-// Constantes movidas para fora do componente
 const QUICK_ACTIONS = [
   {
     title: 'Descobrir Pessoas',
@@ -70,7 +69,6 @@ const MOTIVATIONAL_MESSAGES = [
   'Vamos criar conexões incríveis!'
 ] as const;
 
-// Componente para card de estatística
 const StatCard: React.FC<{
   label: string;
   value: number;
@@ -91,7 +89,6 @@ const StatCard: React.FC<{
   </div>
 );
 
-// Componente para status card
 const StatusCard: React.FC<{
   icon: React.ComponentType<{ className?: string }>;
   title: string;
@@ -110,7 +107,7 @@ const StatusCard: React.FC<{
 const Dashboard: React.FC = () => {
   const { userProfile, currentUser } = useAuth();
   const { showWelcome } = useUniDateToast();
-  
+
   const [stats, setStats] = useState<UserStats>({
     matches: 0,
     posts: 0,
@@ -122,8 +119,7 @@ const Dashboard: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
   const [upcomingEvents, setUpcomingEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
-  // Estados para edição de perfil
+
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     displayName: userProfile?.displayName || '',
@@ -137,7 +133,6 @@ const Dashboard: React.FC = () => {
   const [newInterest, setNewInterest] = useState('');
   const [saving, setSaving] = useState(false);
 
-  // Atualizar formData quando userProfile mudar
   useEffect(() => {
     if (userProfile) {
       setFormData({
@@ -152,11 +147,10 @@ const Dashboard: React.FC = () => {
     }
   }, [userProfile]);
 
-  // Memoizar saudação para evitar recálculo desnecessário
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
     const userName = userProfile?.displayName || 'Usuário';
-    
+
     const timeGreeting = hour < 12 ? 'Bom dia' : hour < 18 ? 'Boa tarde' : 'Boa noite';
     const randomMessage = MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)];
 
@@ -166,10 +160,9 @@ const Dashboard: React.FC = () => {
     };
   }, [userProfile?.displayName]);
 
-  // Callback para carregar dados
   const loadDashboardData = useCallback(async () => {
     if (!currentUser?.uid) return;
-    
+
     try {
       setLoading(true);
       console.log('🔄 Carregando dados do dashboard...');
@@ -192,12 +185,10 @@ const Dashboard: React.FC = () => {
     }
   }, [currentUser?.uid]);
 
-  // Carregar dados quando o usuário mudar
   useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
 
-  // Mostrar saudação de boas-vindas
   useEffect(() => {
     if (userProfile?.displayName && !loading) {
       const hasShownWelcome = sessionStorage.getItem('dashboard-welcome-shown');
@@ -208,7 +199,6 @@ const Dashboard: React.FC = () => {
     }
   }, [userProfile?.displayName, loading, showWelcome]);
 
-  // Handlers para edição de perfil
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -249,7 +239,7 @@ const Dashboard: React.FC = () => {
 
   const handleSave = async () => {
     if (!currentUser?.uid) return;
-    
+
     setSaving(true);
     try {
       await updateUserProfile(currentUser.uid, {
@@ -262,7 +252,6 @@ const Dashboard: React.FC = () => {
         photoURL: formData.photoURL
       });
       setIsEditing(false);
-      // Recarregar dados do dashboard
       await loadDashboardData();
     } catch (error) {
       console.error('Erro ao salvar perfil:', error);
@@ -298,7 +287,8 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Card Principal com Saudação e Status */}
+
+        {/* Greeting Section */}
         <div className="mb-8">
           <div className="bg-white rounded-3xl p-8 shadow-lg border border-gray-100">
             <div className="mb-6">
@@ -309,8 +299,8 @@ const Dashboard: React.FC = () => {
                 {greeting.message}
               </p>
             </div>
-            
-            {/* Cards de Status */}
+
+            {/* Status Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <StatusCard
                 icon={Users}
@@ -334,7 +324,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Cards de Estatísticas */}
+        {/* Stat Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard
             label="Sintonias"
@@ -362,14 +352,17 @@ const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Layout Principal: Ações Rápidas (esquerda) e Atividade/Eventos (direita) */}
+        {/* Main 3-col Grid */}
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Coluna Esquerda - Ações Rápidas e Perfil */}
+
+          {/* Left 2-col: Quick Actions + Profile */}
           <div className="lg:col-span-2 space-y-8">
+
+            {/* Quick Actions */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Ações Rápidas</h2>
               <div className="grid md:grid-cols-2 gap-6">
-                {QUICK_ACTIONS.map((action, index) => (
+                {QUICK_ACTIONS.map((action) => (
                   <Link
                     key={action.href}
                     to={action.href}
@@ -393,7 +386,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Seção de Perfil com Edição Integrada */}
+            {/* Profile Card */}
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Meu Perfil</h2>
@@ -426,14 +419,15 @@ const Dashboard: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
+              {/* Photo + Name + Bio */}
               <div className="flex items-start space-x-6 mb-6">
                 <div className="relative">
                   <div className="w-24 h-24 bg-gradient-to-r from-indigo-500 to-pink-500 rounded-2xl flex items-center justify-center overflow-hidden">
                     {formData.photoURL ? (
-                      <img 
-                        src={formData.photoURL} 
-                        alt="Foto de perfil" 
+                      <img
+                        src={formData.photoURL}
+                        alt="Foto de perfil"
                         className="w-full h-full object-cover rounded-2xl"
                       />
                     ) : (
@@ -454,7 +448,6 @@ const Dashboard: React.FC = () => {
                     </label>
                   )}
                 </div>
-                
                 <div className="flex-1">
                   {isEditing ? (
                     <input
@@ -462,137 +455,134 @@ const Dashboard: React.FC = () => {
                       name="displayName"
                       value={formData.displayName}
                       onChange={handleInputChange}
-                      className="text-2xl font-bold text-gray-900 bg-transparent border-b-2 border-primary-500 focus:outline-none w-full mb-4"
+                      className="text-2xl font-bold text-gray-900 w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 mb-2"
                       placeholder="Seu nome"
                     />
                   ) : (
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
                       {formData.displayName || 'Usuário'}
                     </h3>
                   )}
-                  
                   {isEditing ? (
                     <textarea
                       name="bio"
                       value={formData.bio}
-                      onChange={handleInputChange}
-                      placeholder="Conte um pouco sobre você..."
-                      className="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 resize-none mb-4"
+                      onChange={handleInputChange as any}
                       rows={3}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm text-gray-600 resize-none"
+                      placeholder="Fale um pouco sobre você..."
                     />
                   ) : (
-                    <p className="text-gray-600 mb-4">
-                      {formData.bio || 'Nenhuma biografia adicionada ainda.'}
-                    </p>
+                    <p className="text-gray-600 text-sm">{formData.bio || 'Sem biografia ainda.'}</p>
                   )}
-                  
-                  {/* Interesses */}
-                  <div className="mb-4">
-                    {isEditing && (
-                      <div className="flex space-x-2 mb-3">
-                        <input
-                          type="text"
-                          value={newInterest}
-                          onChange={(e) => setNewInterest(e.target.value)}
-                          placeholder="Adicionar interesse..."
-                          className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
-                          onKeyPress={(e) => e.key === 'Enter' && handleAddInterest()}
-                        />
+                </div>
+              </div>
+
+              {/* Interests */}
+              <div className="mb-4">
+                {isEditing && (
+                  <div className="flex space-x-2 mb-3">
+                    <input
+                      type="text"
+                      value={newInterest}
+                      onChange={(e) => setNewInterest(e.target.value)}
+                      placeholder="Adicionar interesse..."
+                      className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
+                      onKeyPress={(e) => e.key === 'Enter' && handleAddInterest()}
+                    />
+                    <button
+                      onClick={handleAddInterest}
+                      className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200 text-sm"
+                    >
+                      Adicionar
+                    </button>
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {formData.interests.map((interest, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center space-x-2 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm"
+                    >
+                      <span>#{interest}</span>
+                      {isEditing && (
                         <button
-                          onClick={handleAddInterest}
-                          className="px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200 text-sm"
+                          onClick={() => handleRemoveInterest(interest)}
+                          className="hover:text-primary-900"
                         >
-                          Adicionar
+                          <X className="h-3 w-3" />
                         </button>
-                      </div>
-                    )}
-                    <div className="flex flex-wrap gap-2">
-                      {formData.interests.map((interest, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center space-x-2 px-3 py-1 bg-primary-100 text-primary-700 rounded-full text-sm"
-                        >
-                          <span>#{interest}</span>
-                          {isEditing && (
-                            <button
-                              onClick={() => handleRemoveInterest(interest)}
-                              className="hover:text-primary-900"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          )}
-                        </span>
-                      ))}
-                      {formData.interests.length === 0 && (
-                        <p className="text-gray-500 italic text-sm">Nenhum interesse adicionado ainda.</p>
                       )}
-                    </div>
+                    </span>
+                  ))}
+                  {formData.interests.length === 0 && (
+                    <p className="text-gray-500 italic text-sm">Nenhum interesse adicionado ainda.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* University / Course / Year */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <div className="flex items-center space-x-2 text-gray-600 mb-1">
+                    <Building className="h-4 w-4" />
+                    <span className="font-medium">Universidade</span>
                   </div>
-                  
-                  {/* Informações Acadêmicas */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                        <Building className="h-4 w-4" />
-                        <span className="font-medium">Universidade</span>
-                      </div>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="university"
-                          value={formData.university}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
-                          placeholder="Sua universidade"
-                        />
-                      ) : (
-                        <p className="text-gray-600">{formData.university || 'Não informado'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                        <BookOpen className="h-4 w-4" />
-                        <span className="font-medium">Curso</span>
-                      </div>
-                      {isEditing ? (
-                        <input
-                          type="text"
-                          name="course"
-                          value={formData.course}
-                          onChange={handleInputChange}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
-                          placeholder="Seu curso"
-                        />
-                      ) : (
-                        <p className="text-gray-600">{formData.course || 'Não informado'}</p>
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center space-x-2 text-gray-600 mb-1">
-                        <Calendar className="h-4 w-4" />
-                        <span className="font-medium">Ano de Ingresso</span>
-                      </div>
-                      {isEditing ? (
-                        <input
-                          type="number"
-                          name="year"
-                          value={formData.year}
-                          onChange={handleInputChange}
-                          min="2020"
-                          max={new Date().getFullYear()}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
-                        />
-                      ) : (
-                        <p className="text-gray-600">{formData.year || 'Não informado'}</p>
-                      )}
-                    </div>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="university"
+                      value={formData.university}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
+                      placeholder="Sua universidade"
+                    />
+                  ) : (
+                    <p className="text-gray-600">{formData.university || 'Não informado'}</p>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2 text-gray-600 mb-1">
+                    <BookOpen className="h-4 w-4" />
+                    <span className="font-medium">Curso</span>
                   </div>
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      name="course"
+                      value={formData.course}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
+                      placeholder="Seu curso"
+                    />
+                  ) : (
+                    <p className="text-gray-600">{formData.course || 'Não informado'}</p>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center space-x-2 text-gray-600 mb-1">
+                    <GraduationCap className="h-4 w-4" />
+                    <span className="font-medium">Ano de Ingresso</span>
+                  </div>
+                  {isEditing ? (
+                    <input
+                      type="number"
+                      name="year"
+                      value={formData.year}
+                      onChange={handleInputChange}
+                      min="2020"
+                      max={new Date().getFullYear()}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all duration-200 text-sm"
+                    />
+                  ) : (
+                    <p className="text-gray-600">{formData.year || 'Não informado'}</p>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Coluna Direita - Atividade Recente e Próximos Eventos */}
+          {/* Right col: Recent Activity + Upcoming Events */}
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Atividade Recente</h2>
             <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100 mb-8">
@@ -600,7 +590,7 @@ const Dashboard: React.FC = () => {
                 <div className="space-y-4">
                   {recentActivity.map((activity) => (
                     <div key={activity.id} className="flex items-start space-x-3 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                      <div className={`p-2 rounded-lg bg-gray-100`}>
+                      <div className="p-2 rounded-lg bg-gray-100">
                         <span className="text-lg">{activity.icon}</span>
                       </div>
                       <div className="flex-1">
@@ -621,6 +611,7 @@ const Dashboard: React.FC = () => {
               )}
             </div>
 
+            {/* Upcoming Events */}
             <div>
               <h3 className="text-xl font-bold text-gray-900 mb-4">Próximos Eventos</h3>
               <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
@@ -648,6 +639,7 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>

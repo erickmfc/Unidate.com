@@ -23,7 +23,6 @@ import {
   LucideIcon
 } from 'lucide-react';
 
-// Tipo para links de navegação
 interface NavLink {
   name: string;
   href: string;
@@ -42,7 +41,6 @@ const Navbar: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Carregar itens já clicados do localStorage
   useEffect(() => {
     if (currentUser?.uid) {
       const stored = localStorage.getItem(`navbar_clicked_${currentUser.uid}`);
@@ -56,12 +54,10 @@ const Navbar: React.FC = () => {
     }
   }, [currentUser?.uid]);
 
-  // Função para verificar se um item já foi clicado
   const hasBeenClicked = (href: string): boolean => {
     return clickedItems.has(href);
   };
 
-  // Função para marcar um item como clicado
   const markAsClicked = (href: string) => {
     if (!currentUser?.uid) return;
     
@@ -69,7 +65,6 @@ const Navbar: React.FC = () => {
     newClickedItems.add(href);
     setClickedItems(newClickedItems);
     
-    // Salvar no localStorage
     localStorage.setItem(
       `navbar_clicked_${currentUser.uid}`,
       JSON.stringify(Array.from(newClickedItems))
@@ -100,50 +95,32 @@ const Navbar: React.FC = () => {
   }, [isUserMenuOpen]);
 
 
-  // Função para detectar se uma rota está ativa
   const isActiveRoute = (path: string) => {
     return location.pathname === path;
   };
 
-  // Menu para usuários não autenticados
   const publicNavLinks: NavLink[] = [
     { name: 'Início', href: '/', icon: null },
     { name: 'Sobre', href: '/about', icon: null },
     { name: 'Recursos', href: '/features', icon: null },
   ];
 
-  // Verificar se está na página de materiais
-  const isMaterialsPage = location.pathname === '/materials';
+  const isMaterialsPage = false;
 
-  // Menu para usuários autenticados - normal
   const authenticatedNavLinks: NavLink[] = [
     { name: 'Descoberta', href: '/discover', icon: Heart },
     { name: 'UniVerso', href: '/feed', icon: Newspaper, isHighlighted: true },
-    { name: 'Materiais', href: '/materials', icon: BookOpen, isNew: true },
     { name: 'Grupos', href: '/groups', icon: Users },
     { name: 'Bate-papo', href: '/chat', icon: MessageCircle },
     { name: 'Eventos', href: '/events', icon: Calendar, isNew: true },
     { name: 'Guia do Campus', href: '/campus-guide', icon: MapPin, isNew: true },
   ];
 
-  // Menu customizado para página de materiais
-  const materialsNavLinks: NavLink[] = [
-    { name: 'Descoberta', href: '/discover', icon: Heart },
-    { name: 'UniVerso', href: '/feed', icon: Newspaper },
-    { name: 'Práticas', href: '/materials', icon: BookOpen, isActive: true },
-    { name: 'Teoria', href: '/materials', icon: BookOpen },
-    { name: 'Especialistas', href: '/experts', icon: Users },
-  ];
+  const navLinks = authenticatedNavLinks;
 
-  // Usar menu de materiais se estiver na página de materiais
-  const navLinks = isMaterialsPage ? materialsNavLinks : authenticatedNavLinks;
-
-  // Menu suspenso do usuário
   const userDropdownItems = [
-    { name: 'Meu Perfil', href: '/dashboard', icon: User },
-    { name: 'Minhas Métricas', href: '/my-analytics', icon: BarChart3, isNew: true },
-    { name: 'Configurações', href: '/settings', icon: Settings },
-    { name: 'Minhas Conquistas', href: '/achievements', icon: Award, isNew: true },
+    { name: 'Meu Perfil', href: '/dashboard', icon: User, isNew: false },
+    { name: 'Configurações', href: '/settings', icon: Settings, isNew: false },
   ];
   
   const handleLogout = async () => {
@@ -168,20 +145,18 @@ const Navbar: React.FC = () => {
     }`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
+          {}
           <Link to="/" className="group">
           </Link>
 
-          {/* Desktop Navigation */}
+          {}
           <div className="hidden md:flex items-center space-x-8">
             {isAuthenticated ? (
-              // Menu para usuários autenticados
               navLinks.map((link) => {
                 const isActive = isActiveRoute(link.href);
                 const showNewBadge = link.isNew && !isMaterialsPage && !hasBeenClicked(link.href);
                 
                 const handleClick = () => {
-                  // Marcar como clicado se tiver badge NOVO
                   if (link.isNew && !hasBeenClicked(link.href)) {
                     markAsClicked(link.href);
                   }
@@ -231,7 +206,6 @@ const Navbar: React.FC = () => {
                 );
               })
             ) : (
-              // Menu para usuários não autenticados
               publicNavLinks.map((link) => (
                 <Link
                   key={link.name}
@@ -245,11 +219,11 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="relative user-menu-container">
-                {/* User Profile Button */}
+                {}
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 p-2 rounded-xl hover:bg-gray-100 transition-colors duration-200"
@@ -269,7 +243,7 @@ const Navbar: React.FC = () => {
                   </span>
                 </button>
 
-                {/* User Dropdown Menu */}
+                {}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                     {userDropdownItems.map((item) => {
@@ -282,7 +256,6 @@ const Navbar: React.FC = () => {
                           className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:bg-gray-100 transition-colors duration-200"
                           onClick={() => {
                             setIsUserMenuOpen(false);
-                            // Marcar como clicado se tiver badge NOVO
                             if (item.isNew && !hasBeenClicked(item.href)) {
                               markAsClicked(item.href);
                             }
@@ -332,7 +305,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`md:hidden p-2 rounded-lg transition-colors duration-200 ${
@@ -352,7 +325,7 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
-        {/* Mobile Menu */}
+        {}
         {isMobileMenuOpen && (
           <div id="mobile-menu" className={`md:hidden py-4 border-t ${
             isMaterialsPage 
@@ -361,7 +334,6 @@ const Navbar: React.FC = () => {
           }`} role="menu">
             <div className="space-y-2">
               {isAuthenticated ? (
-                // Menu para usuários autenticados
                 <>
                   <div className={`px-4 py-2 flex items-center space-x-3 border-b pb-4 ${
                     isMaterialsPage ? 'border-gray-700' : 'border-gray-200'
@@ -384,7 +356,6 @@ const Navbar: React.FC = () => {
                     
                     const handleClick = () => {
                       setIsMobileMenuOpen(false);
-                      // Marcar como clicado se tiver badge NOVO
                       if (link.isNew && !hasBeenClicked(link.href)) {
                         markAsClicked(link.href);
                       }
@@ -444,7 +415,6 @@ const Navbar: React.FC = () => {
                   </button>
                 </>
               ) : (
-                // Menu para usuários não autenticados
                 <>
                   {publicNavLinks.map((link) => (
                     <Link

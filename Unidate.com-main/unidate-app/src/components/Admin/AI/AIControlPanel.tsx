@@ -26,7 +26,6 @@ import CampaignCreatorModal from './CampaignCreatorModal';
 import AIBotPostsControl from './AIBotPostsControl';
 import BotProfilesManager from './BotProfilesManager';
 
-// Interfaces para o sistema de IA
 interface AIPersona {
   id: string;
   name: string;
@@ -97,7 +96,6 @@ const AIControlPanel: React.FC = () => {
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
   const [editingPersona, setEditingPersona] = useState<AIPersona | null>(null);
 
-  // Carregar dados iniciais
   useEffect(() => {
     loadPersonas();
     loadCampaigns();
@@ -172,12 +170,10 @@ const AIControlPanel: React.FC = () => {
 
   const handleSavePersona = (personaData: any) => {
     if (editingPersona) {
-      // Editar persona existente
       setPersonas(prev => prev.map(persona => 
         persona.id === editingPersona.id ? { ...persona, ...personaData } : persona
       ));
     } else {
-      // Criar nova persona
       const newPersona: AIPersona = {
         ...personaData,
         id: Date.now().toString(),

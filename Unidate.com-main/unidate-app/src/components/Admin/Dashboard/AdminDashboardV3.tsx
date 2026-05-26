@@ -55,16 +55,13 @@ const AdminDashboardV3: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
 
-  // Carregar métricas reais do Firebase
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
         setLoading(true);
         
-        // Buscar dados reais do Firebase
         const firebaseMetrics = await AdminMetricsService.getMetrics();
         
-        // Converter para o formato do dashboard
         setMetrics({
           activeUsers: firebaseMetrics.activeUsers,
           newRegistrations: firebaseMetrics.newUsers,
@@ -79,7 +76,6 @@ const AdminDashboardV3: React.FC = () => {
         setRecentActivity([]);
       } catch (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
-        // Fallback para dados mock em caso de erro
         setMetrics({
           activeUsers: 0,
           newRegistrations: 0,
@@ -97,7 +93,6 @@ const AdminDashboardV3: React.FC = () => {
 
     loadDashboardData();
     
-    // Atualizar dados a cada 30 segundos
     const interval = setInterval(loadDashboardData, 30000);
     return () => clearInterval(interval);
   }, [timeRange]);
@@ -152,7 +147,7 @@ const AdminDashboardV3: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Header */}
+      {}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Centro de Comando UniDate</h1>
@@ -180,9 +175,9 @@ const AdminDashboardV3: React.FC = () => {
         </div>
       </div>
 
-      {/* Widgets Principais */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {/* Usuários Ativos Agora */}
+        {}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
           <div className="flex items-center justify-between">
             <div>
@@ -200,7 +195,7 @@ const AdminDashboardV3: React.FC = () => {
           </div>
         </div>
 
-        {/* Novos Cadastros */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -218,7 +213,7 @@ const AdminDashboardV3: React.FC = () => {
           </div>
         </div>
 
-        {/* Posts UniVerso */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -236,7 +231,7 @@ const AdminDashboardV3: React.FC = () => {
           </div>
         </div>
 
-        {/* Denúncias Pendentes */}
+        {}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -264,7 +259,7 @@ const AdminDashboardV3: React.FC = () => {
         </div>
       </div>
 
-      {/* Métricas Secundárias */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
@@ -297,7 +292,7 @@ const AdminDashboardV3: React.FC = () => {
         </div>
       </div>
 
-      {/* Atalhos Rápidos */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Atalhos Rápidos</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -336,7 +331,7 @@ const AdminDashboardV3: React.FC = () => {
         </div>
       </div>
 
-      {/* Feed de Atividade Recente */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Atividade Recente</h2>
@@ -372,7 +367,7 @@ const AdminDashboardV3: React.FC = () => {
         )}
       </div>
 
-      {/* Status da Plataforma */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Status da Plataforma</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

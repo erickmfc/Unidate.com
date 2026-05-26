@@ -1,32 +1,22 @@
 @echo off
 echo ========================================
-echo    UNIDATE - INICIANDO SERVIDOR
+echo    UNIDATE - INICIANDO BANCO E SERVIDORES
 echo ========================================
 echo.
 
-echo [1/3] Navegando para o diretorio correto...
-cd /d "%~dp0Unidate.com-main\unidate-app"
-echo Diretorio atual: %CD%
+echo [1/3] Iniciando backend SQLite Express em segundo plano...
+start cmd /k "echo INICIANDO BACKEND SQLITE... && cd /d "%~dp0Unidate.com-main\unidate-server" && npm start"
 echo.
 
-echo [2/3] Verificando se package.json existe...
-if not exist "package.json" (
-    echo ERRO: package.json nao encontrado!
-    echo Certifique-se de estar no diretorio correto
-    pause
-    exit /b 1
-)
-echo package.json encontrado!
+echo [2/3] Navegando para o diretorio do frontend...
+cd /d "%~dp0Unidate.com-main\unidate-app"
 echo.
 
 echo [3/3] Iniciando servidor React...
-echo.
 echo ========================================
-echo    SERVIDOR INICIANDO...
-echo    URL: http://localhost:3000
+echo    URL do Frontend: http://localhost:3000
+echo    URL do Backend (SQLite): http://localhost:3001
 echo ========================================
-echo.
-echo Pressione Ctrl+C para parar o servidor
 echo.
 
 npm start

@@ -23,7 +23,6 @@ export const useNotifications = () => {
     setNotifications([]);
   }, []);
 
-  // Métodos de conveniência para diferentes tipos de notificação
   const showSuccess = useCallback((title: string, message: string, options?: Partial<Notification>) => {
     return addNotification({
       type: 'success',

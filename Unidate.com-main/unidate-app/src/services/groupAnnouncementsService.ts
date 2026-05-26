@@ -20,7 +20,7 @@ export interface GroupAnnouncement {
   groupId: string;
   title: string;
   content: string;
-  createdBy: string; // UID do criador
+  createdBy: string;
   createdByName: string;
   isPinned: boolean;
   priority: 'low' | 'medium' | 'high';
@@ -29,7 +29,6 @@ export interface GroupAnnouncement {
 }
 
 export class GroupAnnouncementsService {
-  // Criar anúncio
   static async createAnnouncement(
     groupId: string,
     announcementData: {
@@ -63,7 +62,6 @@ export class GroupAnnouncementsService {
     }
   }
 
-  // Buscar anúncios do grupo
   static async getGroupAnnouncements(groupId: string): Promise<GroupAnnouncement[]> {
     try {
       if (!db) {
@@ -97,7 +95,6 @@ export class GroupAnnouncementsService {
     }
   }
 
-  // Fixar/desfixar anúncio
   static async togglePin(announcementId: string, isPinned: boolean): Promise<void> {
     try {
       if (!db) {
@@ -115,7 +112,6 @@ export class GroupAnnouncementsService {
     }
   }
 
-  // Deletar anúncio
   static async deleteAnnouncement(announcementId: string, userId: string): Promise<void> {
     try {
       if (!db) {
@@ -142,4 +138,3 @@ export class GroupAnnouncementsService {
     }
   }
 }
-

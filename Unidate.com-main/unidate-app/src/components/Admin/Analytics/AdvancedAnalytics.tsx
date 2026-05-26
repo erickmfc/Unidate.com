@@ -38,14 +38,12 @@ const AdvancedAnalytics: React.FC = () => {
       setLoading(true);
       console.log('📊 Carregando dados de analytics...', { timeRange });
       
-      // Buscar dados reais do Firebase
       const realData = await AnalyticsService.getAnalyticsData(timeRange);
       
       console.log('✅ Dados de analytics carregados:', realData);
       setAnalyticsData(realData);
     } catch (error) {
       console.error('❌ Erro ao carregar analytics:', error);
-      // Em caso de erro, usar valores padrão
       const defaultData: AnalyticsData = {
         overview: {
           totalUsers: 0,
@@ -91,7 +89,6 @@ const AdvancedAnalytics: React.FC = () => {
   useEffect(() => {
     loadAnalytics();
 
-    // Auto refresh a cada 30 segundos se habilitado
     let interval: NodeJS.Timeout;
     if (autoRefresh) {
       interval = setInterval(() => {
@@ -131,17 +128,14 @@ const AdvancedAnalytics: React.FC = () => {
   };
 
   const exportData = (format: 'csv' | 'pdf' | 'excel') => {
-    // Implementar exportação de dados
     console.log(`Exportando dados em formato ${format}`);
     
-    // Simular download
     const filename = `analytics-${new Date().toISOString().split('T')[0]}.${format}`;
     const link = document.createElement('a');
-    link.href = '#'; // URL do arquivo gerado
+    link.href = '#';
     link.download = filename;
     link.click();
     
-    // Feedback visual
     alert(`Exportando dados em formato ${format.toUpperCase()}...`);
   };
 
@@ -179,7 +173,7 @@ const AdvancedAnalytics: React.FC = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      {/* Header */}
+      {}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Analytics Avançado</h1>
@@ -223,7 +217,7 @@ const AdvancedAnalytics: React.FC = () => {
         </div>
       </div>
 
-      {/* Métricas Principais */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-colors duration-300">
           <div className="flex items-center justify-between">
@@ -300,7 +294,7 @@ const AdvancedAnalytics: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabs de Métricas */}
+      {}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="border-b border-gray-200 dark:border-gray-700">
           <nav className="flex space-x-8 px-6">
@@ -521,7 +515,7 @@ const AdvancedAnalytics: React.FC = () => {
         </div>
       </div>
 
-      {/* Ações */}
+      {}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-4">
           <button 

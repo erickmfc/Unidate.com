@@ -1,4 +1,3 @@
-// Sistema de autenticação offline para desenvolvimento
 export interface OfflineUser {
   uid: string;
   email: string;
@@ -26,16 +25,8 @@ export interface OfflineUserProfile {
   updatedAt: Date;
 }
 
-// Simular dados de usuários
-const mockUsers: OfflineUser[] = [];
-const mockProfiles: OfflineUserProfile[] = [];
+const API_URL = 'http://localhost:3001/api';
 
-// Função para gerar UID único
-const generateUID = (): string => {
-  return 'offline_' + Math.random().toString(36).substr(2, 9);
-};
-
-// Simular registro de usuário
 export const registerUserOffline = async (
   email: string,
   password: string,
@@ -47,140 +38,193 @@ export const registerUserOffline = async (
   period: number,
   userType: 'aluno' | 'professor' | 'uni' = 'aluno'
 ): Promise<{ user: OfflineUser }> => {
-  // Simular delay de rede
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const uid = generateUID();
-  const user: OfflineUser = {
-    uid,
-    email,
-    displayName,
-    emailVerified: false
-  };
-  
-  const profile: OfflineUserProfile = {
-    uid,
-    email,
-    displayName,
-    userType,
-    registrationNumber,
-    university,
-    course,
-    year,
-    period,
-    interests: [],
-    isVerified: false,
-    isEmailVerified: false,
-    onboardingCompleted: false,
-    createdAt: new Date(),
-    updatedAt: new Date()
-  };
-  
-  mockUsers.push(user);
-  mockProfiles.push(profile);
-  
-  console.log('✅ Usuário registrado offline:', user);
-  
-  return { user };
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        password,
+        displayName,
+        registrationNumber,
+        university,
+        course,
+        year,
+        period,
+        userType
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Erro ao registrar usuário');
+    }
+
+    const { user } = await response.json();
+    const formattedUser: OfflineUser = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      emailVerified: true
+    };
+
+    localStorage.setItem('unidate_offline_user', JSON.stringify(formattedUser));
+    localStorage.setItem('unidate_offline_profile', JSON.stringify(user));
+    window.dispatchEvent(new Event('auth-state-changed'));
+
+    console.log('✅ Usuário registrado via SQLite:', formattedUser);
+    return { user: formattedUser };
+  } catch (error) {
+    console.error('Erro no registro offline:', error);
+    throw error;
+  }
 };
 
-// Simular login
 export const loginUserOffline = async (
   email: string,
   password: string
 ): Promise<{ user: OfflineUser }> => {
-  // Simular delay de rede
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const user = mockUsers.find(u => u.email === email);
-  if (!user) {
-    throw new Error('Usuário não encontrado');
+  try {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Erro ao fazer login');
+    }
+
+    const { user } = await response.json();
+    const formattedUser: OfflineUser = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      emailVerified: true
+    };
+
+    localStorage.setItem('unidate_offline_user', JSON.stringify(formattedUser));
+    localStorage.setItem('unidate_offline_profile', JSON.stringify(user));
+    window.dispatchEvent(new Event('auth-state-changed'));
+
+    console.log('✅ Usuário logado via SQLite:', formattedUser);
+    return { user: formattedUser };
+  } catch (error) {
+    console.error('Erro no login offline:', error);
+    throw error;
   }
-  
-  console.log('✅ Usuário logado offline:', user);
-  return { user };
 };
 
-// Simular logout
 export const logoutUserOffline = async (): Promise<void> => {
+  localStorage.removeItem('unidate_offline_user');
+  localStorage.removeItem('unidate_offline_profile');
   console.log('✅ Usuário deslogado offline');
+  window.dispatchEvent(new Event('auth-state-changed'));
 };
 
-// Simular envio de e-mail de verificação
 export const sendEmailVerificationOffline = async (user: OfflineUser): Promise<void> => {
-  console.log('📧 E-mail de verificação enviado para:', user.email);
-  console.log('🔗 Link de verificação: http://localhost:3000/verify-email?token=offline_verification');
+  console.log('📧 E-mail de verificação simulado enviado para:', user.email);
 };
 
-// Simular verificação de e-mail
 export const verifyEmailOffline = async (user: OfflineUser): Promise<void> => {
-  const userIndex = mockUsers.findIndex(u => u.uid === user.uid);
-  if (userIndex !== -1) {
-    mockUsers[userIndex].emailVerified = true;
-  }
-  
-  const profileIndex = mockProfiles.findIndex(p => p.uid === user.uid);
-  if (profileIndex !== -1) {
-    mockProfiles[profileIndex].isEmailVerified = true;
-  }
-  
-  console.log('✅ E-mail verificado offline para:', user.email);
+  console.log('✅ E-mail verificado simulado offline para:', user.email);
 };
 
-// Simular busca de perfil
 export const getUserProfileOffline = async (uid: string): Promise<OfflineUserProfile | null> => {
-  const profile = mockProfiles.find(p => p.uid === uid);
-  return profile || null;
+  try {
+    const response = await fetch(`${API_URL}/users/${uid}`);
+    if (!response.ok) {
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Erro ao buscar perfil offline:', error);
+    return null;
+  }
 };
 
-// Simular atualização de perfil
 export const updateUserProfileOffline = async (
   uid: string,
   updates: Partial<OfflineUserProfile>
 ): Promise<void> => {
-  const profileIndex = mockProfiles.findIndex(p => p.uid === uid);
-  if (profileIndex !== -1) {
-    mockProfiles[profileIndex] = {
-      ...mockProfiles[profileIndex],
-      ...updates,
-      updatedAt: new Date()
-    };
-    console.log('✅ Perfil atualizado offline:', updates);
+  try {
+    const response = await fetch(`${API_URL}/users/${uid}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates)
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao atualizar perfil no backend');
+    }
+
+    const updatedUser = await response.json();
+    localStorage.setItem('unidate_offline_profile', JSON.stringify(updatedUser));
+    window.dispatchEvent(new Event('auth-state-changed'));
+    console.log('✅ Perfil atualizado via SQLite:', updates);
+  } catch (error) {
+    console.error('Erro ao atualizar perfil offline:', error);
+    throw error;
   }
 };
 
-// Simular busca por matrícula
 export const getUserByRegistrationOffline = async (
   registrationNumber: string
 ): Promise<OfflineUserProfile | null> => {
-  const profile = mockProfiles.find(p => p.registrationNumber === registrationNumber);
-  return profile || null;
+  try {
+    const response = await fetch(`${API_URL}/auth/login-registration`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationNumber, password: '123' })
+    });
+    if (!response.ok) {
+      return null;
+    }
+    const { user } = await response.json();
+    return user;
+  } catch (error) {
+    console.error('Erro ao buscar usuário por matrícula:', error);
+    return null;
+  }
 };
 
-// Simular reset de senha
 export const resetPasswordOffline = async (email: string): Promise<void> => {
   console.log('📧 E-mail de reset de senha enviado para:', email);
-  console.log('🔗 Link de reset: http://localhost:3000/reset-password?token=offline_reset');
 };
 
-// Simular login por matrícula
 export const loginUserOfflineByRegistration = async (
   registrationNumber: string,
   password: string
 ): Promise<{ user: OfflineUser }> => {
-  // Simular delay de rede
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  const profile = mockProfiles.find(p => p.registrationNumber === registrationNumber);
-  if (!profile) {
-    throw new Error('Matrícula não encontrada');
+  try {
+    const response = await fetch(`${API_URL}/auth/login-registration`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ registrationNumber, password })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Matrícula não encontrada');
+    }
+
+    const { user } = await response.json();
+    const formattedUser: OfflineUser = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName,
+      emailVerified: true
+    };
+
+    localStorage.setItem('unidate_offline_user', JSON.stringify(formattedUser));
+    localStorage.setItem('unidate_offline_profile', JSON.stringify(user));
+    window.dispatchEvent(new Event('auth-state-changed'));
+    
+    console.log('✅ Usuário logado offline por matrícula via SQLite:', formattedUser);
+    return { user: formattedUser };
+  } catch (error) {
+    console.error('Erro no login por matrícula:', error);
+    throw error;
   }
-  
-  const user = mockUsers.find(u => u.uid === profile.uid);
-  if (!user) {
-    throw new Error('Usuário não encontrado');
-  }
-  
-  console.log('✅ Usuário logado offline por matrícula:', user);
-  return { user };
 };

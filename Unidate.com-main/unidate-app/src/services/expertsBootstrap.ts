@@ -2,9 +2,13 @@ import { db } from '../firebase/config';
 import { collection, doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { Expert } from '../types/subjects';
 
-/**
- * Dados básicos de especialistas para popular o Firebase
- */
+declare global {
+  interface Window {
+    bootstrapExperts: () => Promise<void>;
+  }
+}
+
+
 export const defaultExperts: Omit<Expert, 'id' | 'createdAt'>[] = [
   {
     name: 'Prof. Aristóteles',
@@ -179,9 +183,7 @@ export const defaultExperts: Omit<Expert, 'id' | 'createdAt'>[] = [
   }
 ];
 
-/**
- * Função para popular o Firebase com especialistas básicos
- */
+
 export async function bootstrapExperts(): Promise<void> {
   try {
     if (!db) {
@@ -194,7 +196,6 @@ export async function bootstrapExperts(): Promise<void> {
     const expertsRef = collection(db, 'experts');
     
     for (const expert of defaultExperts) {
-      // Criar ID baseado no nome
       const expertId = expert.name.toLowerCase()
         .replace(/prof\.\s*/g, '')
         .replace(/\s+/g, '_')
@@ -203,7 +204,6 @@ export async function bootstrapExperts(): Promise<void> {
       
       const expertDoc = doc(expertsRef, expertId);
       
-      // Verificar se já existe
       const existingDoc = await getDoc(expertDoc);
       
       if (!existingDoc.exists()) {
@@ -230,14 +230,10 @@ export async function bootstrapExperts(): Promise<void> {
   }
 }
 
-/**
- * Função para executar o bootstrap (pode ser chamada manualmente no console)
- */
+
 export function runBootstrap(): void {
   if (typeof window !== 'undefined') {
-    // @ts-ignore - Adicionar ao window para acesso via console
     window.bootstrapExperts = bootstrapExperts;
     console.log('💡 Para popular especialistas, execute: await bootstrapExperts()');
   }
 }
-

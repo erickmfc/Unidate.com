@@ -43,7 +43,6 @@ export class AdminModerationService {
 
       console.log('📊 Buscando denúncias...');
 
-      // Buscar denúncias da coleção reports
       const reportsRef = collection(db, 'reports');
       const reportsQuery = query(
         reportsRef,
@@ -57,7 +56,6 @@ export class AdminModerationService {
       for (const docSnap of snapshot.docs) {
         const data = docSnap.data();
         
-        // Buscar conteúdo denunciado
         let content: any = {};
         let type: 'post' | 'comment' | 'profile' | 'group' = 'post';
 
@@ -105,7 +103,6 @@ export class AdminModerationService {
           console.error('Erro ao buscar conteúdo denunciado:', error);
         }
 
-        // Determinar prioridade baseado no motivo
         const priority: 'low' | 'medium' | 'high' = 
           data.reason === 'violence' || data.reason === 'harassment' ? 'high' :
           data.reason === 'inappropriate' || data.reason === 'fake' ? 'medium' : 'low';
@@ -160,7 +157,6 @@ export class AdminModerationService {
             resolvedAt: Timestamp.now(),
             resolution: 'removed'
           });
-          // TODO: Remover o conteúdo denunciado
           break;
         
         case 'warn':
@@ -169,7 +165,6 @@ export class AdminModerationService {
             reviewedAt: Timestamp.now(),
             action: 'warned'
           });
-          // TODO: Adicionar aviso ao usuário
           break;
         
         case 'suspend':
@@ -178,7 +173,6 @@ export class AdminModerationService {
             resolvedAt: Timestamp.now(),
             resolution: 'suspended'
           });
-          // TODO: Suspender usuário
           break;
       }
 
@@ -189,4 +183,3 @@ export class AdminModerationService {
     }
   }
 }
-

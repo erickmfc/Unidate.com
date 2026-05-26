@@ -37,14 +37,12 @@ const UserManagement: React.FC = () => {
 
   const usersPerPage = 10;
 
-  // Carregar usuários reais do Firebase
   useEffect(() => {
     const loadUsers = async () => {
       try {
         setLoading(true);
         console.log('📊 Carregando usuários do admin...');
         
-        // Buscar usuários reais do Firebase
         const firebaseUsers = await AdminUsersService.getUsers(200);
         
         console.log(`✅ ${firebaseUsers.length} usuários carregados`);
@@ -59,7 +57,6 @@ const UserManagement: React.FC = () => {
 
     loadUsers();
 
-    // Auto-refresh a cada 30 segundos
     const interval = setInterval(loadUsers, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -103,7 +100,6 @@ const UserManagement: React.FC = () => {
       setLoading(true);
       console.log('📊 Carregando detalhes do usuário:', user.id);
       
-      // Buscar detalhes reais do usuário
       const details = await AdminUsersService.getUserDetails(user.id);
       
       const userDetail: UserDetail = {
@@ -111,7 +107,7 @@ const UserManagement: React.FC = () => {
         posts: details.posts,
         groups: details.groups,
         reports: details.reports,
-        moderationLog: [] // TODO: Implementar log de moderação
+        moderationLog: []
       };
       
       setSelectedUser(userDetail);
@@ -148,7 +144,7 @@ const UserManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gerenciamento de Usuários</h1>
@@ -156,10 +152,10 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Filters */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row gap-4">
-          {/* Search */}
+          {}
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -173,7 +169,7 @@ const UserManagement: React.FC = () => {
             </div>
           </div>
 
-          {/* Status Filter */}
+          {}
           <div className="sm:w-48">
             <select
               value={statusFilter}
@@ -189,7 +185,7 @@ const UserManagement: React.FC = () => {
         </div>
       </div>
 
-      {/* Users Table */}
+      {}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -328,7 +324,7 @@ const UserManagement: React.FC = () => {
           </table>
         </div>
 
-        {/* Pagination */}
+        {}
         {totalPages > 1 && (
           <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
             <div className="flex-1 flex justify-between sm:hidden">
@@ -391,7 +387,7 @@ const UserManagement: React.FC = () => {
         )}
       </div>
 
-      {/* User Detail Modal */}
+      {}
       {showUserDetail && selectedUser && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
@@ -410,7 +406,7 @@ const UserManagement: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* User Info */}
+                  {}
                   <div className="lg:col-span-1">
                     <div className="text-center">
                       <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -443,7 +439,7 @@ const UserManagement: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Activity Tabs */}
+                  {}
                   <div className="lg:col-span-2">
                     <div className="border-b border-gray-200">
                       <nav className="-mb-px flex space-x-8">

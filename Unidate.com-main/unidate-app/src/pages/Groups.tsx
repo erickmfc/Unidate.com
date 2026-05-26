@@ -70,7 +70,6 @@ const Groups: React.FC = () => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Carregar grupos reais do Firebase
   useEffect(() => {
     const loadGroups = async () => {
       try {
@@ -78,7 +77,6 @@ const Groups: React.FC = () => {
         
         const firebaseGroups = await GroupsService.getGroups(50);
         
-        // Converter grupos do Firebase para o formato esperado pelo componente
         const convertedGroups = await Promise.all(
           firebaseGroups.map(async (group: FirebaseGroup): Promise<Group | null> => ({
             id: group.id,
@@ -133,7 +131,6 @@ const Groups: React.FC = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Ordenar grupos: destacar os mais populares
   const sortedGroups = [...filteredGroups].sort((a, b) => {
     if (a.members !== b.members) return b.members - a.members;
     return 0;
@@ -299,12 +296,11 @@ const Groups: React.FC = () => {
     });
   };
 
-  // Determinar se o grupo é popular (top 3 por membros)
   const isPopular = (index: number) => index < 3 && sortedGroups[index].members >= 5;
 
   return (
     <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Partículas de fundo */}
+      {}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-20 left-10 w-1 h-1 bg-purple-500 rounded-full animate-pulse opacity-50" style={{ animationDelay: '0s' }}></div>
         <div className="absolute top-40 right-20 w-1 h-1 bg-cyan-500 rounded-full animate-pulse opacity-50" style={{ animationDelay: '1s' }}></div>
@@ -313,7 +309,7 @@ const Groups: React.FC = () => {
         <div className="absolute bottom-20 right-10 w-1 h-1 bg-blue-500 rounded-full animate-pulse opacity-50" style={{ animationDelay: '1.5s' }}></div>
       </div>
 
-      {/* Gradientes de fundo */}
+      {}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-0 w-96 h-96 bg-purple-900/20 rounded-full blur-3xl"></div>
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-900/20 rounded-full blur-3xl"></div>
@@ -321,9 +317,9 @@ const Groups: React.FC = () => {
       </div>
 
       <div className="relative z-10">
-        {/* Seção Hero */}
+        {}
         <div className="relative min-h-[40vh] flex items-center justify-center overflow-hidden border-b border-gray-800">
-          {/* Anéis de luz neon */}
+          {}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-96 h-96 border-2 border-purple-500/30 rounded-full animate-pulse"></div>
             <div className="absolute w-80 h-80 border-2 border-cyan-500/30 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -363,11 +359,11 @@ const Groups: React.FC = () => {
           </div>
         </div>
 
-        {/* Filtros e Busca */}
+        {}
         <div id="groups-section" className="sticky top-0 z-20 bg-black/80 backdrop-blur-md border-b border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center">
-              {/* Barra de busca */}
+              {}
               <div className="relative flex-1 max-w-md w-full">
                 <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-cyan-400" />
                 <input
@@ -379,7 +375,7 @@ const Groups: React.FC = () => {
                 />
               </div>
 
-              {/* Filtros de categoria */}
+              {}
               <div className="flex items-center gap-2 flex-wrap">
                 {categories.map(category => (
                   <button
@@ -399,7 +395,7 @@ const Groups: React.FC = () => {
           </div>
         </div>
 
-        {/* Conteúdo Principal */}
+        {}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           {loading ? (
             <div className="text-center py-20">
@@ -436,16 +432,16 @@ const Groups: React.FC = () => {
                       popular ? 'lg:col-span-1 lg:row-span-1' : ''
                     } ${popular ? 'animate-pulse' : 'opacity-70 group-hover:opacity-100'}`}
                   >
-                    {/* Card */}
+                    {}
                     <div className="relative bg-gray-900 rounded-xl p-6 h-full flex flex-col transition-all duration-300 group-hover:shadow-2xl group-hover:shadow-purple-500/20 group-hover:-translate-y-1">
-                      {/* Badge de categoria */}
+                      {}
                       <div className="absolute top-4 left-4 z-10">
                         <span className={`px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r ${categoryColor} shadow-lg`}>
                           {group.category}
                         </span>
                       </div>
 
-                      {/* Badge Popular */}
+                      {}
                       {popular && (
                         <div className="absolute top-4 right-4 z-10">
                           <span className="px-3 py-1 rounded-full text-xs font-bold text-white bg-gradient-to-r from-yellow-500 to-orange-500 shadow-lg flex items-center gap-1">
@@ -455,7 +451,7 @@ const Groups: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Imagem do grupo */}
+                      {}
                       <div className={`relative mb-4 rounded-lg overflow-hidden ${
                         popular ? 'h-56' : 'h-48'
                       }`}>
@@ -465,7 +461,7 @@ const Groups: React.FC = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
                       </div>
 
-                      {/* Informações */}
+                      {}
                       <div className="flex-1 flex flex-col">
                         <h3 className="text-xl font-bold text-white mb-2 group-hover:text-cyan-400 transition-colors line-clamp-2">
                           {group.name}
@@ -474,7 +470,7 @@ const Groups: React.FC = () => {
                           {group.description}
                         </p>
 
-                        {/* Estatísticas */}
+                        {}
                         <div className="flex items-center gap-4 text-sm text-gray-400 mb-4">
                           <div className="flex items-center gap-1">
                             <Users className="h-4 w-4 text-cyan-400" />
@@ -487,7 +483,7 @@ const Groups: React.FC = () => {
                           </div>
                         </div>
 
-                        {/* Tags */}
+                        {}
                         {group.tags.length > 0 && (
                           <div className="flex flex-wrap gap-2 mb-4">
                             {group.tags.slice(0, 3).map((tag, tagIndex) => (
@@ -501,7 +497,7 @@ const Groups: React.FC = () => {
                           </div>
                         )}
 
-                        {/* Botão de ação */}
+                        {}
                         <button
                           onClick={(e) => handleJoinGroup(group.id, e)}
                           className={`w-full py-3 rounded-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 ${
@@ -523,7 +519,7 @@ const Groups: React.FC = () => {
                           )}
                         </button>
 
-                        {/* Botão gerenciar editores */}
+                        {}
                         {(group.isOwner || group.isEditor) && (
                           <button
                             onClick={(e) => handleManageEditors(group, e)}
@@ -543,7 +539,7 @@ const Groups: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal de Criar Grupo */}
+      {}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 border border-gray-700 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">

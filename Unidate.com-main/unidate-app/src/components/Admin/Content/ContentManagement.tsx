@@ -73,10 +73,8 @@ const ContentManagement: React.FC = () => {
       try {
         setLoading(true);
         
-        // Simular delay de API
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Dados simulados - em produção viriam do Firebase
         setPosts([]);
         setGroups([]);
         setComments([]);

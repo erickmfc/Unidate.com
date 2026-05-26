@@ -13,7 +13,6 @@ import {
 import { SearchResult, SearchFilters } from '../types/subjects';
 
 export class SearchService {
-  // Busca geral
   static async search(queryText: string, filters?: SearchFilters, limitCount: number = 20): Promise<SearchResult[]> {
     try {
       if (!db) {
@@ -23,7 +22,6 @@ export class SearchService {
       const results: SearchResult[] = [];
       const lowerQuery = queryText.toLowerCase();
 
-      // Buscar em lições
       if (!filters?.type || filters.type.includes('lesson')) {
         const lessonsRef = collection(db, 'lessons');
         let lessonsQuery = query(lessonsRef, limit(limitCount));
@@ -64,7 +62,6 @@ export class SearchService {
         });
       }
 
-      // Buscar em matérias
       if (!filters?.type || filters.type.includes('subject')) {
         const subjectsRef = collection(db, 'subjects');
         const subjectsSnapshot = await getDocs(subjectsRef);
@@ -91,7 +88,6 @@ export class SearchService {
         });
       }
 
-      // Buscar em especialistas
       if (!filters?.type || filters.type.includes('expert')) {
         const expertsRef = collection(db, 'experts');
         const expertsSnapshot = await getDocs(expertsRef);
@@ -118,7 +114,6 @@ export class SearchService {
         });
       }
 
-      // Ordenar por relevância
       return results.sort((a, b) => b.relevance - a.relevance).slice(0, limitCount);
     } catch (error) {
       console.error('❌ Erro ao buscar:', error);
@@ -126,7 +121,6 @@ export class SearchService {
     }
   }
 
-  // Buscar em lições específicas
   static async searchInLessons(queryText: string, subjectId?: string): Promise<SearchResult[]> {
     try {
       if (!db) {
@@ -188,14 +182,12 @@ export class SearchService {
     }
   }
 
-  // Obter sugestões baseadas em histórico
   static async getSuggestions(userId: string, limitCount: number = 5): Promise<SearchResult[]> {
     try {
       if (!db) {
         return [];
       }
 
-      // Buscar histórico de busca do usuário
       const historyRef = collection(db, 'searchHistory', userId, 'searches');
       const historySnapshot = await getDocs(query(historyRef, orderBy('createdAt', 'desc'), limit(10)));
       
@@ -207,7 +199,6 @@ export class SearchService {
         }
       });
 
-      // Buscar resultados baseados nas queries recentes
       const suggestions: SearchResult[] = [];
       for (const query of recentQueries.slice(0, 3)) {
         const results = await this.search(query, undefined, limitCount);
@@ -221,7 +212,6 @@ export class SearchService {
     }
   }
 
-  // Salvar histórico de busca
   static async saveSearchHistory(userId: string, queryText: string): Promise<void> {
     try {
       if (!db) {
@@ -240,7 +230,6 @@ export class SearchService {
     }
   }
 
-  // Calcular relevância
   private static calculateRelevance(query: string, ...texts: string[]): number {
     const lowerQuery = query.toLowerCase();
     let relevance = 0;
@@ -248,19 +237,15 @@ export class SearchService {
     texts.forEach((text) => {
       const lowerText = text.toLowerCase();
       
-      // Match exato
       if (lowerText === lowerQuery) {
         relevance += 100;
       }
-      // Começa com a query
       else if (lowerText.startsWith(lowerQuery)) {
         relevance += 50;
       }
-      // Contém a query
       else if (lowerText.includes(lowerQuery)) {
         relevance += 25;
       }
-      // Palavras individuais
       const queryWords = lowerQuery.split(' ');
       queryWords.forEach((word) => {
         if (lowerText.includes(word)) {
@@ -272,4 +257,3 @@ export class SearchService {
     return relevance;
   }
 }
-

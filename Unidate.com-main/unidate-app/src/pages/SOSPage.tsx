@@ -34,7 +34,6 @@ const SOSPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
 
-  // Posts de ajuda reais - carregados do Firebase
   const [helpPosts, setHelpPosts] = useState<HelpPost[]>([]);
 
   const [newPost, setNewPost] = useState({
@@ -50,12 +49,9 @@ const SOSPage: React.FC = () => {
     'Medicina', 'Engenharia', 'Computação', 'Psicologia', 'Outro'
   ];
 
-  // Carregar posts de ajuda reais do Firebase
   useEffect(() => {
     const loadHelpPosts = async () => {
       try {
-        // TODO: Implementar carregamento real do Firebase
-        // Por enquanto, array vazio até implementarmos a funcionalidade
         setHelpPosts([]);
       } catch (error) {
         console.error('Erro ao carregar posts de ajuda:', error);
@@ -67,7 +63,6 @@ const SOSPage: React.FC = () => {
 
   const handleSubmitPost = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aqui você enviaria para o Firebase
     console.log('Novo post:', newPost);
     setNewPost({ title: '', description: '', subject: '', tags: '' });
   };

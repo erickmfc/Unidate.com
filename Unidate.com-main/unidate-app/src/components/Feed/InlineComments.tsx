@@ -41,7 +41,6 @@ const InlineComments: React.FC<InlineCommentsProps> = ({
       console.log('✅ [INLINECOMMENTS] Comentário enviado com sucesso');
       setNewComment('');
       setShowInput(false);
-      // Aguardar um pouco antes de mostrar sucesso para garantir que foi salvo
       await new Promise(resolve => setTimeout(resolve, 200));
       showSuccess('Comentário adicionado! 💬');
     } catch (error: any) {

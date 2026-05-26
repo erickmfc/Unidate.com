@@ -32,7 +32,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
 
   return (
     <div className="mt-6">
-      {/* Tabs Navigation */}
+      {}
       <div className={`mb-6 ${isFeedTab ? 'border-b border-purple-500/20' : 'border-b border-gray-200'}`}>
         <nav className="flex space-x-8 overflow-x-auto">
           {tabs.map((tab) => {
@@ -60,7 +60,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
         </nav>
       </div>
 
-      {/* Tab Content */}
+      {}
       <div className="mt-6">
         {activeTab === 'materials' && (
           <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -74,7 +74,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
               )}
             </div>
             <p className="text-gray-600">Aqui você pode compartilhar e acessar materiais educacionais do grupo.</p>
-            {/* Componente de materiais será implementado aqui */}
+            {}
           </div>
         )}
 
@@ -96,7 +96,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
               )}
             </div>
             <p className="text-gray-600">Anúncios importantes dos editores do grupo.</p>
-            {/* Componente de anúncios será implementado aqui */}
+            {}
           </div>
         )}
 
@@ -112,7 +112,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
               )}
             </div>
             <p className="text-gray-600">Links úteis, documentos e ferramentas compartilhados pelo grupo.</p>
-            {/* Componente de recursos será implementado aqui */}
+            {}
           </div>
         )}
 
@@ -120,7 +120,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Calendário de Estudos</h3>
             <p className="text-gray-600">Planejamento de atividades e prazos do grupo.</p>
-            {/* Componente de calendário será implementado aqui */}
+            {}
           </div>
         )}
 
@@ -128,7 +128,7 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Estatísticas do Grupo</h3>
             <p className="text-gray-600">Métricas e analytics do grupo.</p>
-            {/* Componente de estatísticas será implementado aqui */}
+            {}
           </div>
         )}
       </div>
@@ -137,4 +137,3 @@ const GroupTabs: React.FC<GroupTabsProps> = ({ groupId, isMember, isEditor }) =>
 };
 
 export default GroupTabs;
-

@@ -1,5 +1,3 @@
-// Sistema de autenticação mock para administradores
-// Este arquivo substitui o Firebase Auth para admins durante o desenvolvimento
 
 export interface AdminSession {
   user: {
@@ -12,8 +10,6 @@ export interface AdminSession {
   isAuthenticated: boolean;
 }
 
-// Armazenamento local para simular sessões de admin
-// Usar localStorage para persistir entre recarregamentos
 const STORAGE_KEY = 'unidate_admin_session';
 
 const getStoredSessions = (): { [key: string]: AdminSession } => {
@@ -33,10 +29,8 @@ const saveStoredSessions = (sessions: { [key: string]: AdminSession }) => {
   }
 };
 
-// Simular delay de rede
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-// Credenciais mock para desenvolvimento
 const MOCK_ADMIN_CREDENTIALS = {
   'admin1': {
     password: 'admin123',
@@ -82,9 +76,8 @@ const MOCK_ADMIN_CREDENTIALS = {
   }
 };
 
-// Login de administrador
 export const loginAdmin = async (email: string, password: string): Promise<AdminSession> => {
-  await delay(1000); // Simular delay de rede
+  await delay(1000);
 
   const admin = MOCK_ADMIN_CREDENTIALS[email as keyof typeof MOCK_ADMIN_CREDENTIALS];
   
@@ -103,7 +96,6 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
     isAuthenticated: false,
   };
 
-  // Armazenar sessão no localStorage
   const sessions = getStoredSessions();
   sessions[session.user.uid] = session;
   saveStoredSessions(sessions);
@@ -111,9 +103,8 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
   return session;
 };
 
-// Verificar código 2FA
 export const verifyTwoFactor = async (sessionId: string, code: string): Promise<AdminSession> => {
-  await delay(500); // Simular delay de rede
+  await delay(500);
 
   const sessions = getStoredSessions();
   const session = Object.values(sessions).find(s => s.user.uid === sessionId);
@@ -122,37 +113,30 @@ export const verifyTwoFactor = async (sessionId: string, code: string): Promise<
     throw new Error('Sessão não encontrada');
   }
 
-  // Código mock para desenvolvimento
   if (code !== '123456') {
     throw new Error('Código 2FA inválido');
   }
 
-  // Marcar como autenticado
   session.requiresTwoFactor = false;
   session.isAuthenticated = true;
 
-  // Salvar sessão atualizada
   sessions[session.user.uid] = session;
   saveStoredSessions(sessions);
 
   return session;
 };
 
-// Logout de administrador
 export const logoutAdmin = async (): Promise<void> => {
-  await delay(500); // Simular delay de rede
-  // Limpar todas as sessões do localStorage
+  await delay(500);
   localStorage.removeItem(STORAGE_KEY);
 };
 
-// Obter sessão atual do admin
 export const getCurrentAdminSession = (): AdminSession | null => {
   const sessions = getStoredSessions();
   const authenticatedSessions = Object.values(sessions).filter(s => s.isAuthenticated);
   return authenticatedSessions.length > 0 ? authenticatedSessions[0] : null;
 };
 
-// Verificar se admin está logado
 export const isAdminLoggedIn = (): boolean => {
   const session = getCurrentAdminSession();
   return session?.isAuthenticated || false;

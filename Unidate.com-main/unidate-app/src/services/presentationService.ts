@@ -17,7 +17,6 @@ import {
 import { GeminiService } from './geminiService';
 import { ResearchPresentation, PresentationSection } from '../types/presentation';
 
-// Múltiplas chaves da API para rotação e fallback
 const GEMINI_API_KEYS = [
   'AIzaSyDdymzukUt6h9-QsrPgHjwPmQCfneNAUGA',
   'AIzaSyDRfqv4mH5N5MvbrWogMOWJzN1IOL7vq8g',
@@ -26,7 +25,6 @@ const GEMINI_API_KEYS = [
 
 let currentApiKeyIndex = 0;
 
-// Função para obter próxima chave (rotação)
 const getNextApiKey = (): string => {
   const key = GEMINI_API_KEYS[currentApiKeyIndex];
   currentApiKeyIndex = (currentApiKeyIndex + 1) % GEMINI_API_KEYS.length;
@@ -34,9 +32,7 @@ const getNextApiKey = (): string => {
 };
 
 export class PresentationService {
-  /**
-   * Busca uma apresentação existente por tema
-   */
+  
   static async findExistingPresentation(theme: string): Promise<ResearchPresentation | null> {
     try {
       if (!db) return null;
@@ -65,22 +61,18 @@ export class PresentationService {
     }
   }
 
-  /**
-   * Gera ou busca uma apresentação completa sobre um tema
-   */
+  
   static async getOrGeneratePresentation(
     theme: string, 
     userId?: string,
     onProgress?: (progress: number, message: string) => void
   ): Promise<ResearchPresentation> {
     try {
-      // 1. Tentar buscar apresentação existente
       console.log(`🔍 Buscando apresentação existente para: ${theme}`);
       const existing = await this.findExistingPresentation(theme);
       
       if (existing) {
         console.log('✅ Apresentação encontrada em cache!');
-        // Incrementar visualizações
         await this.incrementViews(existing.id);
         existing.metadata.views++;
         return existing;
@@ -90,28 +82,23 @@ export class PresentationService {
       
       if (onProgress) onProgress(10, 'Analisando tema...');
       
-      // 2. Gerar estrutura e conteúdo textual
       const structure = await this.generateStructure(theme);
       
       if (onProgress) onProgress(30, 'Gerando conteúdo textual...');
       
-      // 3. Gerar prompts para imagens
       const imagePrompts = await this.generateImagePrompts(theme, structure);
       
       if (onProgress) onProgress(40, 'Preparando geração de imagens...');
       
-      // 4. Criar seções com conteúdo e imagens
       const sections = await this.createSections(structure, imagePrompts, theme, onProgress);
       
       if (onProgress) onProgress(90, 'Gerando pensamento filosófico...');
       
-      // 5. Gerar pensamento filosófico final
       const philosophicalThought = await GeminiService.generateUniquePhilosophicalThought(
         theme,
         `Criar um pensamento filosófico profundo como conclusão sobre ${theme}`
       );
 
-      // Adicionar pensamento filosófico à conclusão
       const conclusionSection = sections.find(s => s.type === 'conclusion');
       if (conclusionSection) {
         conclusionSection.content.philosophicalThought = philosophicalThought.content;
@@ -138,7 +125,6 @@ export class PresentationService {
         }
       };
 
-      // 6. Salvar no Firebase
       await this.savePresentation(presentation);
 
       console.log('✅ Apresentação gerada e salva com sucesso!');
@@ -149,9 +135,7 @@ export class PresentationService {
     }
   }
 
-  /**
-   * Busca informações reais na internet sobre o tema
-   */
+  
   private static async searchRealInformation(theme: string): Promise<string> {
     try {
       const apiKey = getNextApiKey();
@@ -205,11 +189,8 @@ Seja ESPECÍFICO e use APENAS informações REAIS encontradas na internet sobre 
     return '';
   }
 
-  /**
-   * Gera a estrutura e conteúdo textual da apresentação
-   */
+  
   private static async generateStructure(theme: string): Promise<any> {
-    // Primeiro, buscar informações reais na internet
     console.log(`🔍 Buscando informações reais sobre "${theme}" na internet...`);
     const realInfo = await this.searchRealInformation(theme);
     
@@ -386,7 +367,6 @@ Responda APENAS com JSON válido:
   ]
 }`;
 
-    // Tentar com cada chave da API até funcionar
     let lastError: Error | null = null;
     
     for (let attempt = 0; attempt < GEMINI_API_KEYS.length; attempt++) {
@@ -425,16 +405,13 @@ Responda APENAS com JSON válido:
         const data = await response.json();
         let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
         
-        // Limpar o texto se vier com markdown
         text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
         
-        // Extrair JSON do texto
         const jsonMatch = text.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
             const parsed = JSON.parse(jsonMatch[0]);
             
-            // Validar que tem as seções necessárias
             if (parsed.sections && parsed.sections.length >= 5) {
               console.log('✅ Estrutura gerada com sucesso!');
               return parsed;
@@ -453,24 +430,19 @@ Responda APENAS com JSON válido:
       } catch (error) {
         lastError = error as Error;
         console.error(`❌ Erro na tentativa ${attempt + 1}:`, error);
-        // Continuar para próxima chave
         if (attempt < GEMINI_API_KEYS.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000)); // Aguardar 1s antes de tentar próxima
+          await new Promise(resolve => setTimeout(resolve, 1000));
           continue;
         }
       }
     }
     
-    // Se todas as tentativas falharam, usar estrutura padrão melhorada
     console.warn('⚠️ Todas as tentativas falharam, usando estrutura padrão melhorada');
     return this.getDefaultStructure(theme);
   }
 
-  /**
-   * Gera prompts específicos para criação de imagens baseados no tema
-   */
+  
   private static async generateImagePrompts(theme: string, structure: any): Promise<string[]> {
-    // Gerar prompts específicos usando Gemini
     const imagePromptGeneration = `Crie 5 prompts detalhados e específicos para gerar imagens sobre "${theme}".
 
 Cada prompt deve ser:
@@ -531,7 +503,6 @@ Responda APENAS com JSON:
       console.error('Erro ao gerar prompts de imagem:', error);
     }
 
-    // Fallback: prompts específicos baseados no tema
     const themeLower = theme.toLowerCase();
     const isPerson = themeLower.includes('rei') || themeLower.includes('pelé') || 
                      themeLower.includes('presidente') || themeLower.includes('artista');
@@ -555,9 +526,7 @@ Responda APENAS com JSON:
     ];
   }
 
-  /**
-   * Cria as seções da apresentação com imagens geradas pelo Gemini
-   */
+  
   private static async createSections(
     structure: any,
     imagePrompts: string[],
@@ -573,32 +542,28 @@ Responda APENAS com JSON:
       'conclusion'
     ];
 
-    // Importar serviço de imagens
     const { GeminiImageService } = await import('./geminiImageService');
 
     for (let i = 0; i < structure.sections.length && i < sectionTypes.length; i++) {
       const sectionData = structure.sections[i];
       const sectionType = sectionTypes[i];
 
-      // Atualizar progresso
       if (onProgress) {
-        const baseProgress = 50; // Já temos o conteúdo
-        const imageProgress = (i / sectionTypes.length) * 40; // 40% para imagens
+        const baseProgress = 50;
+        const imageProgress = (i / sectionTypes.length) * 40;
         onProgress(baseProgress + imageProgress, `Criando imagem ${i + 1} de ${sectionTypes.length}...`);
       }
 
-      // Gerar imagem específica do tema com Gemini
       let generatedImage;
       try {
         generatedImage = await GeminiImageService.generateImage(
           imagePrompts[i], 
-          theme,  // Passar o tema
-          sectionType  // Passar o tipo de seção
+          theme,
+          sectionType
         );
         console.log(`✅ Imagem ${i + 1} gerada com sucesso para ${theme}`);
       } catch (error) {
         console.error(`❌ Erro ao gerar imagem ${i + 1}:`, error);
-        // Usar fallback SVG temático
         generatedImage = {
           imageUrl: this.generateSVGImageUrl(theme, i, imagePrompts[i]),
           prompt: imagePrompts[i],
@@ -606,7 +571,6 @@ Responda APENAS com JSON:
         };
       }
 
-      // Garantir que sempre temos uma URL de imagem válida
       const finalImageUrl = generatedImage.imageUrl || this.generateSVGImageUrl(theme, i, imagePrompts[i]);
       
       sections.push({
@@ -626,16 +590,11 @@ Responda APENAS com JSON:
             id: `visual-${i + 1}`,
             type: i === 0 ? 'hero-image' : i === 3 ? 'detail-image' : 'context-image',
             imagePrompt: imagePrompts[i],
-            imageUrl: finalImageUrl, // Sempre ter uma URL válida
-            // Adicionar fallbackSources diretamente no elemento
+            imageUrl: finalImageUrl,
             fallbackSources: [
-              // Primeiro: SVG temático (sempre funciona)
               this.generateSVGImageUrl(theme, i, imagePrompts[i]),
-              // Segundo: Picsum com seed baseado no tema
               `https://picsum.photos/seed/${this.hashString(theme + i)}/1200/800`,
-              // Terceiro: Unsplash com ID específico
               `https://images.unsplash.com/photo-${this.getUnsplashPhotoId(theme, i)}?w=1200&h=800&fit=crop&q=80`,
-              // Quarto: Placeholder temático
               `https://via.placeholder.com/1200x800/1a1a1a/d4af37?text=${encodeURIComponent(theme.substring(0, 30))}`
             ],
             position: i === 0 ? 'background' : i % 2 === 0 ? 'left' : 'right',
@@ -649,10 +608,9 @@ Responda APENAS com JSON:
           }
         ],
         layout: i === 0 ? 'full-width' : i === 2 ? 'split' : 'split',
-        hasImage: true // Sempre tem imagem
+        hasImage: true
       });
 
-      // Pequeno delay entre gerações
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
@@ -661,11 +619,8 @@ Responda APENAS com JSON:
     return sections;
   }
 
-  /**
-   * Gera URL de imagem usando múltiplas fontes com fallback
-   */
+  
   private static generatePlaceholderImage(prompt: string, index: number, theme: string): string {
-    // Limpar o tema para busca
     const cleanTheme = theme.toLowerCase()
       .replace(/[^a-z0-9\s]/g, '')
       .split(' ')
@@ -673,47 +628,37 @@ Responda APENAS com JSON:
       .slice(0, 2)
       .join('+');
     
-    // Gerar múltiplas fontes de imagem com fallback
     const imageSources = [
-      // Unsplash API oficial (mais confiável)
       `https://images.unsplash.com/photo-${this.getUnsplashPhotoId(theme, index)}?w=1200&h=800&fit=crop&q=80`,
       
-      // Picsum com seed baseado no tema
       `https://picsum.photos/seed/${this.hashString(theme + index)}/1200/800`,
       
-      // Placeholder temático SVG (sempre funciona)
       this.generateSVGImageUrl(theme, index, prompt)
     ];
     
-    // Retornar a primeira, mas o componente vai tentar as outras se falhar
     return imageSources[0];
   }
 
-  /**
-   * Gera ID de foto do Unsplash baseado no tema
-   */
+  
   private static getUnsplashPhotoId(theme: string, index: number): string {
-    // IDs de fotos do Unsplash que funcionam bem para temas acadêmicos
     const photoIds = [
-      '1507003211169-0a1dd7228f2d', // Livros
-      '1481627834876-b7833e8f5570', // Biblioteca
-      '1516979187457-637ebb4ccbd2', // Estudo
-      '1503676260728-1c00da094a0b', // Educação
-      '1522202176988-66273c2fd55f', // Trabalho em equipe
-      '1451187580459-803db64bdc60', // Conhecimento
-      '1521737604893-d14cc237f11d', // Ciência
-      '1516321318423-f06f85e504b3', // Filosofia
-      '1509228468518-180618486925', // História
-      '1516321497487-e288fb19713b'  // Pesquisa
+      '1507003211169-0a1dd7228f2d',
+      '1481627834876-b7833e8f5570',
+      '1516979187457-637ebb4ccbd2',
+      '1503676260728-1c00da094a0b',
+      '1522202176988-66273c2fd55f',
+      '1451187580459-803db64bdc60',
+      '1521737604893-d14cc237f11d',
+      '1516321318423-f06f85e504b3',
+      '1509228468518-180618486925',
+      '1516321497487-e288fb19713b'
     ];
     
     const hash = this.hashString(theme + index);
     return photoIds[Math.abs(hash) % photoIds.length];
   }
 
-  /**
-   * Gera hash simples de string
-   */
+  
   private static hashString(str: string): number {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -724,9 +669,7 @@ Responda APENAS com JSON:
     return Math.abs(hash);
   }
 
-  /**
-   * Gera URL de imagem SVG temática
-   */
+  
   private static generateSVGImageUrl(theme: string, index: number, prompt: string): string {
     const colors = [
       { bg: '#1a1a1a', text: '#d4af37', accent: '#c9a961' },
@@ -766,11 +709,8 @@ Responda APENAS com JSON:
     return `data:image/svg+xml;base64,${btoa(svg)}`;
   }
 
-  /**
-   * Estrutura padrão melhorada caso a geração falhe
-   */
+  
   private static getDefaultStructure(theme: string): any {
-    // Detectar se é sobre uma pessoa
     const themeLower = theme.toLowerCase();
     const isPerson = themeLower.includes('rei') || themeLower.includes('pelé') || 
                      themeLower.includes('presidente') || themeLower.includes('artista') ||
@@ -890,7 +830,6 @@ Responda APENAS com JSON:
       };
     }
     
-    // Estrutura padrão para temas conceituais
     return {
       title: `${theme}: Uma Análise Acadêmica Completa`,
       subtitle: `Explorando ${theme} em profundidade`,
@@ -963,9 +902,7 @@ Responda APENAS com JSON:
     };
   }
 
-  /**
-   * Salva apresentação no Firebase
-   */
+  
   static async savePresentation(presentation: ResearchPresentation): Promise<string> {
     try {
       if (!db) {
@@ -994,9 +931,7 @@ Responda APENAS com JSON:
     }
   }
 
-  /**
-   * Carrega apresentação do Firebase
-   */
+  
   static async loadPresentation(presentationId: string): Promise<ResearchPresentation | null> {
     try {
       if (!db) return null;
@@ -1016,9 +951,7 @@ Responda APENAS com JSON:
     }
   }
 
-  /**
-   * Converte dados do Firestore para ResearchPresentation
-   */
+  
   private static firestoreToPresentation(id: string, data: any): ResearchPresentation {
     return {
       id,
@@ -1040,9 +973,7 @@ Responda APENAS com JSON:
     };
   }
 
-  /**
-   * Incrementa visualizações
-   */
+  
   static async incrementViews(presentationId: string): Promise<void> {
     try {
       if (!db) return;
@@ -1057,9 +988,7 @@ Responda APENAS com JSON:
     }
   }
 
-  /**
-   * Toggle like na apresentação
-   */
+  
   static async toggleLike(presentationId: string, userId: string): Promise<boolean> {
     try {
       if (!db) return false;
@@ -1074,7 +1003,6 @@ Responda APENAS com JSON:
       const isLiked = likedBy.includes(userId);
 
       if (isLiked) {
-        // Remover like
         await updateDoc(presentationRef, {
           'metadata.likes': increment(-1),
           'metadata.likedBy': likedBy.filter((id: string) => id !== userId),
@@ -1082,7 +1010,6 @@ Responda APENAS com JSON:
         });
         return false;
       } else {
-        // Adicionar like
         await updateDoc(presentationRef, {
           'metadata.likes': increment(1),
           'metadata.likedBy': [...likedBy, userId],
@@ -1096,9 +1023,7 @@ Responda APENAS com JSON:
     }
   }
 
-  /**
-   * Busca todas as apresentações públicas
-   */
+  
   static async getPublicPresentations(limitCount: number = 10): Promise<ResearchPresentation[]> {
     try {
       if (!db) return [];
@@ -1125,4 +1050,3 @@ Responda APENAS com JSON:
     }
   }
 }
-

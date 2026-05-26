@@ -23,7 +23,7 @@ export interface GroupMessage {
   type: 'text' | 'image' | 'file' | 'system';
   timestamp: Timestamp;
   edited?: boolean;
-  replyTo?: string; // ID da mensagem respondida
+  replyTo?: string;
 }
 
 export interface GroupChat {

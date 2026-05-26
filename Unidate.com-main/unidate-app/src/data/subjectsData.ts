@@ -1,4 +1,3 @@
-// Dados de todas as matérias disponíveis
 export interface SubjectData {
   id: string;
   title: string;
@@ -580,4 +579,3 @@ export const subjectsData: SubjectData[] = [
     ],
   },
 ];
-

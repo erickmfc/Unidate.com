@@ -37,11 +37,9 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
     setAttempts(nextAttempt);
 
     if (nextAttempt < allSources.length) {
-      // Tentar próxima fonte
       setCurrentSrc(allSources[nextAttempt]);
       setIsLoading(true);
     } else {
-      // Todas as fontes falharam, usar placeholder gerado
       setHasError(true);
       setIsLoading(false);
       setCurrentSrc(generateSVGPlaceholder(prompt || alt, theme));
@@ -54,7 +52,6 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
   };
 
   const generateSVGPlaceholder = (text: string, themeName?: string): string => {
-    // Criar SVG placeholder temático
     const colors = [
       { bg: '#1a1a1a', text: '#d4af37', accent: '#c9a961' },
       { bg: '#2c1810', text: '#c9a961', accent: '#b8860b' },
@@ -120,4 +117,3 @@ const ImageWithFallback: React.FC<ImageWithFallbackProps> = ({
 };
 
 export default ImageWithFallback;
-

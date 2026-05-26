@@ -4,7 +4,6 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import { getAnalytics } from 'firebase/analytics';
 
-// Configuração do Firebase com fallback
 const firebaseConfig = {
   apiKey: "AIzaSyDYIK8EHJMz6r3vJSJE6U0fn7FEhI3btFc",
   authDomain: "unidate-2bcbc.firebaseapp.com",
@@ -22,7 +21,6 @@ let storage;
 let analytics;
 
 try {
-  // Tentar inicializar Firebase
   app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   db = getFirestore(app);
@@ -34,7 +32,6 @@ try {
   console.error('❌ Erro ao inicializar Firebase:', error);
   console.log('🔄 Usando modo de desenvolvimento local...');
   
-  // Fallback para desenvolvimento local
   app = null;
   auth = null;
   db = null;

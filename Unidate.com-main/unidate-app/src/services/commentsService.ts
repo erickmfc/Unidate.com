@@ -40,11 +40,31 @@ export class CommentsService {
   ): Promise<string> {
     try {
       if (!db) {
-        console.error('❌ [COMMENTS] Firestore não está disponível');
-        throw new Error('Firestore não está disponível');
+        console.log('🔄 [COMMENTS] Usando modo local (localStorage)');
+        const id = 'comment_sqlite_' + Math.random().toString(36).substr(2, 9);
+        const commentData = {
+          id,
+          postId,
+          userId,
+          userName,
+          userAvatar: userAvatar || '/api/placeholder/40/40',
+          content: content.trim(),
+          timestamp: new Date().toISOString(),
+          likes: 0,
+          likedBy: [],
+          edited: false
+        };
+
+        const allCommentsStr = localStorage.getItem('unidate_offline_comments') || '[]';
+        const allComments = JSON.parse(allCommentsStr);
+        allComments.push(commentData);
+        localStorage.setItem('unidate_offline_comments', JSON.stringify(allComments));
+        
+        window.dispatchEvent(new Event('local-comments-updated'));
+        console.log('✅ [COMMENTS] Comentário salvo localmente com ID:', id);
+        return id;
       }
 
-      // Verificar autenticação
       const { auth } = await import('../firebase/config');
       if (!auth?.currentUser) {
         console.error('❌ [COMMENTS] Usuário não autenticado');
@@ -92,7 +112,6 @@ export class CommentsService {
       console.log('✅ [COMMENTS] Comentário salvo no Firestore com ID:', commentRef.id);
       console.log('✅ [COMMENTS] Caminho do documento:', commentRef.path);
       
-      // Aguardar um pouco para garantir que o documento foi salvo
       await new Promise(resolve => setTimeout(resolve, 100));
       
       try {
@@ -111,7 +130,6 @@ export class CommentsService {
       console.error('❌ [COMMENTS] Mensagem:', error.message);
       console.error('❌ [COMMENTS] Stack:', error.stack);
       
-      // Melhorar mensagem de erro
       if (error.code === 'permission-denied') {
         throw new Error('Permissão negada. Verifique se você está logado e se as regras do Firestore permitem criar comentários.');
       } else if (error.code === 'unavailable') {
@@ -134,7 +152,38 @@ export class CommentsService {
   ): () => void {
     try {
       if (!db) {
-        throw new Error('Firestore não está disponível');
+        console.log('🔄 [COMMENTS] Configurando listener local para post:', postId);
+        
+        const fetchLocalComments = () => {
+          try {
+            const allCommentsStr = localStorage.getItem('unidate_offline_comments') || '[]';
+            const allComments = JSON.parse(allCommentsStr);
+            const postComments = allComments
+              .filter((c: any) => c.postId === postId)
+              .map((c: any) => ({
+                ...c,
+                timestamp: c.timestamp ? (typeof c.timestamp === 'string' ? new Date(c.timestamp) : c.timestamp) : new Date()
+              }));
+            
+            postComments.sort((a: any, b: any) => {
+              const aTime = a.timestamp instanceof Date ? a.timestamp.getTime() : new Date(a.timestamp).getTime();
+              const bTime = b.timestamp instanceof Date ? b.timestamp.getTime() : new Date(b.timestamp).getTime();
+              return aTime - bTime;
+            });
+
+            onCommentsUpdate(postComments.slice(0, limitCount));
+          } catch (err: any) {
+            console.error('❌ [COMMENTS] Erro ao carregar comentários locais:', err);
+            if (onError) onError(err);
+          }
+        };
+
+        fetchLocalComments();
+        
+        window.addEventListener('local-comments-updated', fetchLocalComments);
+        return () => {
+          window.removeEventListener('local-comments-updated', fetchLocalComments);
+        };
       }
 
       console.log('🔄 [COMMENTS] Carregando comentários do post:', postId);
@@ -188,13 +237,11 @@ export class CommentsService {
             });
           });
 
-          // Ordenar por timestamp, tratando casos onde timestamp pode não estar disponível
           comments.sort((a, b) => {
             try {
               let aTime = 0;
               let bTime = 0;
               
-              // Tentar obter timestamp do comentário A
               if (a.timestamp) {
                 if (a.timestamp.toDate) {
                   aTime = a.timestamp.toDate().getTime();
@@ -203,12 +250,10 @@ export class CommentsService {
                 } else if (a.timestamp instanceof Date) {
                   aTime = a.timestamp.getTime();
                 } else if (a.timestamp.seconds) {
-                  // Firestore Timestamp com seconds
                   aTime = a.timestamp.seconds * 1000;
                 }
               }
               
-              // Tentar obter timestamp do comentário B
               if (b.timestamp) {
                 if (b.timestamp.toDate) {
                   bTime = b.timestamp.toDate().getTime();
@@ -217,21 +262,17 @@ export class CommentsService {
                 } else if (b.timestamp instanceof Date) {
                   bTime = b.timestamp.getTime();
                 } else if (b.timestamp.seconds) {
-                  // Firestore Timestamp com seconds
                   bTime = b.timestamp.seconds * 1000;
                 }
               }
               
-              // Se ambos têm timestamp válido, ordenar
               if (aTime > 0 && bTime > 0) {
                 return aTime - bTime;
               }
               
-              // Se apenas um tem timestamp, colocar o que tem timestamp primeiro
               if (aTime > 0) return -1;
               if (bTime > 0) return 1;
               
-              // Se nenhum tem timestamp, manter ordem original
               return 0;
             } catch (err) {
               console.warn('⚠️ [COMMENTS] Erro ao ordenar comentários:', err);
@@ -261,7 +302,33 @@ export class CommentsService {
   static async toggleCommentLike(commentId: string, userId: string, isLiked: boolean): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firestore não está disponível');
+        console.log('🔄 [COMMENTS] Curtindo comentário localmente:', commentId);
+        const allCommentsStr = localStorage.getItem('unidate_offline_comments') || '[]';
+        const allComments = JSON.parse(allCommentsStr);
+        
+        const updatedComments = allComments.map((c: any) => {
+          if (c.id === commentId) {
+            const likedBy = c.likedBy || [];
+            let newLikedBy = [...likedBy];
+            if (isLiked) {
+              newLikedBy = newLikedBy.filter(id => id !== userId);
+            } else {
+              if (!newLikedBy.includes(userId)) {
+                newLikedBy.push(userId);
+              }
+            }
+            return {
+              ...c,
+              likedBy: newLikedBy,
+              likes: newLikedBy.length
+            };
+          }
+          return c;
+        });
+
+        localStorage.setItem('unidate_offline_comments', JSON.stringify(updatedComments));
+        window.dispatchEvent(new Event('local-comments-updated'));
+        return;
       }
 
       const commentRef = doc(db, 'comments', commentId);
@@ -297,7 +364,25 @@ export class CommentsService {
   static async editComment(commentId: string, userId: string, newContent: string): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firestore não está disponível');
+        console.log('🔄 [COMMENTS] Editando comentário localmente:', commentId);
+        const allCommentsStr = localStorage.getItem('unidate_offline_comments') || '[]';
+        const allComments = JSON.parse(allCommentsStr);
+        
+        const updatedComments = allComments.map((c: any) => {
+          if (c.id === commentId) {
+            return {
+              ...c,
+              content: newContent.trim(),
+              edited: true,
+              editedAt: new Date().toISOString()
+            };
+          }
+          return c;
+        });
+
+        localStorage.setItem('unidate_offline_comments', JSON.stringify(updatedComments));
+        window.dispatchEvent(new Event('local-comments-updated'));
+        return;
       }
 
       const commentRef = doc(db, 'comments', commentId);
@@ -318,7 +403,15 @@ export class CommentsService {
   static async deleteComment(commentId: string, postId: string): Promise<void> {
     try {
       if (!db) {
-        throw new Error('Firestore não está disponível');
+        console.log('🔄 [COMMENTS] Deletando comentário localmente:', commentId);
+        const allCommentsStr = localStorage.getItem('unidate_offline_comments') || '[]';
+        const allComments = JSON.parse(allCommentsStr);
+        
+        const updatedComments = allComments.filter((c: any) => c.id !== commentId);
+        localStorage.setItem('unidate_offline_comments', JSON.stringify(updatedComments));
+        
+        window.dispatchEvent(new Event('local-comments-updated'));
+        return;
       }
 
       await deleteDoc(doc(db, 'comments', commentId));
@@ -348,7 +441,7 @@ export class CommentsService {
         
         await updateDoc(postRef, {
           numeroComentarios: newCount,
-          comments: newCount, // Manter compatibilidade com ambos os campos
+          comments: newCount,
           updatedAt: serverTimestamp()
         });
 

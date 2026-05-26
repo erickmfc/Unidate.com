@@ -26,7 +26,6 @@ const AnonymousWallPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [showNewPost, setShowNewPost] = useState(false);
 
-  // Posts reais - carregados do Firebase
   const [posts, setPosts] = useState<AnonymousPost[]>([]);
 
   const categories = [
@@ -37,12 +36,9 @@ const AnonymousWallPage: React.FC = () => {
     { value: 'general', label: 'Geral', icon: '💬' }
   ];
 
-  // Carregar posts reais do Firebase
   useEffect(() => {
     const loadPosts = async () => {
       try {
-        // TODO: Implementar carregamento real do Firebase
-        // Por enquanto, array vazio até implementarmos a funcionalidade
         setPosts([]);
       } catch (error) {
         console.error('Erro ao carregar posts anônimos:', error);
@@ -111,7 +107,7 @@ const AnonymousWallPage: React.FC = () => {
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header */}
+        {}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-3 mb-4">
             <MessageSquare className="w-8 h-8 text-gray-500" />
@@ -123,7 +119,7 @@ const AnonymousWallPage: React.FC = () => {
           </p>
         </div>
 
-        {/* New Post Button */}
+        {}
         <div className="text-center mb-6">
           <button
             onClick={() => setShowNewPost(!showNewPost)}
@@ -134,7 +130,7 @@ const AnonymousWallPage: React.FC = () => {
           </button>
         </div>
 
-        {/* New Post Form */}
+        {}
         {showNewPost && (
           <div className="bg-white rounded-xl shadow-sm p-6 mb-6">
             <h3 className="text-lg font-semibold text-gray-800 mb-4">Compartilhe seu desabafo</h3>
@@ -190,7 +186,7 @@ const AnonymousWallPage: React.FC = () => {
           </div>
         )}
 
-        {/* Filters */}
+        {}
         <div className="bg-white rounded-xl shadow-sm p-4 mb-6">
           <div className="flex flex-wrap gap-2">
             {categories.map((category) => (
@@ -210,7 +206,7 @@ const AnonymousWallPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Posts */}
+        {}
         <div className="space-y-4">
           {filteredPosts.map((post) => (
             <div key={post.id} className="bg-white rounded-xl shadow-sm p-6">

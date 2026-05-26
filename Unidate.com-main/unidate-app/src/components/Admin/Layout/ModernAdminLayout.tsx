@@ -71,7 +71,6 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Carregar preferência de modo escuro
   useEffect(() => {
     const savedDarkMode = localStorage.getItem('admin-dark-mode');
     if (savedDarkMode) {
@@ -79,7 +78,6 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     }
   }, []);
 
-  // Salvar preferência de modo escuro
   useEffect(() => {
     localStorage.setItem('admin-dark-mode', JSON.stringify(darkMode));
     document.documentElement.classList.toggle('dark', darkMode);
@@ -260,13 +258,13 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     <div className={`min-h-screen transition-colors duration-300 ${
       darkMode ? 'bg-gray-900' : 'bg-gray-50'
     }`}>
-      {/* Sidebar */}
+      {}
       <div className={`fixed inset-y-0 left-0 z-50 w-80 transform transition-transform duration-300 ease-in-out ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 ${
         darkMode ? 'bg-gray-800 border-r border-gray-700' : 'bg-white border-r border-gray-200'
       }`}>
-        {/* Sidebar Header */}
+        {}
         <div className={`flex items-center justify-between h-16 px-6 border-b ${
           darkMode ? 'border-gray-700' : 'border-gray-200'
         }`}>
@@ -292,7 +290,7 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </button>
         </div>
 
-        {/* Search */}
+        {}
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -310,7 +308,7 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </div>
 
-        {/* Navigation */}
+        {}
         <nav className="flex-1 overflow-y-auto py-4">
           <div className="px-4 space-y-2">
             {filteredSections.map((section) => {
@@ -402,7 +400,7 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {/* Sidebar Footer */}
+        {}
         <div className={`p-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
           <div className="flex items-center space-x-3 mb-4">
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
@@ -444,9 +442,9 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       </div>
 
-      {/* Main Content */}
+      {}
       <div className="lg:pl-80">
-        {/* Top Bar */}
+        {}
         <header className={`sticky top-0 z-40 h-16 border-b transition-colors ${
           darkMode 
             ? 'bg-gray-800 border-gray-700' 
@@ -508,7 +506,7 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Page Content */}
+        {}
         <main className={`transition-colors duration-300 ${
           darkMode ? 'bg-gray-900' : 'bg-gray-50'
         }`}>
@@ -516,7 +514,7 @@ const ModernAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </main>
       </div>
 
-      {/* Mobile Overlay */}
+      {}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"

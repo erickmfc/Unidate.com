@@ -39,7 +39,37 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth!, async (user) => {
+    if (!auth) {
+      const loadOfflineUser = () => {
+        try {
+          const storedUser = localStorage.getItem('unidate_offline_user');
+          const storedProfile = localStorage.getItem('unidate_offline_profile');
+          if (storedUser) {
+            setCurrentUser(JSON.parse(storedUser));
+          } else {
+            setCurrentUser(null);
+          }
+          if (storedProfile) {
+            setUserProfile(JSON.parse(storedProfile));
+          } else {
+            setUserProfile(null);
+          }
+        } catch (e) {
+          console.error('Erro ao ler usuário offline:', e);
+          setCurrentUser(null);
+          setUserProfile(null);
+        }
+        setLoading(false);
+      };
+
+      loadOfflineUser();
+      window.addEventListener('auth-state-changed', loadOfflineUser);
+      return () => {
+        window.removeEventListener('auth-state-changed', loadOfflineUser);
+      };
+    }
+
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
         if (user) {
           setCurrentUser(user);
@@ -63,7 +93,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logoutUser = async (): Promise<void> => {
     try {
-      await signOut(auth!);
+      if (auth) {
+        await signOut(auth);
+      } else {
+        localStorage.removeItem('unidate_offline_user');
+        localStorage.removeItem('unidate_offline_profile');
+        window.dispatchEvent(new Event('auth-state-changed'));
+      }
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
       throw error;

@@ -53,7 +53,6 @@ const UserProfile: React.FC = () => {
     }
   }, [userId]);
 
-  // Scroll para o topo quando a página carregar
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -62,7 +61,6 @@ const UserProfile: React.FC = () => {
     try {
       setLoading(true);
       
-      // Verificar se é o próprio perfil
       if (userId === currentUser?.uid) {
         setIsOwnProfile(true);
         navigate('/profile');
@@ -71,13 +69,10 @@ const UserProfile: React.FC = () => {
 
       console.log('🔍 Carregando perfil real do usuário:', userId);
 
-      // Buscar perfil real do usuário
       const profile = await UserProfileService.getUserProfile(userId || '');
       
-      // O serviço agora sempre retorna um perfil (completo, básico ou mínimo)
       if (!profile) {
         console.error('❌ Erro crítico: getUserProfile retornou null mesmo após todas as tentativas');
-        // Fallback final - criar perfil mínimo diretamente
         const minimalProfile: RealUserProfile = {
           uid: userId || '',
           name: 'Usuário',
@@ -97,18 +92,14 @@ const UserProfile: React.FC = () => {
         return;
       }
 
-      // Buscar posts do usuário
       const posts = await UserProfileService.getUserPosts(userId || '');
       
-      // Verificar se é amigo
       if (currentUser && profile) {
         const friendshipStatus = await UserProfileService.checkFriendship(currentUser.uid, userId || '');
         setIsFriend(friendshipStatus);
-        // Atualizar perfil com status de amizade
         profile.isFriend = friendshipStatus;
       }
       
-      // Garantir que sempre temos um perfil
       if (profile) {
         setUserProfile(profile);
         setUserPosts(posts);
@@ -134,7 +125,6 @@ const UserProfile: React.FC = () => {
       }
     } catch (error) {
       console.error('❌ Erro ao carregar perfil do usuário:', error);
-      // Mesmo em caso de erro, criar perfil mínimo
       const errorProfile: RealUserProfile = {
         uid: userId || '',
         name: 'Usuário',
@@ -164,13 +154,9 @@ const UserProfile: React.FC = () => {
     try {
       showSuccess('Criando conversa...');
       
-      // Criar ou obter chat entre os dois usuários
       const chatId = await ChatService.getOrCreateChat(currentUser.uid, userProfile.uid);
       
-      // Navegar para o chat
       navigate(`/chat`);
-      // O chat será aberto automaticamente quando o componente detectar o chatId
-      // Por enquanto, apenas navegar para a página de chat
       showSuccess('Conversa criada! 💬');
     } catch (error) {
       console.error('Erro ao criar conversa:', error);
@@ -207,7 +193,6 @@ const UserProfile: React.FC = () => {
       console.error('❌ [PROFILE] Erro ao adicionar colega:', err);
       console.error('❌ [PROFILE] Detalhes do erro:', err.message);
       
-      // Mostrar mensagem de erro mais específica
       const errorMessage = err.message || 'Tente novamente.';
       showError(`Erro ao adicionar colega: ${errorMessage}`);
     } finally {
@@ -226,8 +211,6 @@ const UserProfile: React.FC = () => {
     );
   }
 
-  // O serviço sempre retorna um perfil (completo, básico ou mínimo)
-  // Se por algum motivo userProfile ainda for null, criar um perfil mínimo e re-renderizar
   if (!userProfile) {
     console.error('⚠️ userProfile é null, criando perfil mínimo de emergência');
     const emergencyProfile: RealUserProfile = {
@@ -244,7 +227,6 @@ const UserProfile: React.FC = () => {
       isFriend: false
     };
     setUserProfile(emergencyProfile);
-    // Retornar loading para dar tempo do state atualizar
     return (
       <div className="min-h-screen bg-gray-50">
         <Navbar />
@@ -303,7 +285,7 @@ const UserProfile: React.FC = () => {
                 )}
               </div>
               
-              {/* Badge do Tipo de Usuário */}
+              {}
               {userProfile.userType && (
                 <div className="mb-3">
                   {userProfile.userType === 'aluno' && (

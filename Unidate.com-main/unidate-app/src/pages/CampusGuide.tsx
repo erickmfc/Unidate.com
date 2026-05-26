@@ -49,21 +49,16 @@ interface Place {
     lat: number;
     lng: number;
   };
-  // Para lugares de comida
   signatureDish?: string;
   signatureDishVotes?: number;
-  // Para lugares de estudo
   noiseLevel?: 'silent' | 'low' | 'medium' | 'high';
   outletAvailability?: 'rare' | 'common' | 'abundant';
   wifiQuality?: number;
   bestFor?: string[];
-  // Para serviços
   paymentMethods?: string[];
-  // Sistema de avaliações
   reviews?: Review[];
   userRating?: number;
   userReview?: string;
-  // Sistema de votos em atributos
   attributeVotes?: { [key: string]: number };
 }
 
@@ -239,7 +234,7 @@ const CampusGuide: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        {}
         <div className="mb-8">
           <div className="flex items-center space-x-3 mb-6">
             <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center">
@@ -251,7 +246,7 @@ const CampusGuide: React.FC = () => {
             </div>
           </div>
 
-          {/* Tabs */}
+          {}
           <div className="flex space-x-1 bg-gray-100 p-1 rounded-xl">
             {tabs.map((tab) => (
               <button
@@ -276,10 +271,10 @@ const CampusGuide: React.FC = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
           <div className="flex flex-col lg:flex-row gap-4">
-            {/* Search */}
+            {}
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -293,7 +288,7 @@ const CampusGuide: React.FC = () => {
               </div>
             </div>
 
-            {/* Category Filter */}
+            {}
             <div className="flex gap-2 flex-wrap">
               {getTabCategories(activeTab).map((category) => (
                 <button
@@ -311,7 +306,7 @@ const CampusGuide: React.FC = () => {
               ))}
             </div>
 
-            {/* Add Place Button */}
+            {}
             <button 
               onClick={() => setShowAddPlaceModal(true)}
               className="btn-primary flex items-center space-x-2"
@@ -322,7 +317,7 @@ const CampusGuide: React.FC = () => {
           </div>
         </div>
 
-        {/* Places Grid */}
+        {}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPlaces.map((place) => (
             <div 
@@ -330,7 +325,7 @@ const CampusGuide: React.FC = () => {
               className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer"
               onClick={() => handlePlaceClick(place)}
             >
-              {/* Place Image */}
+              {}
               <div className="h-48 bg-gradient-to-br from-green-500 to-blue-500 relative">
                 <div className="absolute inset-0 flex items-center justify-center">
                   <MapPin className="h-16 w-16 text-white opacity-50" />
@@ -364,7 +359,7 @@ const CampusGuide: React.FC = () => {
                 </div>
               </div>
 
-              {/* Place Content */}
+              {}
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <h3 className="text-xl font-bold text-gray-900">{place.name}</h3>
@@ -376,7 +371,7 @@ const CampusGuide: React.FC = () => {
 
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">{place.description}</p>
 
-                {/* Signature Dish (for food places) */}
+                {}
                 {activeTab === 'eat' && place.signatureDish && (
                   <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-4">
                     <div className="flex items-center justify-between">
@@ -392,7 +387,7 @@ const CampusGuide: React.FC = () => {
                   </div>
                 )}
 
-                {/* Study Place Info */}
+                {}
                 {activeTab === 'study' && (
                   <div className="space-y-2 mb-4">
                     {place.noiseLevel && (
@@ -419,7 +414,7 @@ const CampusGuide: React.FC = () => {
                   </div>
                 )}
 
-                {/* Place Details */}
+                {}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <MapPin className="h-4 w-4" />
@@ -441,7 +436,7 @@ const CampusGuide: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Best For Tags (for study places) */}
+                {}
                 {activeTab === 'study' && place.bestFor && place.bestFor.length > 0 && (
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-1">
@@ -457,7 +452,7 @@ const CampusGuide: React.FC = () => {
                   </div>
                 )}
 
-                {/* Payment Methods (for services) */}
+                {}
                 {activeTab === 'services' && place.paymentMethods && (
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 mb-1">Formas de pagamento:</p>
@@ -474,12 +469,11 @@ const CampusGuide: React.FC = () => {
                   </div>
                 )}
 
-                {/* Place Actions */}
+                {}
                 <div className="flex items-center justify-between">
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle navigation
                     }}
                     className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-600 transition-colors duration-200 flex items-center justify-center space-x-2"
                   >
@@ -489,7 +483,6 @@ const CampusGuide: React.FC = () => {
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
-                      // Handle share
                     }}
                     className="p-2 text-gray-600 hover:text-green-500 hover:bg-green-50 rounded-lg transition-colors duration-200"
                   >
@@ -501,7 +494,7 @@ const CampusGuide: React.FC = () => {
           ))}
         </div>
 
-        {/* Empty State */}
+        {}
         {filteredPlaces.length === 0 && (
           <div className="text-center py-12">
             <MapPin className="h-16 w-16 text-gray-400 mx-auto mb-4" />
