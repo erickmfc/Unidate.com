@@ -26,7 +26,14 @@ const Discover: React.FC = () => {
 
   useEffect(() => {
     const checkWaitlist = async () => {
-      if (!currentUser?.uid || !db) {
+      if (!currentUser?.uid) {
+        setLoading(false);
+        return;
+      }
+
+      if (!db) {
+        const localStatus = localStorage.getItem('unidate_offline_waitlist_' + currentUser.uid);
+        setIsInWaitlist(!!localStatus);
         setLoading(false);
         return;
       }
@@ -79,7 +86,7 @@ const Discover: React.FC = () => {
   }, []);
 
   const handleJoinWaitlist = async () => {
-    if (!currentUser?.uid || !db) {
+    if (!currentUser?.uid) {
       showError('Você precisa estar logado para entrar na lista de espera');
       return;
     }
@@ -90,6 +97,32 @@ const Discover: React.FC = () => {
     }
 
     setSubmitting(true);
+
+    if (!db) {
+      try {
+        localStorage.setItem('unidate_offline_waitlist_' + currentUser.uid, 'true');
+        
+        // Also save profile to offline profiles if needed
+        const activeProfileStr = localStorage.getItem('unidate_offline_profile');
+        if (activeProfileStr) {
+          const activeProfile = JSON.parse(activeProfileStr);
+          localStorage.setItem('unidate_offline_profile', JSON.stringify({
+            ...activeProfile,
+            joinedWaitlistAt: new Date().toISOString()
+          }));
+        }
+        
+        setIsInWaitlist(true);
+        showSuccess('Você entrou na lista de espera! Seu perfil foi salvo e estará pronto quando lançarmos! 🚀');
+      } catch (error) {
+        console.error('Erro ao adicionar à lista de espera offline:', error);
+        showError('Erro ao entrar na lista de espera. Tente novamente.');
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
+
     try {
       await addDoc(collection(db, 'discoverWaitlist'), {
         userId: currentUser.uid,
