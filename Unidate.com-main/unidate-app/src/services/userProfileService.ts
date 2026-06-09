@@ -15,7 +15,7 @@ import {
 import { getAuth } from 'firebase/auth';
 import { db } from '../firebase/config';
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 export interface UserProfile {
   uid: string;

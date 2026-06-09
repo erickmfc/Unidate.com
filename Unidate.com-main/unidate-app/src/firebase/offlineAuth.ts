@@ -25,7 +25,7 @@ export interface OfflineUserProfile {
   updatedAt: Date;
 }
 
-const API_URL = 'http://localhost:3001/api';
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 export const registerUserOffline = async (
   email: string,
