@@ -1,8 +1,6 @@
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { storage } from '../firebase/config';
+import { supabase } from '../supabaseClient';
 
 export class ProfilePhotoService {
-  
   static async uploadProfilePhoto(file: File, userId: string): Promise<string> {
     try {
       if (!file.type.startsWith('image/')) {
@@ -14,56 +12,47 @@ export class ProfilePhotoService {
         throw new Error('A imagem deve ter no máximo 5MB');
       }
 
-      if (!storage) {
-        console.log('🔄 [PHOTO] Firebase Storage não disponível. Convertendo foto para Base64.');
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            resolve(reader.result as string);
-          };
-          reader.onerror = (err) => {
-            reject(new Error('Erro ao ler arquivo da imagem'));
-          };
-          reader.readAsDataURL(file);
-        });
-      }
-
       console.log(`📸 Fazendo upload da foto de perfil para usuário ${userId}`);
 
       const fileExtension = file.name.split('.').pop() || 'jpg';
       const fileName = `profile_${userId}_${Date.now()}.${fileExtension}`;
-      const storageRef = ref(storage, `profilePhotos/${fileName}`);
+      
+      const { data, error } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, file, { upsert: true });
 
-      const snapshot = await uploadBytes(storageRef, file);
+      if (error) {
+        console.error('Erro no Supabase Storage:', error);
+        throw error;
+      }
       
-      const downloadURL = await getDownloadURL(snapshot.ref);
-      
-      console.log(`✅ Foto de perfil enviada com sucesso: ${downloadURL}`);
-      return downloadURL;
+      const { data: publicUrlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+        
+      console.log(`✅ Foto de perfil enviada com sucesso: ${publicUrlData.publicUrl}`);
+      return publicUrlData.publicUrl;
     } catch (error: any) {
       console.error('❌ Erro ao fazer upload da foto de perfil:', error);
       throw new Error(error.message || 'Erro ao fazer upload da foto');
     }
   }
 
-  
   static async deleteProfilePhoto(photoURL: string): Promise<void> {
     try {
-      if (!storage) {
-        console.log('🔄 [PHOTO] Firebase Storage não disponível, pulando deleção de foto.');
+      if (!photoURL.includes('supabase.co')) {
+        console.log('⚠️ URL não é do Supabase Storage, pulando deleção');
         return;
       }
 
       const urlParts = photoURL.split('/');
       const fileName = urlParts[urlParts.length - 1].split('?')[0];
       
-      if (!photoURL.includes('firebasestorage.googleapis.com')) {
-        console.log('⚠️ URL não é do Firebase Storage, pulando deleção');
-        return;
-      }
-
-      const storageRef = ref(storage, `profilePhotos/${fileName}`);
-      await deleteObject(storageRef);
+      const { error } = await supabase.storage
+        .from('avatars')
+        .remove([fileName]);
+        
+      if (error) throw error;
       
       console.log(`✅ Foto de perfil deletada com sucesso: ${fileName}`);
     } catch (error: any) {
