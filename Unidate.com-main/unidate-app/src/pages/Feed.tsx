@@ -307,9 +307,10 @@ const Feed: React.FC = () => {
       <Sidebar activeHashtag={tagFilter || undefined} onHashtagClick={(tag) => setSearchParams({ tag })} />
 
       {/* Grid Principal de 2 Colunas (Centro Feed + Direita Ações) */}
-      <div className="flex-1 ml-64 flex min-h-screen">
-        {/* Coluna Central: Feed */}
-        <div className="flex-1 max-w-2xl px-6 py-8">
+      <div className="flex-1 ml-64 min-h-screen flex justify-center bg-slate-50">
+        <div className="flex w-full max-w-[1280px] justify-between">
+          {/* Coluna Central: Feed */}
+          <div className="flex-1 max-w-[760px] px-6 py-8">
           
           {/* Barra de Pesquisa */}
           <div className="relative mb-6">
@@ -841,6 +842,7 @@ const Feed: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
 
