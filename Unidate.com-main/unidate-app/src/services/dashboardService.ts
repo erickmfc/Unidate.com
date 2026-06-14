@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { AppCache } from '../utils/cache';
 
 export interface UserStats {
   matches: number;
@@ -24,6 +25,13 @@ export class DashboardService {
     try {
       if (!supabase) {
         throw new Error('Supabase não inicializado');
+      }
+
+      const cacheKey = `stats_${userId}`;
+      const cached = AppCache.get<UserStats>(cacheKey);
+      if (cached) {
+        console.log('📊 [STATS] Retornando dados do cache para o usuário:', userId);
+        return cached;
       }
 
       console.log('📊 Buscando estatísticas do usuário no Supabase:', userId);
@@ -53,6 +61,7 @@ export class DashboardService {
         profileCompletion
       };
 
+      AppCache.set(cacheKey, stats, 60000); // 1 minuto de cache
       console.log('✅ Estatísticas carregadas do Supabase:', stats);
       return stats;
     } catch (error) {
@@ -176,6 +185,13 @@ export class DashboardService {
 
   static async getRecentActivity(userId: string, limitCount: number = 5): Promise<RecentActivity[]> {
     try {
+      const cacheKey = `activity_${userId}_${limitCount}`;
+      const cached = AppCache.get<RecentActivity[]>(cacheKey);
+      if (cached) {
+        console.log('🔄 [ACTIVITY] Retornando dados do cache para o usuário:', userId);
+        return cached;
+      }
+
       console.log('🔄 Buscando atividade recente do usuário no Supabase:', userId);
       const activities: RecentActivity[] = [];
 
@@ -227,7 +243,9 @@ export class DashboardService {
       }
 
       activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      return activities.slice(0, limitCount);
+      const result = activities.slice(0, limitCount);
+      AppCache.set(cacheKey, result, 60000); // 1 minuto de cache
+      return result;
     } catch (error) {
       console.error('❌ Erro ao buscar atividade recente no Supabase:', error);
       return [];

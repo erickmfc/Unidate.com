@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { AppCache } from '../utils/cache';
 
 export interface UserProfile {
   uid: string;
@@ -29,6 +30,13 @@ export interface UserPost {
 export class UserProfileService {
   static async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
+      const cacheKey = `profile_${userId}`;
+      const cached = AppCache.get<UserProfile>(cacheKey);
+      if (cached) {
+        console.log('👤 [PROFILE] Retornando dados do cache para o usuário:', userId);
+        return cached;
+      }
+
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -49,7 +57,7 @@ export class UserProfileService {
         isFriend = await this.checkFriendship(user.id, userId);
       }
 
-      return {
+      const profileData: UserProfile = {
         uid: profile.id,
         name: profile.display_name || 'Usuário',
         email: profile.email || '',
@@ -63,6 +71,9 @@ export class UserProfileService {
         isFriend,
         userType: profile.user_type || 'aluno'
       };
+
+      AppCache.set(cacheKey, profileData, 120000); // 2 minutos de cache
+      return profileData;
     } catch (error) {
       console.error('Erro ao obter perfil do usuário:', error);
       return null;

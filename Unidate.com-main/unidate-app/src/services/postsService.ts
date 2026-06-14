@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { AppCache } from '../utils/cache';
 
 export interface Post {
   id: string;
@@ -70,6 +71,8 @@ export class PostsService {
 
       if (error) throw error;
 
+      AppCache.clearPattern('posts_'); // Limpa o cache de posts ao criar um novo
+
       console.log('✅ Post criado com sucesso no Supabase:', data.id);
       return data.id;
     } catch (error: any) {
@@ -80,6 +83,13 @@ export class PostsService {
 
   static async getPosts(limitCount: number = 50): Promise<Post[]> {
     try {
+      const cacheKey = `posts_${limitCount}`;
+      const cached = AppCache.get<Post[]>(cacheKey);
+      if (cached) {
+        console.log('📝 [POSTS] Retornando posts do cache');
+        return cached;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       const currentUserId = user?.id;
 
@@ -120,6 +130,7 @@ export class PostsService {
         updatedAt: p.updated_at
       }));
 
+      AppCache.set(cacheKey, posts, 15000); // Cache por 15 segundos
       console.log(`✅ ${posts.length} posts carregados do Supabase`);
       return posts;
     } catch (error) {
@@ -150,6 +161,8 @@ export class PostsService {
 
         if (error) throw error;
       }
+
+      AppCache.clearPattern('posts_'); // Limpa cache para atualizar curtidas na interface
 
       console.log('✅ Like atualizado no Supabase');
     } catch (error) {
@@ -187,6 +200,8 @@ export class PostsService {
           .update({ comments_count: (post.comments_count || 0) + 1 })
           .eq('id', postId);
       }
+
+      AppCache.clearPattern('posts_'); // Limpa cache para atualizar contador de comentários
 
       console.log('✅ Comentário adicionado no Supabase');
     } catch (error) {
@@ -284,6 +299,8 @@ export class PostsService {
 
       if (error) throw error;
       
+      AppCache.clearPattern('posts_'); // Limpa cache após deleção
+
       console.log('✅ Post deletado com sucesso do Supabase:', postId);
     } catch (error) {
       console.error('❌ Erro ao deletar post do Supabase:', error);
