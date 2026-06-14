@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
-          setCurrentUser(session.user);
+          setCurrentUser({ ...session.user, uid: session.user.id });
           const profile = await getUserProfile(session.user.id);
           setUserProfile(profile);
         } else {
@@ -65,7 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       setLoading(true);
       if (session) {
-        setCurrentUser(session.user);
+        setCurrentUser({ ...session.user, uid: session.user.id });
         const profile = await getUserProfile(session.user.id);
         setUserProfile(profile);
       } else {
