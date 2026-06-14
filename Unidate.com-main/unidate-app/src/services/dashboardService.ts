@@ -1,15 +1,4 @@
-import { db } from '../firebase/config';
-import { 
-  collection, 
-  query, 
-  where, 
-  getDocs, 
-  doc, 
-  getDoc,
-  orderBy,
-  limit,
-  Timestamp
-} from 'firebase/firestore';
+import { supabase } from '../supabaseClient';
 
 export interface UserStats {
   matches: number;
@@ -33,11 +22,11 @@ export interface RecentActivity {
 export class DashboardService {
   static async getUserStats(userId: string): Promise<UserStats> {
     try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
+      if (!supabase) {
+        throw new Error('Supabase não inicializado');
       }
 
-      console.log('📊 Buscando estatísticas do usuário:', userId);
+      console.log('📊 Buscando estatísticas do usuário no Supabase:', userId);
 
       const [
         matchesCount,
@@ -64,10 +53,10 @@ export class DashboardService {
         profileCompletion
       };
 
-      console.log('✅ Estatísticas carregadas:', stats);
+      console.log('✅ Estatísticas carregadas do Supabase:', stats);
       return stats;
     } catch (error) {
-      console.error('❌ Erro ao buscar estatísticas:', error);
+      console.error('❌ Erro ao buscar estatísticas no Supabase:', error);
       return {
         matches: 0,
         posts: 0,
@@ -81,249 +70,209 @@ export class DashboardService {
 
   private static async getMatchesCount(userId: string): Promise<number> {
     try {
-      if (!db) {
-        console.error('❌ Firebase não inicializado');
-        return 0;
-      }
-
-      const matchesQuery = query(
-        collection(db, 'matches'),
-        where('participants', 'array-contains', userId)
-      );
+      const { count, error } = await supabase
+        .from('matches')
+        .select('*', { count: 'exact', head: true })
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
       
-      const matchesSnapshot = await getDocs(matchesQuery);
-      return matchesSnapshot.size;
+      if (error) throw error;
+      return count || 0;
     } catch (error) {
-      console.error('❌ Erro ao contar matches:', error);
+      console.error('❌ Erro ao contar matches no Supabase:', error);
       return 0;
     }
   }
 
   private static async getPostsCount(userId: string): Promise<number> {
     try {
-      if (!db) {
-        console.error('❌ Firebase não inicializado');
-        return 0;
-      }
-
-      const postsQuery = query(
-        collection(db, 'posts'),
-        where('autorId', '==', userId)
-      );
+      const { count, error } = await supabase
+        .from('posts')
+        .select('*', { count: 'exact', head: true })
+        .eq('author_id', userId);
       
-      const postsSnapshot = await getDocs(postsQuery);
-      return postsSnapshot.size;
+      if (error) throw error;
+      return count || 0;
     } catch (error) {
-      console.error('❌ Erro ao contar posts:', error);
+      console.error('❌ Erro ao contar posts no Supabase:', error);
       return 0;
     }
   }
 
   private static async getGroupsCount(userId: string): Promise<number> {
     try {
-      if (!db) {
-        console.error('❌ Firebase não inicializado');
-        return 0;
-      }
-
-      const groupsQuery = query(
-        collection(db, 'groups'),
-        where('members', 'array-contains', userId)
-      );
+      const { count, error } = await supabase
+        .from('group_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
       
-      const groupsSnapshot = await getDocs(groupsQuery);
-      return groupsSnapshot.size;
+      if (error) throw error;
+      return count || 0;
     } catch (error) {
-      console.error('❌ Erro ao contar grupos:', error);
+      console.error('❌ Erro ao contar grupos no Supabase:', error);
       return 0;
     }
   }
 
   private static async getMessagesCount(userId: string): Promise<number> {
     try {
-      if (!db) {
-        console.error('❌ Firebase não inicializado');
-        return 0;
-      }
-
-      const groupMessagesQuery = query(
-        collection(db, 'groupMessages'),
-        where('userId', '==', userId)
-      );
+      const { count, error } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .eq('sender_id', userId);
       
-      const groupMessagesSnapshot = await getDocs(groupMessagesQuery);
-      
-      const privateMessagesQuery = query(
-        collection(db, 'messages'),
-        where('senderId', '==', userId)
-      );
-      
-      const privateMessagesSnapshot = await getDocs(privateMessagesQuery);
-      
-      return groupMessagesSnapshot.size + privateMessagesSnapshot.size;
+      if (error) throw error;
+      return count || 0;
     } catch (error) {
-      console.error('❌ Erro ao contar mensagens:', error);
+      console.error('❌ Erro ao contar mensagens no Supabase:', error);
       return 0;
     }
   }
 
   private static async getTotalLikes(userId: string): Promise<number> {
     try {
-      if (!db) {
-        console.error('❌ Firebase não inicializado');
-        return 0;
+      const { data, error } = await supabase
+        .from('posts')
+        .select('likes_count')
+        .eq('author_id', userId);
+      
+      if (error) throw error;
+      
+      let total = 0;
+      if (data) {
+        total = data.reduce((sum, post) => sum + (post.likes_count || 0), 0);
       }
-
-      const postsQuery = query(
-        collection(db, 'posts'),
-        where('autorId', '==', userId)
-      );
-      
-      const postsSnapshot = await getDocs(postsQuery);
-      let totalLikes = 0;
-      
-      postsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        totalLikes += (data.curtidasPor?.length || 0);
-      });
-      
-      return totalLikes;
+      return total;
     } catch (error) {
-      console.error('❌ Erro ao contar curtidas:', error);
+      console.error('❌ Erro ao contar curtidas no Supabase:', error);
       return 0;
     }
   }
 
   private static async getProfileCompletion(userId: string): Promise<number> {
     try {
-      if (!db) {
-        console.error('❌ Firebase não inicializado');
-        return 0;
-      }
-
-      const userRef = doc(db, 'users', userId);
-      const userDoc = await getDoc(userRef);
+      const { data: userData, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
       
-      if (!userDoc.exists()) {
+      if (error || !userData) {
         return 0;
       }
       
-      const userData = userDoc.data();
       let completion = 0;
-      
-      if (userData.displayName) completion += 20;
-      if (userData.photoURL) completion += 20;
-      if (userData.course || userData.curso) completion += 20;
-      if (userData.university || userData.universidade) completion += 20;
+      if (userData.display_name) completion += 20;
+      if (userData.photo_url) completion += 20;
+      if (userData.course) completion += 20;
+      if (userData.university) completion += 20;
       if (userData.bio) completion += 20;
       
       return Math.min(completion, 100);
     } catch (error) {
-      console.error('❌ Erro ao calcular completude do perfil:', error);
+      console.error('❌ Erro ao calcular completude do perfil no Supabase:', error);
       return 0;
     }
   }
 
   static async getRecentActivity(userId: string, limitCount: number = 5): Promise<RecentActivity[]> {
     try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      console.log('🔄 Buscando atividade recente do usuário:', userId);
-
+      console.log('🔄 Buscando atividade recente do usuário no Supabase:', userId);
       const activities: RecentActivity[] = [];
 
-      const postsQuery = query(
-        collection(db, 'posts'),
-        where('autorId', '==', userId),
-        orderBy('dataCriacao', 'desc'),
-        limit(3)
-      );
-      
-      const postsSnapshot = await getDocs(postsQuery);
-      postsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        activities.push({
-          id: doc.id,
-          type: 'post',
-          title: 'Novo post publicado',
-          description: data.titulo || 'Post sem título',
-          timestamp: data.dataCriacao?.toDate() || new Date(),
-          icon: '📝',
-          color: 'text-blue-500'
-        });
-      });
+      // 1. Posts
+      const { data: posts, error: postsError } = await supabase
+        .from('posts')
+        .select('id, content, created_at')
+        .eq('author_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(3);
 
-      const groupsQuery = query(
-        collection(db, 'groups'),
-        where('members', 'array-contains', userId),
-        orderBy('lastActivity', 'desc'),
-        limit(2)
-      );
-      
-      const groupsSnapshot = await getDocs(groupsQuery);
-      groupsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        activities.push({
-          id: doc.id,
-          type: 'group',
-          title: 'Entrou em um grupo',
-          description: data.name || 'Grupo sem nome',
-          timestamp: data.lastActivity?.toDate() || new Date(),
-          icon: '👥',
-          color: 'text-green-500'
+      if (!postsError && posts) {
+        posts.forEach((post) => {
+          activities.push({
+            id: post.id,
+            type: 'post',
+            title: 'Novo post publicado',
+            description: post.content ? (post.content.substring(0, 60) + (post.content.length > 60 ? '...' : '')) : 'Post sem conteúdo',
+            timestamp: new Date(post.created_at),
+            icon: '📝',
+            color: 'text-blue-500'
+          });
         });
-      });
+      }
+
+      // 2. Groups joined
+      const { data: memberships, error: memError } = await supabase
+        .from('group_members')
+        .select('created_at, groups(id, name)')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(2);
+
+      if (!memError && memberships) {
+        memberships.forEach((mem: any) => {
+          const group = mem.groups;
+          if (group) {
+            activities.push({
+              id: group.id,
+              type: 'group',
+              title: 'Entrou em um grupo',
+              description: group.name || 'Grupo sem nome',
+              timestamp: new Date(mem.created_at),
+              icon: '👥',
+              color: 'text-green-500'
+            });
+          }
+        });
+      }
 
       activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
       return activities.slice(0, limitCount);
     } catch (error) {
-      console.error('❌ Erro ao buscar atividade recente:', error);
+      console.error('❌ Erro ao buscar atividade recente no Supabase:', error);
       return [];
     }
   }
 
   static async getUpcomingEvents(userId: string): Promise<any[]> {
     try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const groupsQuery = query(
-        collection(db, 'groups'),
-        where('members', 'array-contains', userId)
-      );
+      console.log('📅 Buscando eventos futuros no Supabase...');
       
-      const groupsSnapshot = await getDocs(groupsQuery);
-      const events: any[] = [];
-
-      for (const groupDoc of groupsSnapshot.docs) {
-        const eventsQuery = query(
-          collection(db, 'events'),
-          where('groupId', '==', groupDoc.id),
-          where('date', '>=', new Date()),
-          orderBy('date', 'asc'),
-          limit(2)
-        );
-        
-        const eventsSnapshot = await getDocs(eventsQuery);
-        eventsSnapshot.forEach((eventDoc) => {
-          const eventData = eventDoc.data();
-          events.push({
-            id: eventDoc.id,
-            title: eventData.title,
-            date: eventData.date?.toDate(),
-            groupName: groupDoc.data().name,
-            description: eventData.description
-          });
-        });
+      const { data: memberships, error: memError } = await supabase
+        .from('group_members')
+        .select('group_id')
+        .eq('user_id', userId);
+      
+      if (memError || !memberships || memberships.length === 0) {
+        return [];
       }
-
-      events.sort((a, b) => a.date.getTime() - b.date.getTime());
-      return events.slice(0, 3);
+      
+      const groupIds = memberships.map(m => m.group_id);
+      
+      // Tentativa de buscar da tabela 'events' (tabela opcional)
+      const { data: events, error: eventsError } = await supabase
+        .from('events')
+        .select('id, title, date, description, groups(name)')
+        .in('group_id', groupIds)
+        .gte('date', new Date().toISOString())
+        .order('date', { ascending: true })
+        .limit(3);
+        
+      if (eventsError) {
+        // Se a tabela não existir no Supabase, retorna vazio em vez de estourar erro
+        console.log('ℹ️ Tabela "events" indisponível no banco. Retornando vazio.');
+        return [];
+      }
+      
+      return (events || []).map(e => ({
+        id: e.id,
+        title: e.title,
+        date: new Date(e.date),
+        groupName: (e.groups as any)?.name || 'Grupo',
+        description: e.description
+      }));
     } catch (error) {
-      console.error('❌ Erro ao buscar eventos:', error);
+      console.error('❌ Erro ao buscar eventos futuros no Supabase:', error);
       return [];
     }
   }
