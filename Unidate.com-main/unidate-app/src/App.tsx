@@ -44,6 +44,7 @@ const SOSPage = lazy(() => import('./pages/SOSPage'));
 const AnonymousWallPage = lazy(() => import('./pages/AnonymousWallPage'));
 const Events = lazy(() => import('./pages/Events'));
 const CampusGuide = lazy(() => import('./pages/CampusGuide'));
+const Impulsionar = lazy(() => import('./pages/Impulsionar'));
 
 const Experts = lazy(() => import('./pages/Experts'));
 const AdminInstructions = lazy(() => import('./components/Admin/AdminInstructions'));
@@ -80,8 +81,18 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {!location.pathname.startsWith('/admin') && !location.pathname.startsWith('/experts') && <Navbar />}
-      <main className={location.pathname.startsWith('/admin') || location.pathname.startsWith('/experts') ? '' : 'pt-16'}>
+      {!location.pathname.startsWith('/admin') && 
+       !location.pathname.startsWith('/experts') && 
+       location.pathname !== '/feed' && 
+       location.pathname !== '/impulsionar' && <Navbar />}
+      <main className={
+        location.pathname.startsWith('/admin') || 
+        location.pathname.startsWith('/experts') || 
+        location.pathname === '/feed' || 
+        location.pathname === '/impulsionar' 
+          ? '' 
+          : 'pt-16'
+      }>
         <Suspense fallback={<LoadingSpinner />}>
           <Routes>
           <Route path="/" element={<HomePage />} />
@@ -178,6 +189,14 @@ const AppContent: React.FC = () => {
             element={
               <ProtectedRoute>
                 <Events />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/impulsionar" 
+            element={
+              <ProtectedRoute>
+                <Impulsionar />
               </ProtectedRoute>
             } 
           />
@@ -360,3 +379,5 @@ const App: React.FC = () => {
 };
 
 export default App;
+// Touch for rebuild
+

@@ -105,7 +105,7 @@ const StatusCard: React.FC<{
 );
 
 const Dashboard: React.FC = () => {
-  const { userProfile, currentUser } = useAuth();
+  const { userProfile, currentUser, loading: authLoading } = useAuth();
   const { showWelcome } = useUniDateToast();
 
   const [stats, setStats] = useState<UserStats>({
@@ -161,7 +161,14 @@ const Dashboard: React.FC = () => {
   }, [userProfile?.displayName]);
 
   const loadDashboardData = useCallback(async () => {
-    if (!currentUser?.uid) return;
+    // If auth is still loading, wait — don't set loading=false yet
+    if (authLoading) return;
+
+    // If there's no user after auth finished, just stop loading
+    if (!currentUser?.uid) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
@@ -183,7 +190,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUser?.uid]);
+  }, [currentUser?.uid, authLoading]);
 
   useEffect(() => {
     loadDashboardData();

@@ -3,6 +3,7 @@ import { Heart, X, RotateCcw, MessageCircle, Sparkles, MapPin, GraduationCap, In
 import { useAuth } from '../contexts/AuthContext';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
 import { ChatService } from '../services/chatService';
+import { EventsService } from '../services/eventsService';
 import { useUniDateToast } from '../components/UI/Toast';
 import { useNavigate } from 'react-router-dom';
 import { db } from '../firebase/config';
