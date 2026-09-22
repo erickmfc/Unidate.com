@@ -336,3 +336,30 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 CREATE OR REPLACE TRIGGER on_like_deleted
   AFTER DELETE ON public.likes
   FOR EACH ROW EXECUTE PROCEDURE public.handle_post_like_decrement();
+
+-- Conteúdo avançado das comunidades (Supabase)
+CREATE TABLE IF NOT EXISTS public.group_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  author_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, content TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'text', image TEXT, poll_data JSONB, likes UUID[] NOT NULL DEFAULT '{}',
+  comments_count INTEGER NOT NULL DEFAULT 0, hashtags TEXT[] NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()), updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+CREATE TABLE IF NOT EXISTS public.group_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, sender_name TEXT NOT NULL,
+  content TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'text', reply_to UUID REFERENCES public.group_messages(id) ON DELETE SET NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+CREATE TABLE IF NOT EXISTS public.group_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', date TIMESTAMPTZ NOT NULL, location TEXT NOT NULL DEFAULT '',
+  max_attendees INTEGER, created_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  is_public BOOLEAN NOT NULL DEFAULT true, tags TEXT[] NOT NULL DEFAULT '{}', image TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()), updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+CREATE TABLE IF NOT EXISTS public.group_event_attendees (
+  event_id UUID NOT NULL REFERENCES public.group_events(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()), PRIMARY KEY (event_id, user_id)
+);

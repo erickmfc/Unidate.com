@@ -16,7 +16,14 @@ Comando:
 
 Resultado: Compiled successfully. A pasta `build` foi gerada e está pronta para hospedagem estática.
 
-Após a migração do chat para Supabase, o build foi executado novamente e passou.
+Após a migração do chat e dos recursos avançados de grupos para Supabase, o build foi executado novamente e passou.
+
+## Validação do banco
+
+- 15 tabelas da aplicação confirmadas no schema `public`;
+- RLS habilitado nas 15 tabelas;
+- 0 políticas abertas para a role `public`;
+- migração aplicada para posts, mensagens, eventos e participantes de eventos de grupos.
 
 ## Smoke test no navegador
 

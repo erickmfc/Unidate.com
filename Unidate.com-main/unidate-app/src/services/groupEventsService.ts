@@ -1,310 +1,83 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
-  getDoc,
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
-  where,
-  limit,
-  serverTimestamp,
-  Timestamp,
-  arrayUnion,
-  arrayRemove
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { supabase } from '../supabaseClient';
+
+type TimestampLike = { toDate: () => Date; seconds: number; nanoseconds: number };
+const asTimestamp = (value?: string | null): TimestampLike => { const date = value ? new Date(value) : new Date(); return { toDate: () => date, seconds: Math.floor(date.getTime() / 1000), nanoseconds: 0 }; };
 
 export interface GroupEvent {
-  id: string;
-  groupId: string;
-  title: string;
-  description: string;
-  date: Timestamp;
-  location: string;
-  maxAttendees?: number;
-  attendees: string[];
-  createdBy: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-  isPublic: boolean;
-  tags: string[];
-  image?: string;
-  isAttending?: boolean;
-  attendeesCount?: number;
-  canEdit?: boolean;
+  id: string; groupId: string; title: string; description: string; date: TimestampLike; location: string;
+  maxAttendees?: number; attendees: string[]; createdBy: string; createdAt: TimestampLike; updatedAt: TimestampLike;
+  isPublic: boolean; tags: string[]; image?: string; isAttending?: boolean; attendeesCount?: number; canEdit?: boolean;
 }
+
+const mapEvent = (row: any, userId?: string): GroupEvent => {
+  const attendees = (row.attendees || []).map((entry: any) => entry.user_id || entry);
+  return { id: row.id, groupId: row.group_id, title: row.title, description: row.description || '', date: asTimestamp(row.date), location: row.location || '', maxAttendees: row.max_attendees || undefined, attendees, createdBy: row.created_by, createdAt: asTimestamp(row.created_at), updatedAt: asTimestamp(row.updated_at), isPublic: row.is_public !== false, tags: row.tags || [], image: row.image || undefined, attendeesCount: attendees.length, isAttending: userId ? attendees.includes(userId) : false, canEdit: userId ? row.created_by === userId : false };
+};
+
+const withAttendees = async (events: any[]): Promise<any[]> => {
+  if (!events.length) return [];
+  const { data: attendees, error } = await supabase.from('group_event_attendees').select('event_id, user_id').in('event_id', events.map((event) => event.id));
+  if (error) throw error;
+  return events.map((event) => ({ ...event, attendees: (attendees || []).filter((entry) => entry.event_id === event.id) }));
+};
 
 export class GroupEventsService {
   static async createEvent(eventData: Omit<GroupEvent, 'id' | 'attendees' | 'createdAt' | 'updatedAt' | 'isAttending' | 'attendeesCount' | 'canEdit'> & { date: Date }): Promise<string> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      console.log('📅 Criando evento:', eventData.title);
-
-      const dateTimestamp = Timestamp.fromDate(eventData.date);
-
-      const eventRef = await addDoc(collection(db, 'groupEvents'), {
-        ...eventData,
-        date: dateTimestamp,
-        attendees: [eventData.createdBy],
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      console.log('✅ Evento criado com sucesso:', eventRef.id);
-      return eventRef.id;
-    } catch (error) {
-      console.error('❌ Erro ao criar evento:', error);
-      throw error;
-    }
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado');
+    const { data, error } = await supabase.from('group_events').insert({ group_id: eventData.groupId, title: eventData.title, description: eventData.description, date: eventData.date.toISOString(), location: eventData.location, max_attendees: eventData.maxAttendees || null, created_by: user.id, is_public: eventData.isPublic !== false, tags: eventData.tags || [], image: eventData.image || null }).select('id').single();
+    if (error || !data) throw error || new Error('Não foi possível criar o evento');
+    await supabase.from('group_event_attendees').insert({ event_id: data.id, user_id: user.id });
+    return data.id;
   }
 
   static async getGroupEvents(groupId: string, userId?: string): Promise<GroupEvent[]> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const eventsQuery = query(
-        collection(db, 'groupEvents'),
-        where('groupId', '==', groupId),
-        orderBy('date', 'asc')
-      );
-
-      const eventsSnapshot = await getDocs(eventsQuery);
-      const events: GroupEvent[] = [];
-
-      eventsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const event: GroupEvent = {
-          id: doc.id,
-          groupId: data.groupId,
-          title: data.title,
-          description: data.description,
-          date: data.date,
-          location: data.location,
-          maxAttendees: data.maxAttendees,
-          attendees: data.attendees || [],
-          createdBy: data.createdBy,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-          isPublic: data.isPublic !== false,
-          tags: data.tags || [],
-          image: data.image,
-          attendeesCount: data.attendees?.length || 0,
-          isAttending: userId ? data.attendees?.includes(userId) : false,
-          canEdit: userId ? (data.createdBy === userId) : false
-        };
-        events.push(event);
-      });
-
-      return events;
-    } catch (error) {
-      console.error('❌ Erro ao buscar eventos do grupo:', error);
-      return [];
-    }
+    const { data, error } = await supabase.from('group_events').select('*').eq('group_id', groupId).order('date', { ascending: true });
+    if (error) throw error;
+    return (await withAttendees(data || [])).map((event) => mapEvent(event, userId));
   }
 
   static async toggleEventAttendance(eventId: string, userId: string, isAttending: boolean): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const eventRef = doc(db, 'groupEvents', eventId);
-      
-      const eventDoc = await getDoc(eventRef);
-      if (!eventDoc.exists()) {
-        throw new Error('Evento não encontrado');
-      }
-
-      const eventData = eventDoc.data();
-      
-      if (isAttending && eventData.maxAttendees && eventData.attendees.length >= eventData.maxAttendees) {
-        throw new Error('Evento lotado');
-      }
-
-      if (isAttending) {
-        await updateDoc(eventRef, {
-          attendees: arrayUnion(userId),
-          updatedAt: serverTimestamp()
-        });
-        console.log(`✅ Usuário ${userId} entrou no evento ${eventId}`);
-      } else {
-        await updateDoc(eventRef, {
-          attendees: arrayRemove(userId),
-          updatedAt: serverTimestamp()
-        });
-        console.log(`✅ Usuário ${userId} saiu do evento ${eventId}`);
-      }
-    } catch (error) {
-      console.error('❌ Erro ao atualizar participação no evento:', error);
-      throw error;
+    if (isAttending) {
+      const { data: event } = await supabase.from('group_events').select('max_attendees').eq('id', eventId).single();
+      const { count } = await supabase.from('group_event_attendees').select('*', { count: 'exact', head: true }).eq('event_id', eventId);
+      if (event?.max_attendees && (count || 0) >= event.max_attendees) throw new Error('Evento lotado');
+      const { error } = await supabase.from('group_event_attendees').upsert({ event_id: eventId, user_id: userId });
+      if (error) throw error;
+    } else {
+      const { error } = await supabase.from('group_event_attendees').delete().eq('event_id', eventId).eq('user_id', userId);
+      if (error) throw error;
     }
   }
 
   static async updateEvent(eventId: string, eventData: Partial<GroupEvent> & { date?: Date }, userId: string): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const eventRef = doc(db, 'groupEvents', eventId);
-      
-      const eventDoc = await getDoc(eventRef);
-      if (!eventDoc.exists()) {
-        throw new Error('Evento não encontrado');
-      }
-
-      const currentEventData = eventDoc.data();
-      if (currentEventData.createdBy !== userId) {
-        throw new Error('Você não tem permissão para editar este evento');
-      }
-
-      const { id, groupId, createdBy, createdAt, attendees, date, ...updateData } = eventData;
-
-      const updateFields: any = {
-        ...updateData,
-        updatedAt: serverTimestamp()
-      };
-
-      if (date) {
-        updateFields.date = Timestamp.fromDate(date);
-      }
-
-      await updateDoc(eventRef, updateFields);
-
-      console.log('✅ Evento atualizado com sucesso:', eventId);
-    } catch (error) {
-      console.error('❌ Erro ao atualizar evento:', error);
-      throw error;
-    }
+    const update: any = {};
+    if (eventData.title !== undefined) update.title = eventData.title;
+    if (eventData.description !== undefined) update.description = eventData.description;
+    if (eventData.date) update.date = eventData.date.toISOString();
+    if (eventData.location !== undefined) update.location = eventData.location;
+    if (eventData.maxAttendees !== undefined) update.max_attendees = eventData.maxAttendees;
+    if (eventData.isPublic !== undefined) update.is_public = eventData.isPublic;
+    if (eventData.tags !== undefined) update.tags = eventData.tags;
+    if (eventData.image !== undefined) update.image = eventData.image;
+    const { error } = await supabase.from('group_events').update(update).eq('id', eventId).eq('created_by', userId);
+    if (error) throw error;
   }
 
   static async deleteEvent(eventId: string, userId: string): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const eventRef = doc(db, 'groupEvents', eventId);
-      
-      const eventDoc = await getDoc(eventRef);
-      if (!eventDoc.exists()) {
-        throw new Error('Evento não encontrado');
-      }
-
-      const eventData = eventDoc.data();
-      if (eventData.createdBy !== userId) {
-        throw new Error('Você não tem permissão para deletar este evento');
-      }
-
-      await deleteDoc(eventRef);
-      console.log('✅ Evento deletado com sucesso:', eventId);
-    } catch (error) {
-      console.error('❌ Erro ao deletar evento:', error);
-      throw error;
-    }
+    const { error } = await supabase.from('group_events').delete().eq('id', eventId).eq('created_by', userId);
+    if (error) throw error;
   }
 
-  static async getUpcomingEvents(groupId: string, limitCount: number = 5): Promise<GroupEvent[]> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const now = new Date();
-      const eventsQuery = query(
-        collection(db, 'groupEvents'),
-        where('groupId', '==', groupId),
-        where('date', '>=', now),
-        orderBy('date', 'asc'),
-        limit(limitCount)
-      );
-
-      const eventsSnapshot = await getDocs(eventsQuery);
-      const events: GroupEvent[] = [];
-
-      eventsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const event: GroupEvent = {
-          id: doc.id,
-          groupId: data.groupId,
-          title: data.title,
-          description: data.description,
-          date: data.date,
-          location: data.location,
-          maxAttendees: data.maxAttendees,
-          attendees: data.attendees || [],
-          createdBy: data.createdBy,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-          isPublic: data.isPublic !== false,
-          tags: data.tags || [],
-          image: data.image,
-          attendeesCount: data.attendees?.length || 0,
-          isAttending: false,
-          canEdit: false
-        };
-        events.push(event);
-      });
-
-      return events;
-    } catch (error) {
-      console.error('❌ Erro ao buscar eventos próximos:', error);
-      return [];
-    }
+  static async getUpcomingEvents(groupId: string, limitCount = 5): Promise<GroupEvent[]> {
+    const { data, error } = await supabase.from('group_events').select('*').eq('group_id', groupId).gte('date', new Date().toISOString()).order('date', { ascending: true }).limit(limitCount);
+    if (error) throw error;
+    return (await withAttendees(data || [])).map((event) => mapEvent(event));
   }
 
   static async getEventsByTag(groupId: string, tag: string): Promise<GroupEvent[]> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const eventsQuery = query(
-        collection(db, 'groupEvents'),
-        where('groupId', '==', groupId),
-        where('tags', 'array-contains', tag),
-        orderBy('date', 'asc')
-      );
-
-      const eventsSnapshot = await getDocs(eventsQuery);
-      const events: GroupEvent[] = [];
-
-      eventsSnapshot.forEach((doc) => {
-        const data = doc.data();
-        const event: GroupEvent = {
-          id: doc.id,
-          groupId: data.groupId,
-          title: data.title,
-          description: data.description,
-          date: data.date,
-          location: data.location,
-          maxAttendees: data.maxAttendees,
-          attendees: data.attendees || [],
-          createdBy: data.createdBy,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt,
-          isPublic: data.isPublic !== false,
-          tags: data.tags || [],
-          image: data.image,
-          attendeesCount: data.attendees?.length || 0,
-          isAttending: false,
-          canEdit: false
-        };
-        events.push(event);
-      });
-
-      return events;
-    } catch (error) {
-      console.error('❌ Erro ao buscar eventos por tag:', error);
-      return [];
-    }
+    const { data, error } = await supabase.from('group_events').select('*').eq('group_id', groupId).contains('tags', [tag]).order('date', { ascending: true });
+    if (error) throw error;
+    return (await withAttendees(data || [])).map((event) => mapEvent(event));
   }
 }

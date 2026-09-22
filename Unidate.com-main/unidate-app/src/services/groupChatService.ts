@@ -1,223 +1,47 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
-  query, 
-  orderBy, 
-  limit, 
-  onSnapshot,
-  serverTimestamp,
-  Timestamp,
-  where
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { supabase } from '../supabaseClient';
 
-export interface GroupMessage {
-  id: string;
-  groupId: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  content: string;
-  type: 'text' | 'image' | 'file' | 'system';
-  timestamp: Timestamp;
-  edited?: boolean;
-  replyTo?: string;
-}
+type TimestampLike = { toDate: () => Date; seconds: number; nanoseconds: number };
+const asTimestamp = (value?: string | null): TimestampLike => {
+  const date = value ? new Date(value) : new Date();
+  return { toDate: () => date, seconds: Math.floor(date.getTime() / 1000), nanoseconds: 0 };
+};
 
-export interface GroupChat {
-  groupId: string;
-  lastMessage: string;
-  lastMessageTime: Timestamp;
-  unreadCount: number;
-  isActive: boolean;
-}
+export interface GroupMessage { id: string; groupId: string; userId: string; userName: string; userAvatar?: string; content: string; type: 'text' | 'image' | 'file' | 'system'; timestamp: TimestampLike; edited?: boolean; replyTo?: string; }
+export interface GroupChat { groupId: string; lastMessage: string; lastMessageTime: TimestampLike; unreadCount: number; isActive: boolean; }
+
+const mapMessage = (row: any): GroupMessage => ({ id: row.id, groupId: row.group_id, userId: row.sender_id, userName: row.sender_name || 'Usuário', content: row.content, type: row.type || 'text', timestamp: asTimestamp(row.created_at), edited: false, replyTo: row.reply_to || undefined });
 
 export class GroupChatService {
-  static async sendMessage(
-    groupId: string, 
-    userId: string, 
-    userName: string, 
-    content: string, 
-    type: 'text' | 'image' | 'file' | 'system' = 'text',
-    replyTo?: string
-  ): Promise<string> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      console.log(`💬 Enviando mensagem para grupo ${groupId}:`, content);
-
-      const messageRef = await addDoc(collection(db, 'groupMessages'), {
-        groupId,
-        userId,
-        userName,
-        content,
-        type,
-        timestamp: serverTimestamp(),
-        edited: false,
-        replyTo: replyTo || null
-      });
-
-      console.log('✅ Mensagem enviada com sucesso:', messageRef.id);
-      return messageRef.id;
-    } catch (error) {
-      console.error('❌ Erro ao enviar mensagem:', error);
-      throw error;
-    }
+  static async sendMessage(groupId: string, userId: string, userName: string, content: string, type: 'text' | 'image' | 'file' | 'system' = 'text', replyTo?: string): Promise<string> {
+    const { data, error } = await supabase.from('group_messages').insert({ group_id: groupId, sender_id: userId, sender_name: userName, content, type, reply_to: replyTo || null }).select('id').single();
+    if (error || !data) throw error || new Error('Não foi possível enviar a mensagem');
+    return data.id;
   }
 
-  static async getGroupMessages(groupId: string, limitCount: number = 50): Promise<GroupMessage[]> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const messagesQuery = query(
-        collection(db, 'groupMessages'),
-        where('groupId', '==', groupId),
-        orderBy('timestamp', 'desc'),
-        limit(limitCount)
-      );
-
-      const messagesSnapshot = await getDocs(messagesQuery);
-      const messages: GroupMessage[] = [];
-
-      messagesSnapshot.forEach((doc) => {
-        const data = doc.data();
-        messages.push({
-          id: doc.id,
-          groupId: data.groupId,
-          userId: data.userId,
-          userName: data.userName,
-          userAvatar: data.userAvatar,
-          content: data.content,
-          type: data.type || 'text',
-          timestamp: data.timestamp,
-          edited: data.edited || false,
-          replyTo: data.replyTo
-        });
-      });
-
-      return messages.reverse();
-    } catch (error) {
-      console.error('❌ Erro ao buscar mensagens do grupo:', error);
-      return [];
-    }
+  static async getGroupMessages(groupId: string, limitCount = 50): Promise<GroupMessage[]> {
+    const { data, error } = await supabase.from('group_messages').select('*').eq('group_id', groupId).order('created_at', { ascending: false }).limit(limitCount);
+    if (error) throw error;
+    return (data || []).reverse().map(mapMessage);
   }
 
-  static subscribeToGroupMessages(
-    groupId: string, 
-    callback: (messages: GroupMessage[]) => void,
-    limitCount: number = 50
-  ): () => void {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const messagesQuery = query(
-        collection(db, 'groupMessages'),
-        where('groupId', '==', groupId),
-        orderBy('timestamp', 'desc'),
-        limit(limitCount)
-      );
-
-      const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
-        const messages: GroupMessage[] = [];
-
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          messages.push({
-            id: doc.id,
-            groupId: data.groupId,
-            userId: data.userId,
-            userName: data.userName,
-            userAvatar: data.userAvatar,
-            content: data.content,
-            type: data.type || 'text',
-            timestamp: data.timestamp,
-            edited: data.edited || false,
-            replyTo: data.replyTo
-          });
-        });
-
-        callback(messages.reverse());
-      });
-
-      return unsubscribe;
-    } catch (error) {
-      console.error('❌ Erro ao escutar mensagens do grupo:', error);
-      return () => {};
-    }
+  static subscribeToGroupMessages(groupId: string, callback: (messages: GroupMessage[]) => void, limitCount = 50): () => void {
+    let active = true;
+    const load = async () => { try { const messages = await this.getGroupMessages(groupId, limitCount); if (active) callback(messages); } catch (error) { console.error('Erro ao carregar chat do grupo:', error); } };
+    void load();
+    const channel = supabase.channel(`group-chat:${groupId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'group_messages', filter: `group_id=eq.${groupId}` }, load).subscribe();
+    return () => { active = false; void supabase.removeChannel(channel); };
   }
 
-  static async sendSystemMessage(
-    groupId: string, 
-    content: string
-  ): Promise<string> {
-    return this.sendMessage(groupId, 'system', 'Sistema', content, 'system');
-  }
+  static async sendSystemMessage(groupId: string, content: string): Promise<string> { return this.sendMessage(groupId, 'system', 'Sistema', content, 'system'); }
 
   static async markMessagesAsRead(groupId: string, userId: string): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      console.log(`📖 Marcando mensagens como lidas para usuário ${userId} no grupo ${groupId}`);
-    } catch (error) {
-      console.error('❌ Erro ao marcar mensagens como lidas:', error);
-    }
+    const { error } = await supabase.from('group_messages').update({ is_read: true }).eq('group_id', groupId).neq('sender_id', userId).eq('is_read', false);
+    if (error) throw error;
   }
 
-  static async getChatStats(groupId: string): Promise<{
-    totalMessages: number;
-    activeUsers: number;
-    lastActivity: Date | null;
-  }> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const messagesQuery = query(
-        collection(db, 'groupMessages'),
-        where('groupId', '==', groupId),
-        orderBy('timestamp', 'desc'),
-        limit(1)
-      );
-
-      const messagesSnapshot = await getDocs(messagesQuery);
-      
-      let totalMessages = 0;
-      let lastActivity: Date | null = null;
-      const activeUsers = new Set<string>();
-
-      messagesSnapshot.forEach((doc) => {
-        const data = doc.data();
-        totalMessages++;
-        activeUsers.add(data.userId);
-        
-        if (!lastActivity && data.timestamp) {
-          lastActivity = data.timestamp.toDate();
-        }
-      });
-
-      return {
-        totalMessages,
-        activeUsers: activeUsers.size,
-        lastActivity
-      };
-    } catch (error) {
-      console.error('❌ Erro ao buscar estatísticas do chat:', error);
-      return {
-        totalMessages: 0,
-        activeUsers: 0,
-        lastActivity: null
-      };
-    }
+  static async getChatStats(groupId: string): Promise<{ totalMessages: number; activeUsers: number; lastActivity: Date | null }> {
+    const { data, error } = await supabase.from('group_messages').select('sender_id, created_at').eq('group_id', groupId).order('created_at', { ascending: false }).limit(1000);
+    if (error) throw error;
+    return { totalMessages: data?.length || 0, activeUsers: new Set((data || []).map((row) => row.sender_id)).size, lastActivity: data?.[0]?.created_at ? new Date(data[0].created_at) : null };
   }
 }

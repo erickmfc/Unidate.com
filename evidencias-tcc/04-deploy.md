@@ -6,7 +6,7 @@ Servidor de desenvolvimento executado em `http://127.0.0.1:3000`.
 
 ## Vercel
 
-O repositório foi enviado para `origin/main`, o projeto Vercel existente `unidate-com` detectou o commit `d5c50e8` e o deploy de produção chegou a `READY`.
+O repositório foi enviado para `origin/main`, e o projeto Vercel existente `unidate-com` detectou os commits de migração e chegou a `READY` em produção.
 
 URL confirmada: https://unidate-com.vercel.app/
 

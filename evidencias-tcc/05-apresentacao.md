@@ -7,8 +7,8 @@
 5. Jornada principal: cadastro, onboarding, descoberta, feed, grupos, chat e eventos.
 6. Diferenciais: contexto universitário, comunidades por interesse, recursos de segurança e suporte.
 7. Arquitetura: React/TypeScript no frontend e Supabase Auth/Postgres/RLS no backend.
-8. Banco: 11 tabelas públicas, RLS habilitado em todas e políticas sem acesso público aberto.
+8. Banco: 15 tabelas da aplicação, RLS habilitado em todas e políticas sem acesso público aberto; o conteúdo avançado de grupos possui tabelas próprias.
 9. Qualidade: teste automatizado, build de produção e smoke test das rotas principais.
 10. Demonstração: abrir landing page, cadastro, login, recuperação de senha e mostrar grupos/eventos após autenticação.
-11. Limitações: algumas integrações legadas ainda estão em migração para Supabase; é necessária uma conta de teste para validar os fluxos autenticados de ponta a ponta.
+11. Limitações: algumas integrações administrativas/legadas ainda estão em migração para Supabase; é necessária uma conta de teste para validar os fluxos autenticados de ponta a ponta.
 12. Próximos passos: concluir migração dos serviços restantes, habilitar proteção contra senhas vazadas e publicar a versão final no Vercel.

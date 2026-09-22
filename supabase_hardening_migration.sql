@@ -21,6 +21,71 @@ ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS sender_avatar TEXT;
 ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS reply_to UUID REFERENCES public.messages(id) ON DELETE SET NULL;
 ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT false;
 
+CREATE TABLE IF NOT EXISTS public.group_posts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  author_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, content TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'text', image TEXT, poll_data JSONB, likes UUID[] NOT NULL DEFAULT '{}',
+  comments_count INTEGER NOT NULL DEFAULT 0, hashtags TEXT[] NOT NULL DEFAULT '{}',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()), updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+CREATE TABLE IF NOT EXISTS public.group_messages (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE, sender_name TEXT NOT NULL,
+  content TEXT NOT NULL, type TEXT NOT NULL DEFAULT 'text', reply_to UUID REFERENCES public.group_messages(id) ON DELETE SET NULL,
+  is_read BOOLEAN NOT NULL DEFAULT false, created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+CREATE TABLE IF NOT EXISTS public.group_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(), group_id UUID NOT NULL REFERENCES public.groups(id) ON DELETE CASCADE,
+  title TEXT NOT NULL, description TEXT NOT NULL DEFAULT '', date TIMESTAMPTZ NOT NULL, location TEXT NOT NULL DEFAULT '',
+  max_attendees INTEGER, created_by UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  is_public BOOLEAN NOT NULL DEFAULT true, tags TEXT[] NOT NULL DEFAULT '{}', image TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()), updated_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now())
+);
+CREATE TABLE IF NOT EXISTS public.group_event_attendees (
+  event_id UUID NOT NULL REFERENCES public.group_events(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT timezone('utc'::text, now()), PRIMARY KEY (event_id, user_id)
+);
+ALTER TABLE public.group_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.group_event_attendees ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Membros podem ler posts de grupos" ON public.group_posts;
+DROP POLICY IF EXISTS "Membros podem criar posts de grupos" ON public.group_posts;
+DROP POLICY IF EXISTS "Autores podem alterar posts de grupos" ON public.group_posts;
+DROP POLICY IF EXISTS "Autores podem excluir posts de grupos" ON public.group_posts;
+CREATE POLICY "Membros podem ler posts de grupos" ON public.group_posts FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_posts.group_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Membros podem criar posts de grupos" ON public.group_posts FOR INSERT TO authenticated WITH CHECK (author_id = (select auth.uid()) AND EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_posts.group_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Autores podem alterar posts de grupos" ON public.group_posts FOR UPDATE TO authenticated USING (author_id = (select auth.uid())) WITH CHECK (author_id = (select auth.uid()));
+CREATE POLICY "Autores podem excluir posts de grupos" ON public.group_posts FOR DELETE TO authenticated USING (author_id = (select auth.uid()));
+
+DROP POLICY IF EXISTS "Membros podem ler mensagens de grupos" ON public.group_messages;
+DROP POLICY IF EXISTS "Membros podem enviar mensagens de grupos" ON public.group_messages;
+CREATE POLICY "Membros podem ler mensagens de grupos" ON public.group_messages FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_messages.group_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Membros podem enviar mensagens de grupos" ON public.group_messages FOR INSERT TO authenticated WITH CHECK (sender_id = (select auth.uid()) AND EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_messages.group_id AND gm.user_id = (select auth.uid())));
+
+DROP POLICY IF EXISTS "Membros podem ler eventos de grupos" ON public.group_events;
+DROP POLICY IF EXISTS "Membros podem criar eventos de grupos" ON public.group_events;
+DROP POLICY IF EXISTS "Criadores podem alterar eventos de grupos" ON public.group_events;
+DROP POLICY IF EXISTS "Criadores podem excluir eventos de grupos" ON public.group_events;
+CREATE POLICY "Membros podem ler eventos de grupos" ON public.group_events FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_events.group_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Membros podem criar eventos de grupos" ON public.group_events FOR INSERT TO authenticated WITH CHECK (created_by = (select auth.uid()) AND EXISTS (SELECT 1 FROM public.group_members gm WHERE gm.group_id = group_events.group_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Criadores podem alterar eventos de grupos" ON public.group_events FOR UPDATE TO authenticated USING (created_by = (select auth.uid())) WITH CHECK (created_by = (select auth.uid()));
+CREATE POLICY "Criadores podem excluir eventos de grupos" ON public.group_events FOR DELETE TO authenticated USING (created_by = (select auth.uid()));
+
+DROP POLICY IF EXISTS "Membros podem ler presenças em eventos de grupos" ON public.group_event_attendees;
+DROP POLICY IF EXISTS "Usuários podem confirmar presença em eventos de grupos" ON public.group_event_attendees;
+DROP POLICY IF EXISTS "Usuários podem cancelar presença em eventos de grupos" ON public.group_event_attendees;
+CREATE POLICY "Membros podem ler presenças em eventos de grupos" ON public.group_event_attendees FOR SELECT TO authenticated USING (EXISTS (SELECT 1 FROM public.group_events ge JOIN public.group_members gm ON gm.group_id = ge.group_id WHERE ge.id = group_event_attendees.event_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Usuários podem confirmar presença em eventos de grupos" ON public.group_event_attendees FOR INSERT TO authenticated WITH CHECK (user_id = (select auth.uid()) AND EXISTS (SELECT 1 FROM public.group_events ge JOIN public.group_members gm ON gm.group_id = ge.group_id WHERE ge.id = group_event_attendees.event_id AND gm.user_id = (select auth.uid())));
+CREATE POLICY "Usuários podem cancelar presença em eventos de grupos" ON public.group_event_attendees FOR DELETE TO authenticated USING (user_id = (select auth.uid()));
+
+CREATE INDEX IF NOT EXISTS idx_group_posts_group_created ON public.group_posts(group_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_group_messages_group_created ON public.group_messages(group_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_group_events_group_date ON public.group_events(group_id, date);
+CREATE INDEX IF NOT EXISTS idx_group_event_attendees_event ON public.group_event_attendees(event_id);
+
 ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS university TEXT DEFAULT 'Universidade não informada';
 ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS image TEXT;
 ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
