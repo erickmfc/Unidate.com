@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { AdminSession, loginAdmin, logoutAdmin, verifyTwoFactor, getCurrentAdminSession, isAdminLoggedIn, onAdminAuthStateChanged } from '../firebase/adminAuth';
+import { AdminSession, loginAdmin, logoutAdmin, verifyTwoFactor, getCurrentAdminSession, onAdminAuthStateChanged } from '../services/supabaseAdminAuth';
 
 interface AdminAuthContextType {
   adminSession: AdminSession | null;

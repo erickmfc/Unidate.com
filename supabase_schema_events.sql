@@ -26,15 +26,22 @@ DROP POLICY IF EXISTS "Permitir criação de eventos para autenticados" ON publi
 DROP POLICY IF EXISTS "Permitir atualização do próprio evento" ON public.events;
 DROP POLICY IF EXISTS "Permitir exclusão do próprio evento" ON public.events;
 
--- Criar políticas de RLS
-CREATE POLICY "Permitir leitura de eventos para todos" ON public.events
-    FOR SELECT USING (true);
+-- Criar políticas de RLS. Eventos oficiais podem ser lidos por usuários autenticados;
+-- eventos criados por usuários só podem ser alterados/excluídos pelo organizador.
+CREATE POLICY "Usuários autenticados podem ler eventos" ON public.events
+    FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "Permitir criação de eventos para autenticados" ON public.events
-    FOR INSERT WITH CHECK (true); -- Permitir inserções por qualquer usuário autenticado para simplificar testes
+CREATE POLICY "Usuários podem criar eventos em seu nome" ON public.events
+    FOR INSERT TO authenticated
+    WITH CHECK (
+      organizer_type = 'official'
+      OR (organizer_type = 'user' AND (select auth.uid()) = organizer_id)
+    );
 
-CREATE POLICY "Permitir atualização do próprio evento" ON public.events
-    FOR UPDATE USING (true);
+CREATE POLICY "Organizadores podem atualizar seus eventos" ON public.events
+    FOR UPDATE TO authenticated
+    USING ((select auth.uid()) = organizer_id)
+    WITH CHECK ((select auth.uid()) = organizer_id);
 
-CREATE POLICY "Permitir exclusão do próprio evento" ON public.events
-    FOR DELETE USING (true);
+CREATE POLICY "Organizadores podem excluir seus eventos" ON public.events
+    FOR DELETE TO authenticated USING ((select auth.uid()) = organizer_id);

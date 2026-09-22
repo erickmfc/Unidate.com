@@ -16,7 +16,7 @@ import {
   Crown
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { GroupsService, Group as FirebaseGroup } from '../services/groupsService';
+import { SupabaseGroupsService } from '../services/supabaseGroupsService';
 import { useUniDateToast } from '../components/UI/Toast';
 import Navbar from '../components/Layout/Navbar';
 import GroupChat from '../components/Groups/GroupChat';
@@ -70,7 +70,7 @@ const GroupDetails: React.FC = () => {
     try {
       setLoading(true);
       
-      const groups = await GroupsService.getGroups(100);
+      const groups = await SupabaseGroupsService.getGroups(100);
       const foundGroup = groups.find(g => g.id === groupId);
       
       if (foundGroup) {
@@ -101,7 +101,7 @@ const GroupDetails: React.FC = () => {
 
     try {
       const isJoining = !group.isJoined;
-      await GroupsService.toggleGroupMembership(group.id, currentUser.uid, isJoining);
+      await SupabaseGroupsService.toggleGroupMembership(group.id, currentUser.uid, isJoining);
       
       await loadGroupDetails();
       
@@ -144,7 +144,7 @@ const GroupDetails: React.FC = () => {
     if (!currentUser || !groupId) return;
 
     try {
-      await GroupsService.updateGroupImage(groupId, currentUser.uid, imageUrl);
+      await SupabaseGroupsService.updateGroupImage(groupId, currentUser.uid, imageUrl);
       showSuccess('Foto do grupo atualizada com sucesso! 📸');
       
       loadGroupDetails();
@@ -254,10 +254,7 @@ const GroupDetails: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-500">Última Atividade</p>
                       <p className="font-semibold text-gray-900">
-                        {group.lastActivity?.toDate?.() ? 
-                          group.lastActivity.toDate().toLocaleDateString() : 
-                          'Recente'
-                        }
+                        {group.lastActivity ? new Date(group.lastActivity).toLocaleDateString() : 'Recente'}
                       </p>
                     </div>
                   </div>

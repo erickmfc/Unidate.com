@@ -22,7 +22,7 @@ import {
   Flame
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { GroupsService, Group as FirebaseGroup } from '../services/groupsService';
+import { SupabaseGroupsService, SupabaseGroup } from '../services/supabaseGroupsService';
 import GroupEditorsModal from '../components/Groups/GroupEditorsModal';
 import { useUniDateToast } from '../components/UI/Toast';
 
@@ -75,10 +75,10 @@ const Groups: React.FC = () => {
       try {
         setLoading(true);
         
-        const firebaseGroups = await GroupsService.getGroups(50);
+        const supabaseGroups = await SupabaseGroupsService.getGroups(50);
         
         const convertedGroups = await Promise.all(
-          firebaseGroups.map(async (group: FirebaseGroup): Promise<Group | null> => ({
+          supabaseGroups.map(async (group: SupabaseGroup): Promise<Group | null> => ({
             id: group.id,
             name: group.name,
             description: group.description,
@@ -87,7 +87,7 @@ const Groups: React.FC = () => {
             category: group.category,
             university: group.university,
             isJoined: group.members.includes(currentUser?.uid || ''),
-            lastActivity: group.lastActivity?.toDate?.() ? group.lastActivity.toDate().toISOString() : new Date().toISOString(),
+            lastActivity: group.lastActivity ? new Date(group.lastActivity).toISOString() : new Date().toISOString(),
             image: group.image,
             tags: group.tags,
             createdBy: group.createdBy,
@@ -100,7 +100,7 @@ const Groups: React.FC = () => {
         
         const validGroups = convertedGroups.filter((g): g is Group => g !== null);
         setGroups(validGroups);
-        console.log(`✅ ${validGroups.length} grupos carregados do Firebase`);
+        console.log(`✅ ${validGroups.length} grupos carregados do Supabase`);
       } catch (error) {
         console.error('❌ Erro ao carregar grupos:', error);
         setGroups([]);
@@ -149,7 +149,7 @@ const Groups: React.FC = () => {
 
       const isJoining = !group.isJoined;
       
-      await GroupsService.toggleGroupMembership(groupId, currentUser.uid, isJoining);
+      await SupabaseGroupsService.toggleGroupMembership(groupId, currentUser.uid, isJoining);
       
       setGroups(prevGroups => 
         prevGroups.map(g => 
@@ -199,7 +199,7 @@ const Groups: React.FC = () => {
   useEffect(() => {
     const checkUserGroups = async () => {
       if (currentUser) {
-        const hasCreated = await GroupsService.hasUserCreatedGroup(currentUser.uid);
+        const hasCreated = await SupabaseGroupsService.hasUserCreatedGroup(currentUser.uid);
         setHasCreatedGroup(hasCreated);
       }
     };
@@ -241,7 +241,7 @@ const Groups: React.FC = () => {
         upcomingEvents: []
       };
 
-      const groupId = await GroupsService.createGroup(groupToSave);
+      const groupId = await SupabaseGroupsService.createGroup(groupToSave);
       
       const newGroupLocal: Group = {
         id: groupId,

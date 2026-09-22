@@ -7,9 +7,9 @@ import Navbar from './components/Layout/Navbar';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 import Footer from './components/UI/Footer';
 import ModernAdminLayout from './components/Admin/Layout/SimpleAdminLayout';
-import { botInitializer } from './services/botInitializer';
 
 const LoginForm = lazy(() => import('./components/Auth/LoginForm'));
+const ForgotPassword = lazy(() => import('./components/Auth/ForgotPassword'));
 const RegisterForm = lazy(() => import('./components/Auth/RegisterForm'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const About = lazy(() => import('./pages/About'));
@@ -72,7 +72,8 @@ const AppContent: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    botInitializer.initialize();
+    if (process.env.NODE_ENV === 'test') return;
+    void import('./services/botInitializer').then(({ botInitializer }) => botInitializer.initialize());
   }, []);
 
   if (loading) {
@@ -99,6 +100,7 @@ const AppContent: React.FC = () => {
           <Route path="/about" element={<About />} />
           <Route path="/features" element={<Features />} />
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/onboarding" element={<OnboardingFlow />} />
           <Route path="/verify-email" element={<VerifyEmail />} />

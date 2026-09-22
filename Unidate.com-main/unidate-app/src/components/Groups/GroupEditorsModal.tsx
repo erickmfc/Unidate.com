@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, UserPlus, UserMinus, Crown, Shield, Users } from 'lucide-react';
-import { GroupsService } from '../../services/groupsService';
+import { SupabaseGroupsService } from '../../services/supabaseGroupsService';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface GroupEditorsModalProps {
@@ -64,7 +64,7 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
     }
 
     try {
-      await GroupsService.removeEditor(groupId, userId);
+      await SupabaseGroupsService.removeEditor(groupId, userId);
       const updatedEditors = currentEditors.filter(uid => uid !== userId);
       onEditorsUpdated(updatedEditors);
     } catch (error) {
@@ -75,7 +75,7 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
 
   const handleAddEditor = async (userId: string) => {
     try {
-      await GroupsService.addEditor(groupId, userId);
+      await SupabaseGroupsService.addEditor(groupId, userId);
       const updatedEditors = [...currentEditors, userId];
       onEditorsUpdated(updatedEditors);
       setSearchTerm('');

@@ -185,12 +185,12 @@ const AdminLogin: React.FC = () => {
         </form>
 
         <div className="bg-gray-800/50 border border-gray-600 rounded-xl p-4">
-          <h4 className="text-gray-300 font-medium mb-2">Credenciais de Administração:</h4>
-          <div className="text-sm text-gray-400 space-y-1">
-            <p><strong>Usuário:</strong> admin1, admin, erick, mathe, root, super</p>
-            <p><strong>Senha:</strong> admin123</p>
-            <p><strong>2FA:</strong> 123456</p>
-          </div>
+          <h4 className="text-gray-300 font-medium mb-2">Acesso seguro</h4>
+          <p className="text-sm text-gray-400">
+            Use uma conta autorizada no Supabase com a função administrativa configurada
+            em <code className="text-gray-300">app_metadata.role</code>. O código 2FA deve
+            ser o token de seis dígitos do autenticador da equipe.
+          </p>
         </div>
 
         <div className="text-center mb-4">

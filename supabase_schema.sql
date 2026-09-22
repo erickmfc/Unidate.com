@@ -67,6 +67,15 @@ CREATE TABLE IF NOT EXISTS public.groups (
     banner TEXT,
     created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     members_count INTEGER DEFAULT 1,
+    university TEXT DEFAULT 'Universidade não informada',
+    image TEXT,
+    tags TEXT[] DEFAULT '{}',
+    editors UUID[] DEFAULT '{}',
+    max_members INTEGER DEFAULT 100,
+    is_public BOOLEAN DEFAULT TRUE,
+    upcoming_events JSONB DEFAULT '[]'::jsonb,
+    last_activity TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -134,8 +143,15 @@ ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Qualquer usuário autenticado pode ver perfis" ON public.profiles
     FOR SELECT TO authenticated USING (true);
 
-CREATE POLICY "Usuários podem modificar seu próprio perfil" ON public.profiles
-    FOR ALL TO authenticated USING (auth.uid() = id);
+CREATE POLICY "Usuários podem atualizar seu próprio perfil" ON public.profiles
+    FOR UPDATE TO authenticated USING ((select auth.uid()) = id)
+    WITH CHECK ((select auth.uid()) = id);
+
+CREATE POLICY "Usuários podem inserir seu próprio perfil" ON public.profiles
+    FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = id);
+
+CREATE POLICY "Usuários podem excluir seu próprio perfil" ON public.profiles
+    FOR DELETE TO authenticated USING ((select auth.uid()) = id);
 
 -- Posts: leitura por qualquer usuário autenticado; escrita apenas pelo autor
 CREATE POLICY "Qualquer usuário autenticado pode ver posts" ON public.posts
@@ -145,10 +161,11 @@ CREATE POLICY "Usuários podem criar seus próprios posts" ON public.posts
     FOR INSERT TO authenticated WITH CHECK (auth.uid() = author_id);
 
 CREATE POLICY "Usuários podem editar/excluir seus próprios posts" ON public.posts
-    FOR UPDATE TO authenticated USING (auth.uid() = author_id);
+    FOR UPDATE TO authenticated USING ((select auth.uid()) = author_id)
+    WITH CHECK ((select auth.uid()) = author_id);
 
 CREATE POLICY "Usuários podem deletar seus próprios posts" ON public.posts
-    FOR DELETE TO authenticated USING (auth.uid() = author_id);
+    FOR DELETE TO authenticated USING ((select auth.uid()) = author_id);
 
 -- Curtidas (Likes): qualquer usuário autenticado pode ler; inserção e deleção apenas do próprio usuário
 CREATE POLICY "Leitura de curtidas" ON public.likes
@@ -158,7 +175,88 @@ CREATE POLICY "Usuários podem curtir posts" ON public.likes
     FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Usuários podem descurtir posts" ON public.likes
-    FOR DELETE TO authenticated USING (auth.uid() = user_id);
+    FOR DELETE TO authenticated USING ((select auth.uid()) = user_id);
+
+-- Comentários: leitura autenticada; escrita limitada ao próprio autor.
+CREATE POLICY "Usuários autenticados podem ler comentários" ON public.comments
+    FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Usuários podem criar seus próprios comentários" ON public.comments
+    FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = author_id);
+
+CREATE POLICY "Usuários podem editar seus próprios comentários" ON public.comments
+    FOR UPDATE TO authenticated USING ((select auth.uid()) = author_id)
+    WITH CHECK ((select auth.uid()) = author_id);
+
+CREATE POLICY "Usuários podem excluir seus próprios comentários" ON public.comments
+    FOR DELETE TO authenticated USING ((select auth.uid()) = author_id);
+
+-- Grupos e membros: leitura autenticada; alterações limitadas ao criador ou ao próprio membro.
+CREATE POLICY "Usuários autenticados podem ler grupos" ON public.groups
+    FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Usuários podem criar grupos" ON public.groups
+    FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = created_by);
+
+CREATE POLICY "Criadores podem alterar seus grupos" ON public.groups
+    FOR UPDATE TO authenticated USING ((select auth.uid()) = created_by)
+    WITH CHECK ((select auth.uid()) = created_by);
+
+CREATE POLICY "Criadores podem excluir seus grupos" ON public.groups
+    FOR DELETE TO authenticated USING ((select auth.uid()) = created_by);
+
+CREATE POLICY "Usuários autenticados podem ler membros de grupos" ON public.group_members
+    FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Usuários podem entrar em grupos em seu próprio nome" ON public.group_members
+    FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
+
+CREATE POLICY "Usuários podem sair de grupos em seu próprio nome" ON public.group_members
+    FOR DELETE TO authenticated USING ((select auth.uid()) = user_id);
+
+-- Chats e mensagens: somente participantes podem ler; mensagens só podem ser criadas pelo remetente autenticado.
+CREATE POLICY "Participantes podem ler chats" ON public.chats
+    FOR SELECT TO authenticated USING (
+      EXISTS (SELECT 1 FROM public.chat_participants cp
+              WHERE cp.chat_id = chats.id AND cp.user_id = (select auth.uid()))
+    );
+
+CREATE POLICY "Participantes podem ler participantes" ON public.chat_participants
+    FOR SELECT TO authenticated USING (
+      EXISTS (SELECT 1 FROM public.chat_participants own
+              WHERE own.chat_id = chat_participants.chat_id AND own.user_id = (select auth.uid()))
+    );
+
+CREATE POLICY "Usuários podem criar participação própria" ON public.chat_participants
+    FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
+
+CREATE POLICY "Usuários podem sair de chats" ON public.chat_participants
+    FOR DELETE TO authenticated USING ((select auth.uid()) = user_id);
+
+CREATE POLICY "Participantes podem ler mensagens" ON public.messages
+    FOR SELECT TO authenticated USING (
+      EXISTS (SELECT 1 FROM public.chat_participants cp
+              WHERE cp.chat_id = messages.chat_id AND cp.user_id = (select auth.uid()))
+    );
+
+CREATE POLICY "Participantes podem enviar mensagens próprias" ON public.messages
+    FOR INSERT TO authenticated WITH CHECK (
+      (select auth.uid()) = sender_id AND EXISTS (
+        SELECT 1 FROM public.chat_participants cp
+        WHERE cp.chat_id = messages.chat_id AND cp.user_id = (select auth.uid())
+      )
+    );
+
+-- Matches: cada usuário só vê e cria relações em que participa.
+CREATE POLICY "Usuários podem ler seus matches" ON public.matches
+    FOR SELECT TO authenticated USING ((select auth.uid()) IN (user1_id, user2_id));
+
+CREATE POLICY "Usuários podem criar matches em seu nome" ON public.matches
+    FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user1_id);
+
+CREATE POLICY "Usuários podem atualizar seus matches" ON public.matches
+    FOR UPDATE TO authenticated USING ((select auth.uid()) IN (user1_id, user2_id))
+    WITH CHECK ((select auth.uid()) IN (user1_id, user2_id));
 
 -- Triggers de Banco de Dados
 
@@ -196,7 +294,7 @@ BEGIN
   );
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
@@ -211,7 +309,7 @@ BEGIN
   WHERE id = new.post_id;
   RETURN new;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE TRIGGER on_like_created
   AFTER INSERT ON public.likes
@@ -226,7 +324,7 @@ BEGIN
   WHERE id = old.post_id;
   RETURN old;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 CREATE OR REPLACE TRIGGER on_like_deleted
   AFTER DELETE ON public.likes
