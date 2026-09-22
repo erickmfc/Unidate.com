@@ -13,4 +13,4 @@ Material de apoio para a apresentação do aplicativo UniDate.
 
 ## Estado desta entrega
 
-Build de produção validado localmente. O projeto Supabase está ativo e com RLS aplicado. A publicação no Vercel ficou pendente de autenticação da conta no CLI, pois o conector de deploy retornou erro interno.
+Build de produção validado localmente. O projeto Supabase está ativo e com RLS aplicado. A versão validada foi publicada em https://unidate-com.vercel.app/.

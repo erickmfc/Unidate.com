@@ -6,6 +6,8 @@ Servidor de desenvolvimento executado em `http://127.0.0.1:3000`.
 
 ## Vercel
 
-Foi localizado o projeto Vercel existente `unidate-com` na equipe `nichofys-projects`. O build local passou. A publicação foi iniciada pelo CLI, mas a conta não tinha credencial local; o CLI abriu o fluxo de autorização por dispositivo e ficou aguardando login. A etapa pendente é autorizar a conta no Vercel e executar novamente `vercel link`/`vercel --prod` a partir de `Unidate.com-main/unidate-app`.
+O repositório foi enviado para `origin/main`, o projeto Vercel existente `unidate-com` detectou o commit `d5c50e8` e o deploy de produção chegou a `READY`.
 
-Não foi registrada uma URL de produção sem confirmação real do deploy.
+URL confirmada: https://unidate-com.vercel.app/
+
+O endpoint publicado respondeu HTTP 200 e a interface foi conferida no navegador.

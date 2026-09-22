@@ -32,6 +32,10 @@ Validados no Chrome local:
 - página Recursos;
 - redirecionamento para login em `/discover`, `/feed`, `/groups`, `/chat`, `/events`, `/campus-guide`, `/experts`, `/sos`, `/anonymous-wall`, `/impulsionar` e `/profile2`.
 
+## Produção no Vercel
+
+Após o deploy do commit `d5c50e8`, foram confirmados HTTP 200 e carregamento visual em `https://unidate-com.vercel.app/`. Também foram validados login, cadastro, recuperação de senha, Sobre, Recursos e os redirecionamentos das rotas protegidas.
+
 ## Limite do teste
 
 Não foram usados e-mails, senhas ou contas reais do projeto para executar fluxos autenticados de timeline, perfil, chat e grupos. Portanto, esses fluxos precisam de uma conta de teste autorizada para a rodada final da banca.
