@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
@@ -47,6 +47,7 @@ const CampusGuide = lazy(() => import('./pages/CampusGuide'));
 const Impulsionar = lazy(() => import('./pages/Impulsionar'));
 
 const Experts = lazy(() => import('./pages/Experts'));
+const BotDemo = lazy(() => import('./pages/BotDemo'));
 const AdminInstructions = lazy(() => import('./components/Admin/AdminInstructions'));
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -70,11 +71,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const AppContent: React.FC = () => {
   const { loading } = useAuth();
   const location = useLocation();
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'test') return;
-    void import('./services/botInitializer').then(({ botInitializer }) => botInitializer.initialize());
-  }, []);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -217,6 +213,14 @@ const AppContent: React.FC = () => {
                 <Experts />
               </ProtectedRoute>
             } 
+          />
+          <Route
+            path="/bot-demo"
+            element={
+              <ProtectedRoute>
+                <BotDemo />
+              </ProtectedRoute>
+            }
           />
           <Route 
             path="/admin-instructions" 

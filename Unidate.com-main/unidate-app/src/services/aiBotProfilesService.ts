@@ -13,9 +13,6 @@ import {
 import { db } from '../firebase/config';
 import { PostsService } from './postsService';
 
-const GEMINI_API_KEY = 'AIzaSyB64td1KPT4Y-ENAhGzwusiChhpwQ_VY-Q';
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-
 export interface BotProfile {
   id: string;
   name: string;
@@ -114,77 +111,7 @@ export class AIBotProfilesService {
 
   
   static async generatePostForProfile(profile: BotProfile): Promise<string> {
-    const prompt = `Você é ${profile.name}, um estudante universitário brasileiro.
-
-PERFIL:
-- Nome: ${profile.name}
-- Curso: ${profile.course} (${profile.period}° período)
-- Universidade: ${profile.university}
-- Personalidade: ${profile.personality}
-- Estilo de escrita: ${profile.writingStyle}
-- Interesses: ${profile.interests.join(', ')}
-
-Crie um tweet curto e autêntico sobre vida universitária. O tweet deve:
-- Ter no máximo 280 caracteres
-- Refletir a personalidade "${profile.personality}"
-- Ser escrito no estilo "${profile.writingStyle}"
-- Ser sobre um dos interesses: ${profile.interests.join(', ')} ou vida universitária em geral
-- Ser em português brasileiro
-- Ter um tom casual e relatable
-- Pode incluir um comentário entre parênteses para adicionar contexto ou humor
-
-Exemplos de estilo baseado na personalidade:
-- Se for "sarcástico": "estudando com brilhos nos olhos (lágrimas)"
-- Se for "motivacional": "mais um dia de estudos, mais um passo em direção aos meus sonhos"
-- Se for "descontraído": "se eu gostasse de estudar igual eu gosto de dormir, eu tava era em harvard"
-- Se for "reflexivo": "não bastava as neuras internas que a gente tinha que ignorar pra estudar decentemente..."
-
-IMPORTANTE: O tweet deve soar como se ${profile.name} realmente escrevesse, mantendo consistência com o perfil.
-
-Responda APENAS com o texto do tweet, sem aspas, sem explicações.`;
-
-    try {
-      const response = await fetch(
-        `${GEMINI_API_URL}?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.9,
-              maxOutputTokens: 150,
-              topP: 0.95,
-              topK: 40
-            }
-          })
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Erro ao gerar post');
-      }
-
-      const data = await response.json();
-      let content = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      
-      content = content.trim();
-      content = content.replace(/^["']|["']$/g, '');
-      content = content.replace(/\n/g, ' ');
-      
-      if (content.length > 280) {
-        content = content.substring(0, 277) + '...';
-      }
-
-      if (!content || content.length < 10) {
-        return this.getFallbackPost(profile);
-      }
-
-      return content;
-    } catch (error) {
-      console.error('Erro ao gerar post para perfil:', error);
-      return this.getFallbackPost(profile);
-    }
+    return this.getFallbackPost(profile);
   }
 
   
