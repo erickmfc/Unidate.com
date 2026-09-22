@@ -16,6 +16,8 @@ Comando:
 
 Resultado: Compiled successfully. A pasta `build` foi gerada e está pronta para hospedagem estática.
 
+Após a migração do chat para Supabase, o build foi executado novamente e passou.
+
 ## Smoke test no navegador
 
 Validados no Chrome local:

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { sendEmailVerification, onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebase/config';
+import { supabase } from '../supabaseClient';
 import { 
   Mail, 
   CheckCircle, 
@@ -22,13 +21,13 @@ const VerifyEmail: React.FC = () => {
   const email = location.state?.email || '';
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth!, (user) => {
-      if (user && user.emailVerified) {
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user.email_confirmed_at) {
         navigate('/onboarding-complete');
       }
     });
 
-    return () => unsubscribe();
+    return () => listener.subscription.unsubscribe();
   }, [navigate]);
 
   useEffect(() => {
@@ -46,11 +45,12 @@ const VerifyEmail: React.FC = () => {
     setSuccess('');
 
     try {
-      if (auth!.currentUser) {
-        await sendEmailVerification(auth!.currentUser);
-        setSuccess('E-mail de verificação reenviado!');
-        setCountdown(60);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user?.email) throw new Error('Sessão não encontrada');
+      const { error } = await supabase.auth.resend({ type: 'signup', email: user.email });
+      if (error) throw error;
+      setSuccess('E-mail de verificação reenviado!');
+      setCountdown(60);
     } catch (error: any) {
       setError('Erro ao reenviar e-mail. Tente novamente.');
     } finally {
@@ -63,14 +63,10 @@ const VerifyEmail: React.FC = () => {
     setError('');
 
     try {
-      if (auth!.currentUser) {
-        await auth!.currentUser.reload();
-        if (auth!.currentUser.emailVerified) {
-          navigate('/onboarding-complete');
-        } else {
-          setError('E-mail ainda não foi verificado. Verifique sua caixa de entrada.');
-        }
-      }
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+      if (user?.email_confirmed_at) navigate('/onboarding-complete');
+      else setError('E-mail ainda não foi verificado. Verifique sua caixa de entrada.');
     } catch (error: any) {
       setError('Erro ao verificar status. Tente novamente.');
     } finally {

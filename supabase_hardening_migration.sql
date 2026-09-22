@@ -13,6 +13,14 @@ ALTER TABLE public.chat_participants ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.matches ENABLE ROW LEVEL SECURITY;
 
+ALTER TABLE public.chats ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE public.chats ADD COLUMN IF NOT EXISTS last_message TEXT;
+ALTER TABLE public.chats ADD COLUMN IF NOT EXISTS last_message_at TIMESTAMPTZ;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS sender_name TEXT;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS sender_avatar TEXT;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS reply_to UUID REFERENCES public.messages(id) ON DELETE SET NULL;
+ALTER TABLE public.messages ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT false;
+
 ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS university TEXT DEFAULT 'Universidade não informada';
 ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS image TEXT;
 ALTER TABLE public.groups ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
@@ -47,6 +55,7 @@ DROP POLICY IF EXISTS "Usuários podem entrar em grupos em seu próprio nome" ON
 DROP POLICY IF EXISTS "Usuários podem sair de grupos em seu próprio nome" ON public.group_members;
 DROP POLICY IF EXISTS "Participantes podem ler chats" ON public.chats;
 DROP POLICY IF EXISTS "Usuários autenticados podem criar chats" ON public.chats;
+DROP POLICY IF EXISTS "Participantes podem atualizar chats" ON public.chats;
 DROP POLICY IF EXISTS "Participantes podem ler participantes" ON public.chat_participants;
 DROP POLICY IF EXISTS "Usuários podem criar participação própria" ON public.chat_participants;
 DROP POLICY IF EXISTS "Usuários podem sair de chats" ON public.chat_participants;
@@ -152,6 +161,14 @@ CREATE POLICY "Participantes podem ler chats" ON public.chats
   );
 CREATE POLICY "Usuários autenticados podem criar chats" ON public.chats
   FOR INSERT TO authenticated WITH CHECK (true);
+CREATE POLICY "Participantes podem atualizar chats" ON public.chats
+  FOR UPDATE TO authenticated USING (
+    EXISTS (SELECT 1 FROM public.chat_participants cp
+            WHERE cp.chat_id = chats.id AND cp.user_id = (select auth.uid()))
+  ) WITH CHECK (
+    EXISTS (SELECT 1 FROM public.chat_participants cp
+            WHERE cp.chat_id = chats.id AND cp.user_id = (select auth.uid()))
+  );
 
 DROP POLICY IF EXISTS "Usuários podem adicionar participantes" ON public.chat_participants;
 DROP POLICY IF EXISTS "Usuários podem ver participantes dos chats" ON public.chat_participants;

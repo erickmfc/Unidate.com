@@ -94,6 +94,9 @@ CREATE TABLE IF NOT EXISTS public.chats (
     type TEXT CHECK (type IN ('direct', 'group')) DEFAULT 'direct',
     name TEXT,
     avatar TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    last_message TEXT,
+    last_message_at TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
@@ -111,7 +114,11 @@ CREATE TABLE IF NOT EXISTS public.messages (
     chat_id UUID REFERENCES public.chats(id) ON DELETE CASCADE NOT NULL,
     sender_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
     content TEXT NOT NULL,
+    sender_name TEXT,
+    sender_avatar TEXT,
     type TEXT DEFAULT 'text',
+    reply_to UUID REFERENCES public.messages(id) ON DELETE SET NULL,
+    is_read BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

@@ -21,6 +21,8 @@ Projeto Supabase `Unidate.com`, ref. `xrwsmxqxqzrqzqmyjcwt`, restaurado e confir
 
 As políticas foram ajustadas para exigir usuário autenticado e, quando aplicável, limitar leitura/escrita ao próprio usuário, participante do chat, membro do grupo, autor ou organizador do registro. Também foram adicionados índices para relações de grupos e chat.
 
+O chat principal agora usa `chats`, `chat_participants` e `messages` no Supabase, com atualização em tempo real via Realtime. O login Google e a verificação de e-mail também usam Supabase Auth.
+
 ## Observação
 
 O alerta restante no Security Advisor é a proteção contra senhas vazadas do Supabase Auth, que deve ser habilitada no painel da própria conta Supabase.

@@ -1,50 +1,22 @@
-import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
-import { auth } from './config';
+import { supabase } from '../supabaseClient';
 
-const googleProvider = new GoogleAuthProvider();
-
-googleProvider.addScope('email');
-googleProvider.addScope('profile');
-
+// Mantém os nomes exportados para compatibilidade com os componentes existentes;
+// a autenticação social agora é realizada pelo Supabase Auth.
 export const signInWithGooglePopup = async () => {
-  try {
-    if (!auth) {
-      throw new Error('Firebase não está disponível');
-    }
-    
-    const result = await signInWithPopup(auth, googleProvider);
-    return result;
-  } catch (error: any) {
-    console.error('Erro no login com Google:', error);
-    throw error;
-  }
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin },
+  });
+  if (error) throw error;
+  return data;
 };
 
-export const signInWithGoogleRedirect = async () => {
-  try {
-    if (!auth) {
-      throw new Error('Firebase não está disponível');
-    }
-    
-    await signInWithRedirect(auth, googleProvider);
-  } catch (error: any) {
-    console.error('Erro no login com Google:', error);
-    throw error;
-  }
-};
+export const signInWithGoogleRedirect = signInWithGooglePopup;
 
 export const getGoogleRedirectResult = async () => {
-  try {
-    if (!auth) {
-      throw new Error('Firebase não está disponível');
-    }
-    
-    const result = await getRedirectResult(auth);
-    return result;
-  } catch (error: any) {
-    console.error('Erro ao obter resultado do Google:', error);
-    throw error;
-  }
+  const { data, error } = await supabase.auth.getSession();
+  if (error) throw error;
+  return data.session;
 };
 
 export const createGoogleUserProfile = async (user: any, additionalData: {
@@ -53,21 +25,10 @@ export const createGoogleUserProfile = async (user: any, additionalData: {
   course: string;
   year: number;
   period: number;
-}) => {
-  try {
-    if (!auth) {
-      throw new Error('Firebase não está disponível');
-    }
-
-    return {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      ...additionalData
-    };
-  } catch (error: any) {
-    console.error('Erro ao criar perfil do Google:', error);
-    throw error;
-  }
-};
+}) => ({
+  uid: user.id || user.uid,
+  email: user.email,
+  displayName: user.user_metadata?.full_name || user.user_metadata?.name || user.displayName,
+  photoURL: user.user_metadata?.avatar_url || user.photoURL,
+  ...additionalData,
+});

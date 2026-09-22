@@ -31,8 +31,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatService, ChatMessage, Chat } from '../services/chatService';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
-import { db } from '../firebase/config';
-import { collection, query, where, getDocs, Timestamp } from 'firebase/firestore';
+import { supabase } from '../supabaseClient';
 import UserAvatar from '../components/UI/UserAvatar';
 
 interface ChatContact {
@@ -153,7 +152,7 @@ const ChatPage: React.FC = () => {
             const contactProfile = await UserProfileService.getUserProfile(otherParticipantId);
             if (!contactProfile) return null;
 
-            const lastMessageTime = chat.lastMessageTime as Timestamp;
+            const lastMessageTime = chat.lastMessageTime;
             const timestamp = lastMessageTime?.toDate() 
               ? lastMessageTime.toDate().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
               : 'Agora';
@@ -195,12 +194,6 @@ const ChatPage: React.FC = () => {
 
     loadConversations();
 
-    if (!db) {
-      window.addEventListener('local-chats-updated', loadConversations);
-      return () => {
-        window.removeEventListener('local-chats-updated', loadConversations);
-      };
-    }
   }, [currentUser?.uid]);
 
   // Carregar mensagens reais quando uma conversa é selecionada
@@ -339,31 +332,13 @@ const ChatPage: React.FC = () => {
       setLoadingFollowers(true);
       const followerIds: string[] = [];
 
-      if (db) {
-        // Buscar friendships onde o usuário atual é user2Id (quem te segue)
-        const followersQuery = query(
-          collection(db, 'friendships'),
-          where('user2Id', '==', currentUser.uid),
-          where('status', '==', 'accepted')
-        );
-
-        const snapshot = await getDocs(followersQuery);
-        snapshot.forEach((doc) => {
-          const data = doc.data();
-          followerIds.push(data.user1Id);
-        });
-      } else {
-        const friendships = JSON.parse(localStorage.getItem('unidate_offline_friendships') || '[]');
-        friendships.forEach((f: any) => {
-          if (f.status === 'accepted') {
-            if (f.user1Id === currentUser.uid) {
-              followerIds.push(f.user2Id);
-            } else if (f.user2Id === currentUser.uid) {
-              followerIds.push(f.user1Id);
-            }
-          }
-        });
-      }
+      const { data: matches, error } = await supabase.from('matches').select('user1_id, user2_id')
+        .eq('status', 'accepted')
+        .or(`user1_id.eq.${currentUser.uid},user2_id.eq.${currentUser.uid}`);
+      if (error) throw error;
+      (matches || []).forEach((match) => {
+        followerIds.push(match.user1_id === currentUser.uid ? match.user2_id : match.user1_id);
+      });
 
       // Carregar perfil de cada seguidor
       const followerProfiles = await Promise.all(
