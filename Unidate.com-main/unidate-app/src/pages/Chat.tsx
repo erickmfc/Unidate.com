@@ -100,7 +100,13 @@ const ChatPage: React.FC = () => {
   const mergeLocalReplies = useCallback((chatId: string, messages: ChatMessage[]) => {
     const localReplies = localReplyMessagesRef.current.get(chatId) || [];
     const messageIds = new Set(messages.map((message) => message.id));
-    return [...messages, ...localReplies.filter((message) => !messageIds.has(message.id))];
+    const merged = [...messages, ...localReplies.filter((message) => !messageIds.has(message.id))];
+    const seen = new Set<string>();
+    return merged.filter((message) => {
+      if (seen.has(message.id)) return false;
+      seen.add(message.id);
+      return true;
+    });
   }, []);
 
   // Dados mockados para demonstração
@@ -363,7 +369,7 @@ const ChatPage: React.FC = () => {
 
             const currentReplies = localReplyMessagesRef.current.get(chatIdForReply) || [];
             localReplyMessagesRef.current.set(chatIdForReply, [...currentReplies, reply]);
-            setCurrentMessages((messages) => mergeLocalReplies(chatIdForReply, [...messages, reply]));
+            setCurrentMessages((messages) => mergeLocalReplies(chatIdForReply, [...messages.filter((message) => message.id !== reply.id), reply]));
             setConversations((previous) => previous.map((chat) =>
               chat.id === chatIdForReply ? { ...chat, lastMessage: replyContent, timestamp: 'Agora' } : chat
             ));
