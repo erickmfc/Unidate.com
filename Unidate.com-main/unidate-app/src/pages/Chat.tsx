@@ -44,6 +44,7 @@ interface ChatContact {
   phone?: string;
   avatar?: string;
   isOnline: boolean;
+  isAutomated?: boolean;
   status?: string;
   workHours?: string;
   role?: string;
@@ -171,6 +172,7 @@ const ChatPage: React.FC = () => {
               email: contactProfile.email,
               avatar: contactProfile.avatar,
               isOnline: false,
+              isAutomated: contactProfile.isAutomated,
               status: 'Online',
               workHours: '',
               role: '',
@@ -409,6 +411,7 @@ const ChatPage: React.FC = () => {
           email: contactProfile.email,
           avatar: contactProfile.avatar,
           isOnline: false,
+          isAutomated: contactProfile.isAutomated,
           status: 'Online',
           workHours: '',
           role: '',
@@ -669,9 +672,10 @@ const ChatPage: React.FC = () => {
                     displayName={conversation.contact.name}
                     size="md"
                     showGraduationCap={true}
+                    isAutomated={conversation.contact.isAutomated}
                   />
                   {conversation.contact.isOnline && (
-                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-gray-800 rounded-full"></div>
+                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${conversation.contact.isAutomated ? 'bg-blue-500' : 'bg-green-500'} border-2 border-gray-800 rounded-full`} title={conversation.contact.isAutomated ? 'Personagem virtual' : 'Online'}></div>
                   )}
                 </div>
                 
@@ -745,11 +749,12 @@ const ChatPage: React.FC = () => {
                     displayName={currentContact?.name}
                     size="md"
                     showGraduationCap={true}
+                    isAutomated={currentContact?.isAutomated}
                   />
                   {currentContact?.isOnline && (
                     <>
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full animate-pulse"></div>
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-800 rounded-full animate-ping opacity-75"></div>
+                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${currentContact.isAutomated ? 'bg-blue-500' : 'bg-green-500'} border-2 border-gray-800 rounded-full animate-pulse`}></div>
+                      <div className={`absolute -bottom-1 -right-1 w-4 h-4 ${currentContact.isAutomated ? 'bg-blue-500' : 'bg-green-500'} border-2 border-gray-800 rounded-full animate-ping opacity-75`}></div>
                     </>
                   )}
                 </div>
@@ -759,8 +764,8 @@ const ChatPage: React.FC = () => {
                     <span className="text-lg animate-bounce" style={{ animationDuration: '2s' }}>💬</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                    <p className="text-sm text-green-400">{currentContact?.status || 'Online'}</p>
+                    <div className={`w-2 h-2 ${currentContact?.isAutomated ? 'bg-blue-400' : 'bg-green-400'} rounded-full animate-pulse`}></div>
+                    <p className={`text-sm ${currentContact?.isAutomated ? 'text-blue-400' : 'text-green-400'}`}>{currentContact?.isAutomated ? 'Personagem virtual' : (currentContact?.status || 'Online')}</p>
                   </div>
                 </div>
               </div>

@@ -19,6 +19,7 @@ export interface UserProfile {
   interests?: string[];
   registrationNumber?: string;
   isVerified?: boolean;
+  isAutomated?: boolean;
 }
 
 export interface UserPost {
@@ -53,6 +54,13 @@ export class UserProfileService {
         return null;
       }
 
+      const { data: automatedProfile } = await supabase
+        .from('bot_profiles')
+        .select('is_automated')
+        .eq('auth_user_id', userId)
+        .eq('is_automated', true)
+        .maybeSingle();
+
       const postsCount = await this.getUserPostsCount(userId);
       const friendsCount = await this.getUserFriendsCount(userId);
       
@@ -78,6 +86,7 @@ export class UserProfileService {
         year: profile.year ?? undefined,
         period: profile.period ?? undefined,
         interests: profile.interests || [],
+        isAutomated: automatedProfile?.is_automated === true,
         registrationNumber: profile.registration_number || undefined,
         isVerified: Boolean(profile.is_verified),
       };
