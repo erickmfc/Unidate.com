@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import PersonaConfigModal from './PersonaConfigModal';
 import CampaignCreatorModal from './CampaignCreatorModal';
-import AIBotPostsControl from './AIBotPostsControl';
+import HumorBotPanel from './HumorBotPanel';
 import BotProfilesManager from './BotProfilesManager';
 
 interface AIPersona {
@@ -601,7 +601,7 @@ const AIControlPanel: React.FC = () => {
             </nav>
           </div>
 
-          {botPostsTab === 'control' && <AIBotPostsControl />}
+          {botPostsTab === 'control' && <HumorBotPanel />}
           {botPostsTab === 'profiles' && <BotProfilesManager />}
         </div>
       )}
