@@ -205,11 +205,6 @@ const AdminLogin: React.FC = () => {
           </Link>
         </div>
 
-        <div className="text-center">
-          <p className="text-gray-400 text-sm">
-            © 2024 UniDate • Sistema de Administração
-          </p>
-        </div>
       </div>
     </div>
   );
