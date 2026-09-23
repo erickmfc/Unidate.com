@@ -12,7 +12,8 @@ const json = (body: unknown, status = 200) => new Response(JSON.stringify(body),
 
 const bot = {
   key: 'erick-campus',
-  email: 'erick-campus@bots.unidate.local',
+  // Use a syntactically valid domain so Supabase Auth can create the service account.
+  email: 'erick-campus@unidate.com',
   name: 'Erick Campus · BOT',
   handle: '@erick_campus_bot',
   course: 'Desenvolvimento de Sistemas',
@@ -28,7 +29,7 @@ const bot = {
   ],
 };
 
-Deno.serve(async (req) => {
+async function handle(req: Request) {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return json({ error: 'Use POST.' }, 405);
 
@@ -56,7 +57,14 @@ Deno.serve(async (req) => {
       email: bot.email,
       password: `${crypto.randomUUID()}-Bot!9`,
       email_confirm: true,
-      user_metadata: { displayName: bot.name, userType: 'aluno', isAutomated: true },
+      user_metadata: {
+        displayName: bot.name,
+        userType: 'aluno',
+        university: bot.university,
+        course: bot.course,
+        photoURL: bot.photoUrl,
+        isAutomated: true,
+      },
       app_metadata: { role: 'bot', botKey: bot.key },
     });
     if (createError) return json({ error: createError.message }, 500);
@@ -93,4 +101,16 @@ Deno.serve(async (req) => {
   if (botError) return json({ error: botError.message }, 500);
 
   return json({ ok: true, created: !existingBot, bot: { name: bot.name, handle: bot.handle, isAutomated: true } });
+}
+
+Deno.serve(async (req) => {
+  try {
+    return await handle(req);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('provision-erick-campus failed', message);
+    // Keep the response readable by the authenticated UI while preserving the
+    // manual session and operator checks above.
+    return json({ ok: false, error: message }, 200);
+  }
 });
