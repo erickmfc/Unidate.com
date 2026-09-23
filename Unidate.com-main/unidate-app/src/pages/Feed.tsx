@@ -28,6 +28,7 @@ import SuggestedProfiles from '../components/Feed/SuggestedProfiles';
 import CampusSummary from '../components/Feed/CampusSummary';
 import { GroupPostsService } from '../services/groupPostsService';
 import { supabase } from '../supabaseClient';
+import UserAvatar from '../components/UI/UserAvatar';
 
 const FEED_CATEGORIES = [
   { id: 'tudo', name: 'Tudo' },
@@ -420,10 +421,13 @@ const Feed: React.FC = () => {
           <div className="bg-gradient-to-r from-violet-50/70 via-indigo-50/70 to-pink-50/70 rounded-3xl p-6 mb-6 border border-indigo-100/30 flex items-center justify-between relative overflow-hidden">
             <div className="flex items-center space-x-4 relative z-10">
               <div className="relative">
-                <img 
-                  src={userProfile?.photoURL || '/api/placeholder/50/50'} 
-                  alt="" 
-                  className="h-14 w-14 rounded-full object-cover ring-2 ring-indigo-500/10"
+                <UserAvatar
+                  photoURL={userProfile?.photoURL}
+                  displayName={userProfile?.displayName}
+                  email={currentUser?.email}
+                  size="lg"
+                  showGraduationCap={false}
+                  className="ring-2 ring-indigo-500/10 rounded-full"
                 />
                 <div className="absolute right-0 bottom-0 h-4 w-4 bg-emerald-500 rounded-full border-2 border-white flex items-center justify-center">
                   <div className="h-1.5 w-1.5 bg-white rounded-full animate-ping"></div>
@@ -474,7 +478,13 @@ const Feed: React.FC = () => {
               {/* Conteúdo Dinâmico com base no activeTab */}
               {activeTab === 'text' && (
                 <div className="flex items-start space-x-3">
-                  <img src={userProfile?.photoURL || '/api/placeholder/40/40'} alt="" className="h-10 w-10 rounded-full object-cover" />
+                  <UserAvatar
+                    photoURL={userProfile?.photoURL}
+                    displayName={userProfile?.displayName}
+                    email={currentUser?.email}
+                    size="md"
+                    showGraduationCap={false}
+                  />
                   <textarea 
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -663,10 +673,11 @@ const Feed: React.FC = () => {
                       className="flex items-center space-x-3 text-left"
                       aria-label={`Ver perfil de ${post.author.name}`}
                     >
-                      <img 
-                        src={post.author.avatar || '/api/placeholder/40/40'} 
-                        alt="" 
-                        className="h-10 w-10 rounded-full object-cover"
+                      <UserAvatar
+                        photoURL={post.author.avatar}
+                        displayName={post.author.name}
+                        size="md"
+                        showGraduationCap={false}
                       />
                       <div>
                         <div className="flex items-center space-x-1.5">
@@ -805,7 +816,13 @@ const Feed: React.FC = () => {
                       <div className="space-y-3">
                         {expandedComments[post.id]?.map((cmt) => (
                           <div key={cmt.id} className="flex space-x-2.5 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
-                            <img src={cmt.author?.photo_url || '/api/placeholder/30/30'} alt="" className="h-7 w-7 rounded-full object-cover mt-0.5" />
+                            <UserAvatar
+                              photoURL={cmt.author?.photo_url}
+                              displayName={cmt.author?.display_name}
+                              size="sm"
+                              showGraduationCap={false}
+                              className="mt-0.5"
+                            />
                             <div className="flex-1">
                               <h5 className="font-bold text-slate-800">{cmt.author?.display_name || 'Estudante'}</h5>
                               <p className="text-slate-600 mt-1">{cmt.content}</p>

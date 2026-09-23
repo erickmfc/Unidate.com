@@ -17,6 +17,7 @@ import InlineComments from './InlineComments';
 import InlineConfirmation from '../UI/InlineConfirmation';
 import { CommentsService, Comment } from '../../services/commentsService';
 import { useAuth } from '../../contexts/AuthContext';
+import UserAvatar from '../UI/UserAvatar';
 
 interface Post {
   id: string;
@@ -211,11 +212,12 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
           className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors duration-200"
           onClick={handleProfileClick}
         >
-          <div className="w-10 h-10 bg-gradient-to-r from-primary-500 to-accent-500 rounded-full flex items-center justify-center">
-            <span className="text-white font-semibold">
-              {post.author.name.charAt(0)}
-            </span>
-          </div>
+          <UserAvatar
+            photoURL={post.author.avatar}
+            displayName={post.author.name}
+            size="md"
+            showGraduationCap={false}
+          />
           <div>
             <h3 className="font-semibold text-gray-900 hover:text-purple-600 transition-colors">
               {post.author.name}

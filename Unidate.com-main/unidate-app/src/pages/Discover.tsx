@@ -27,6 +27,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { EventsService } from '../services/eventsService';
 import { supabase } from '../supabaseClient';
 import { useUniDateToast } from '../components/UI/Toast';
+import UserAvatar from '../components/UI/UserAvatar';
 
 interface DiscoverUser {
   id: string;
@@ -169,13 +170,13 @@ const UserCard: React.FC<{
       {/* Avatar */}
       <div className="absolute top-12 left-1/2 -translate-x-1/2">
         <div className={`w-20 h-20 rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-gradient-to-br ${avatarColor} flex items-center justify-center`}>
-          {user.photoURL ? (
-            <img src={user.photoURL} alt={user.displayName} className="w-full h-full object-cover" />
-          ) : (
-            <span className="text-2xl font-bold text-white">
-              {user.displayName?.charAt(0)?.toUpperCase() || 'U'}
-            </span>
-          )}
+          <UserAvatar
+            photoURL={user.photoURL}
+            displayName={user.displayName}
+            size="lg"
+            showGraduationCap={false}
+            className="!w-16 !h-16"
+          />
         </div>
       </div>
 

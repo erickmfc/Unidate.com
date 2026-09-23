@@ -11,6 +11,7 @@ import {
 import { GroupPostsService, GroupPost } from '../../services/groupPostsService';
 import { useAuth } from '../../contexts/AuthContext';
 import { useUniDateToast } from '../UI/Toast';
+import UserAvatar from '../UI/UserAvatar';
 
 interface GroupFeedProps {
   groupId: string;
@@ -190,17 +191,13 @@ const GroupFeed: React.FC<GroupFeedProps> = ({ groupId, isMember }) => {
                     onClick={() => handleProfileClick(post.author.uid)}
                     className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0 shadow-[0_4px_15px_rgba(139,92,246,0.4)] hover:scale-105 transition-transform cursor-pointer"
                   >
-                    {post.author.avatar ? (
-                      <img 
-                        src={post.author.avatar} 
-                        alt={post.author.name}
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-white font-bold text-lg">
-                        {post.author.name.charAt(0).toUpperCase()}
-                      </span>
-                    )}
+                    <UserAvatar
+                      photoURL={post.author.avatar}
+                      displayName={post.author.name}
+                      size="lg"
+                      showGraduationCap={false}
+                      className="!w-12 !h-12"
+                    />
                   </button>
                   <div className="flex-1 min-w-0">
                     <button

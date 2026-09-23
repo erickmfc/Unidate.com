@@ -53,9 +53,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
 
   const [imageError, setImageError] = React.useState(false);
 
+  React.useEffect(() => {
+    // A profile can load after the first render. Do not keep a previous
+    // failed URL state when Supabase returns a new photo URL.
+    setImageError(false);
+  }, [photoURL]);
+
   return (
     <div className={`relative ${sizeClasses[size]} ${className}`}>
-      {}
       <div className={`${sizeClasses[size]} rounded-full overflow-hidden ${!photoURL || imageError ? gradientClass : ''} flex items-center justify-center relative`}>
         {photoURL && !imageError ? (
           <img
@@ -71,7 +76,6 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         )}
       </div>
 
-      {}
       {showGraduationCap && (
         <div className={`absolute ${capSizeClasses[size]} bg-yellow-400 rounded-full p-0.5 shadow-lg border-2 border-white z-10`}>
           <GraduationCap className="w-full h-full text-yellow-600" fill="currentColor" />
