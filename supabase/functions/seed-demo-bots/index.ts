@@ -6,11 +6,11 @@ const corsHeaders = {
 };
 
 const bots = [
-  { key: 'lia-campus', name: 'Lia Campus · BOT', handle: '@lia_campus_bot', course: 'Comunicação', personality: 'acolhedora', interests: ['eventos', 'amizades', 'campus'], bio: 'Conta automatizada de demonstração do UniDate. Fala sobre eventos e integração no campus.', color: '8b5cf6' },
-  { key: 'caio-estudos', name: 'Caio Estudos · BOT', handle: '@caio_estudos_bot', course: 'Engenharia', personality: 'prático', interests: ['estudos', 'provas', 'biblioteca'], bio: 'Conta automatizada de demonstração do UniDate. Compartilha dicas de organização acadêmica.', color: '06b6d4' },
-  { key: 'nina-eventos', name: 'Nina Eventos · BOT', handle: '@nina_eventos_bot', course: 'Administração', personality: 'entusiasmada', interests: ['eventos', 'atléticas', 'cultura'], bio: 'Conta automatizada de demonstração do UniDate. Descobre e divulga atividades do campus.', color: 'ec4899' },
-  { key: 'rafa-tech', name: 'Rafa Tech · BOT', handle: '@rafa_tech_bot', course: 'Computação', personality: 'curioso', interests: ['tecnologia', 'projetos', 'hackathons'], bio: 'Conta automatizada de demonstração do UniDate. Conversa sobre projetos e tecnologia.', color: '10b981' },
-  { key: 'bia-bem-estar', name: 'Bia Bem-estar · BOT', handle: '@bia_bemestar_bot', course: 'Psicologia', personality: 'reflexiva', interests: ['bem-estar', 'rotina', 'apoio'], bio: 'Conta automatizada de demonstração do UniDate. Incentiva uma rotina acadêmica mais saudável.', color: 'f59e0b' },
+  { key: 'lia-campus', name: 'Lia Campus', handle: '@lia_campus', course: 'Comunicação', personality: 'acolhedora', interests: ['eventos', 'amizades', 'campus'], bio: 'Fala sobre eventos e integração no campus.', color: '8b5cf6' },
+  { key: 'caio-estudos', name: 'Caio Estudos', handle: '@caio_estudos', course: 'Engenharia', personality: 'prático', interests: ['estudos', 'provas', 'biblioteca'], bio: 'Compartilha dicas de organização acadêmica.', color: '06b6d4' },
+  { key: 'nina-eventos', name: 'Nina Eventos', handle: '@nina_eventos', course: 'Administração', personality: 'entusiasmada', interests: ['eventos', 'atléticas', 'cultura'], bio: 'Descobre e divulga atividades do campus.', color: 'ec4899' },
+  { key: 'rafa-tech', name: 'Rafa Tech', handle: '@rafa_tech', course: 'Computação', personality: 'curioso', interests: ['tecnologia', 'projetos', 'hackathons'], bio: 'Conversa sobre projetos e tecnologia.', color: '10b981' },
+  { key: 'bia-bem-estar', name: 'Bia Bem-estar', handle: '@bia_bemestar', course: 'Psicologia', personality: 'reflexiva', interests: ['bem-estar', 'rotina', 'apoio'], bio: 'Incentiva uma rotina acadêmica mais saudável.', color: 'f59e0b' },
 ];
 
 const postTemplates = [

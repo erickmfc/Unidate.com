@@ -1,8 +1,9 @@
 import { supabase } from '../supabaseClient';
+import { cleanDisplayName } from '../utils/displayName';
 
 export interface Comment { id: string; postId: string; userId: string; userName: string; userAvatar?: string; content: string; timestamp: any; likes: number; likedBy: string[]; edited?: boolean; editedAt?: any; }
 
-const mapComment = (row: any): Comment => ({ id: row.id, postId: row.post_id, userId: row.author_id, userName: row.author?.display_name || 'Usuário', userAvatar: row.author?.photo_url || '', content: row.content, timestamp: row.created_at, likes: 0, likedBy: [], edited: false, editedAt: row.updated_at });
+const mapComment = (row: any): Comment => ({ id: row.id, postId: row.post_id, userId: row.author_id, userName: cleanDisplayName(row.author?.display_name), userAvatar: row.author?.photo_url || '', content: row.content, timestamp: row.created_at, likes: 0, likedBy: [], edited: false, editedAt: row.updated_at });
 
 export class CommentsService {
   static async addComment(postId: string, userId: string, userName: string, userAvatar: string, content: string): Promise<string> {

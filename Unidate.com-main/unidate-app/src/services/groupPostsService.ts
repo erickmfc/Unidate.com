@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { cleanDisplayName } from '../utils/displayName';
 import { Post } from './postsService';
 
 type TimestampLike = { toDate: () => Date; seconds: number; nanoseconds: number };
@@ -18,7 +19,7 @@ export interface GroupPost {
 
 const mapPost = (row: any): GroupPost => ({
   id: row.id, groupId: row.group_id,
-  author: { uid: row.author_id, name: row.author?.display_name || 'Usuário', avatar: row.author?.photo_url || '', course: row.author?.course || '' },
+  author: { uid: row.author_id, name: cleanDisplayName(row.author?.display_name), avatar: row.author?.photo_url || '', course: row.author?.course || '' },
   content: row.content, type: row.type || 'text', image: row.image || undefined,
   pollData: row.poll_data || undefined, likes: row.likes || [], comments: row.comments_count || 0,
   hashtags: row.hashtags || [], createdAt: asTimestamp(row.created_at), updatedAt: asTimestamp(row.updated_at),
@@ -46,7 +47,7 @@ export class GroupPostsService {
         id: row.id,
         author: {
           uid: row.author_id,
-          name: row.author?.display_name || 'Usuário',
+          name: cleanDisplayName(row.author?.display_name),
           course: row.author?.course || '',
           university: row.author?.university || '',
           avatar: row.author?.photo_url || '',

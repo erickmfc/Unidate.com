@@ -1,5 +1,6 @@
 import { supabase } from '../supabaseClient';
 import { AppCache } from '../utils/cache';
+import { cleanDisplayName } from '../utils/displayName';
 
 export interface UserProfile {
   uid: string;
@@ -72,7 +73,7 @@ export class UserProfileService {
 
       const profileData: UserProfile = {
         uid: profile.id,
-        name: profile.display_name || 'Usuário',
+        name: cleanDisplayName(profile.display_name),
         email: profile.email || '',
         course: profile.course || 'Curso não informado',
         university: profile.university || 'Universidade não informada',
@@ -229,7 +230,7 @@ export class UserProfileService {
 
         results.push({
           uid: p.id,
-          name: p.display_name || 'Usuário',
+          name: cleanDisplayName(p.display_name),
           email: p.email || '',
           course: p.course || 'Curso não informado',
           university: p.university || 'Universidade não informada',
@@ -270,7 +271,7 @@ export class UserProfileService {
 
         results.push({
           uid: p.id,
-          name: p.display_name || 'Usuário',
+          name: cleanDisplayName(p.display_name),
           email: p.email || '',
           course: p.course || 'Curso não informado',
           university: p.university || 'Universidade não informada',

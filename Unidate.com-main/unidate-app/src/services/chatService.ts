@@ -57,6 +57,21 @@ const mapChat = (row: any, participantRows: any[] = []): Chat => ({
 });
 
 export class ChatService {
+  static async isAutomatedUser(userId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('bot_profiles')
+      .select('is_automated, is_active')
+      .eq('auth_user_id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Não foi possível identificar o perfil automatizado do chat:', error);
+      return false;
+    }
+
+    return data?.is_automated === true && data?.is_active !== false;
+  }
+
   static async getOrCreateChat(userId1: string, userId2: string): Promise<string> {
     if (!userId1 || !userId2 || userId1 === userId2) {
       throw new Error('Destinatário inválido');

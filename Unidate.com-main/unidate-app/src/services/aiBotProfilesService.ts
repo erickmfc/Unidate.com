@@ -1,8 +1,9 @@
 import { supabase } from '../supabaseClient';
+import { cleanDisplayName } from '../utils/displayName';
 
 export interface BotProfile { id: string; name: string; handle: string; course: string; university: string; period: number; avatar: string; bio: string; writingStyle: string; personality: string; interests: string[]; postingFrequency: { enabled: boolean; intervalMinutes: number }; status: 'active'|'paused'|'draft'; postsCount: number; lastPostTime: Date|null; createdAt: Date; updatedAt: Date; }
 
-const mapBot = (row: any): BotProfile => ({ id: row.id, name: row.display_name, handle: row.handle || row.bot_key, course: '', university: '', period: 1, avatar: row.photo_url || '', bio: row.bio || '', writingStyle: '', personality: row.personality || 'descontraído', interests: row.interests || [], postingFrequency: { enabled: Boolean(row.is_active), intervalMinutes: 60 }, status: row.is_active === false ? 'paused' : 'active', postsCount: 0, lastPostTime: null, createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at || row.created_at) });
+const mapBot = (row: any): BotProfile => ({ id: row.id, name: cleanDisplayName(row.display_name), handle: row.handle || row.bot_key, course: '', university: '', period: 1, avatar: row.photo_url || '', bio: row.bio || '', writingStyle: '', personality: row.personality || 'descontraído', interests: row.interests || [], postingFrequency: { enabled: Boolean(row.is_active), intervalMinutes: 60 }, status: row.is_active === false ? 'paused' : 'active', postsCount: 0, lastPostTime: null, createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at || row.created_at) });
 
 export class AIBotProfilesService {
   static async createProfile(profileData: Omit<BotProfile, 'id'|'postsCount'|'lastPostTime'|'createdAt'|'updatedAt'>): Promise<string> {

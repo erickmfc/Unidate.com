@@ -1,5 +1,6 @@
 import { supabase } from '../supabaseClient';
 import { AppCache } from '../utils/cache';
+import { cleanDisplayName } from '../utils/displayName';
 
 export interface Post {
   id: string;
@@ -156,7 +157,7 @@ export class PostsService {
           id: p.id,
           author: {
             uid: p.author_id || '',
-            name: author?.display_name || 'Usuário',
+            name: cleanDisplayName(author?.display_name),
             course: author?.course || '',
             university: author?.university || '',
             avatar: author?.photo_url || '',
@@ -281,7 +282,7 @@ export class PostsService {
         id: p.id,
         author: {
           uid: p.author?.id || '',
-          name: p.author?.display_name || 'Usuário',
+          name: cleanDisplayName(p.author?.display_name),
           course: p.author?.course || '',
           university: p.author?.university || '',
           avatar: p.author?.photo_url || ''

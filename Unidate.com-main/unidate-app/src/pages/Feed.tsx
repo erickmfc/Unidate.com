@@ -29,6 +29,7 @@ import CampusSummary from '../components/Feed/CampusSummary';
 import { GroupPostsService } from '../services/groupPostsService';
 import { supabase } from '../supabaseClient';
 import UserAvatar from '../components/UI/UserAvatar';
+import { cleanDisplayName } from '../utils/displayName';
 
 const FEED_CATEGORIES = [
   { id: 'tudo', name: 'Tudo' },
@@ -843,13 +844,13 @@ const Feed: React.FC = () => {
                           <div key={cmt.id} className="flex space-x-2.5 text-xs bg-slate-50 p-3 rounded-2xl border border-slate-100/50">
                             <UserAvatar
                               photoURL={cmt.author?.photo_url}
-                              displayName={cmt.author?.display_name}
+                              displayName={cleanDisplayName(cmt.author?.display_name)}
                               size="sm"
                               showGraduationCap={false}
                               className="mt-0.5"
                             />
                             <div className="flex-1">
-                              <h5 className="font-bold text-slate-800">{cmt.author?.display_name || 'Estudante'}</h5>
+                              <h5 className="font-bold text-slate-800">{cleanDisplayName(cmt.author?.display_name)}</h5>
                               <p className="text-slate-600 mt-1">{cmt.content}</p>
                               <span className="text-[9px] text-slate-400 block mt-1.5">
                                 {new Date(cmt.created_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}

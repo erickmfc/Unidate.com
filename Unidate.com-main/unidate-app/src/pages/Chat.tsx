@@ -31,8 +31,10 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatService, ChatMessage, Chat } from '../services/chatService';
+import { HumorGeneratorService } from '../services/humorGeneratorService';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
 import { FollowService } from '../services/followService';
+import { cleanDisplayName, looksLikeAutomatedProfile } from '../utils/displayName';
 import UserAvatar from '../components/UI/UserAvatar';
 import NotificationSystem from '../components/UI/NotificationSystem';
 import { useNotifications } from '../hooks/useNotifications';
@@ -50,6 +52,7 @@ interface ChatContact {
   role?: string;
   tags?: string[];
   rating?: number;
+  isAutomated?: boolean;
   sharedDocuments?: Array<{ name: string; type: string; size: string }>;
 }
 
@@ -85,12 +88,21 @@ const ChatPage: React.FC = () => {
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [startingChatFor, setStartingChatFor] = useState<string | null>(null);
   const [activeCall, setActiveCall] = useState<'video' | 'audio' | null>(null);
+  const [botReplying, setBotReplying] = useState(false);
   const { notifications, removeNotification, showSuccess, showError, showInfo } = useNotifications();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
   const hydratedMessageIdsRef = useRef<Set<string>>(new Set());
   const messagesReadyRef = useRef(false);
+  const localReplyMessagesRef = useRef<Map<string, ChatMessage[]>>(new Map());
+  const replyTimersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+
+  const mergeLocalReplies = useCallback((chatId: string, messages: ChatMessage[]) => {
+    const localReplies = localReplyMessagesRef.current.get(chatId) || [];
+    const messageIds = new Set(messages.map((message) => message.id));
+    return [...messages, ...localReplies.filter((message) => !messageIds.has(message.id))];
+  }, []);
 
   // Dados mockados para demonstração
   const mockContacts: ChatContact[] = [
@@ -160,6 +172,7 @@ const ChatPage: React.FC = () => {
 
             const contactProfile = await UserProfileService.getUserProfile(otherParticipantId);
             if (!contactProfile) return null;
+            const isAutomated = await ChatService.isAutomatedUser(otherParticipantId);
 
             const lastMessageTime = chat.lastMessageTime;
             const timestamp = lastMessageTime?.toDate() 
@@ -168,7 +181,7 @@ const ChatPage: React.FC = () => {
 
             const contact: ChatContact = {
               id: otherParticipantId,
-              name: contactProfile.name,
+              name: cleanDisplayName(contactProfile.name),
               email: contactProfile.email,
               avatar: contactProfile.avatar,
               isOnline: contactProfile.isAutomated ? true : false,
@@ -177,7 +190,8 @@ const ChatPage: React.FC = () => {
               workHours: '',
               role: '',
               tags: [],
-              rating: 0
+              rating: 0,
+              isAutomated: isAutomated || looksLikeAutomatedProfile(contactProfile.name)
             };
 
             return {
@@ -210,6 +224,7 @@ const ChatPage: React.FC = () => {
   useEffect(() => {
     if (!selectedChat || !currentUser?.uid) return;
     messagesReadyRef.current = false;
+    setBotReplying(false);
 
     // Limpar subscription anterior
     if (unsubscribeMessagesRef.current) {
@@ -221,7 +236,7 @@ const ChatPage: React.FC = () => {
     const loadMessages = async () => {
       try {
         const messages = await ChatService.getChatMessages(selectedChat, 50);
-        setCurrentMessages(messages);
+        setCurrentMessages(mergeLocalReplies(selectedChat, messages));
         hydratedMessageIdsRef.current = new Set(messages.map((message) => message.id));
         messagesReadyRef.current = true;
         
@@ -247,7 +262,7 @@ const ChatPage: React.FC = () => {
           });
         }
         hydratedMessageIdsRef.current = new Set(messages.map((message) => message.id));
-        setCurrentMessages(messages);
+        setCurrentMessages(mergeLocalReplies(selectedChat, messages));
         // Marcar como lidas quando receber
         if (currentUser?.uid) {
           ChatService.markMessagesAsRead(selectedChat, currentUser.uid);
@@ -263,7 +278,7 @@ const ChatPage: React.FC = () => {
         unsubscribeMessagesRef.current();
       }
     };
-  }, [selectedChat, currentUser?.uid, showInfo]);
+  }, [selectedChat, currentUser?.uid, showInfo, mergeLocalReplies]);
 
   useEffect(() => {
     // Scroll para última mensagem
@@ -311,7 +326,7 @@ const ChatPage: React.FC = () => {
 
       setNewMessage('');
       const messages = await ChatService.getChatMessages(selectedChat, 50);
-      setCurrentMessages(messages);
+      setCurrentMessages(mergeLocalReplies(selectedChat, messages));
 
       // Atualizar última mensagem na lista
       setConversations(previous => previous.map(chat =>
@@ -320,6 +335,49 @@ const ChatPage: React.FC = () => {
           : chat
       ));
       showSuccess('Mensagem enviada', `Mensagem enviada para ${currentContact?.name || 'seu contato'}.`);
+
+      const automatedContact = currentContact;
+      if (automatedContact?.isAutomated) {
+        const chatIdForReply = selectedChat;
+        const previousTimer = replyTimersRef.current.get(chatIdForReply);
+        if (previousTimer) clearTimeout(previousTimer);
+
+        setBotReplying(true);
+        const timer = setTimeout(async () => {
+          try {
+            const replyContent = await HumorGeneratorService.generateReply(messageContent);
+            const now = new Date();
+            const reply: ChatMessage = {
+              id: `local-reply-${chatIdForReply}-${now.getTime()}`,
+              chatId: chatIdForReply,
+              senderId: automatedContact.id,
+              senderName: cleanDisplayName(automatedContact.name),
+              senderAvatar: automatedContact.avatar,
+              content: replyContent,
+              type: 'text',
+              timestamp: {
+                toDate: () => now,
+                seconds: Math.floor(now.getTime() / 1000),
+                nanoseconds: 0
+              },
+              isRead: false
+            };
+
+            const currentReplies = localReplyMessagesRef.current.get(chatIdForReply) || [];
+            localReplyMessagesRef.current.set(chatIdForReply, [...currentReplies, reply]);
+            setCurrentMessages((messages) => mergeLocalReplies(chatIdForReply, [...messages, reply]));
+            setConversations((previous) => previous.map((chat) =>
+              chat.id === chatIdForReply ? { ...chat, lastMessage: replyContent, timestamp: 'Agora' } : chat
+            ));
+          } catch (error) {
+            console.error('Erro ao gerar resposta da conversa:', error);
+          } finally {
+            setBotReplying(false);
+            replyTimersRef.current.delete(chatIdForReply);
+          }
+        }, 700);
+        replyTimersRef.current.set(chatIdForReply, timer);
+      }
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
       showError('Não foi possível enviar', 'Tente novamente em alguns instantes.');
@@ -404,10 +462,11 @@ const ChatPage: React.FC = () => {
       if (!contactProfile) {
         throw new Error('Não foi possível carregar o perfil da pessoa.');
       }
+      const isAutomated = await ChatService.isAutomatedUser(userId);
 
       const contact: ChatContact = {
           id: userId,
-          name: contactProfile.name,
+          name: cleanDisplayName(contactProfile.name),
           email: contactProfile.email,
           avatar: contactProfile.avatar,
           isOnline: contactProfile.isAutomated ? true : false,
@@ -416,7 +475,8 @@ const ChatPage: React.FC = () => {
           workHours: '',
           role: '',
           tags: [],
-          rating: 0
+          rating: 0,
+          isAutomated: isAutomated || looksLikeAutomatedProfile(contactProfile.name)
         };
 
       // Adicionar à lista de conversas se não existir.
@@ -858,6 +918,23 @@ const ChatPage: React.FC = () => {
                   </div>
                 );
               })}
+              {botReplying && currentContact?.isAutomated && (
+                <div className="flex items-end space-x-2">
+                  <UserAvatar
+                    photoURL={currentContact.avatar}
+                    displayName={currentContact.name}
+                    size="sm"
+                    showGraduationCap={true}
+                  />
+                  <div className="rounded-2xl bg-gray-700 px-4 py-3 text-gray-300" aria-label="Contato digitando">
+                    <span className="inline-flex gap-1">
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-300 [animation-delay:-0.3s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-300 [animation-delay:-0.15s]" />
+                      <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-gray-300" />
+                    </span>
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 

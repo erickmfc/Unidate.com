@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { cleanDisplayName } from '../utils/displayName';
 
 export interface FollowSuggestion {
   uid: string;
@@ -88,7 +89,7 @@ export class FollowService {
 
         return {
           uid: profile.id,
-          name: profile.display_name || 'Estudante',
+          name: cleanDisplayName(profile.display_name),
           avatar: profile.photo_url || '',
           course,
           university,
