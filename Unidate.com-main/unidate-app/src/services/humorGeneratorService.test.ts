@@ -25,7 +25,7 @@ describe('HumorGeneratorService', () => {
   });
 
   test('keeps replies short and contextual', async () => {
-    await expect(HumorGeneratorService.generateReply('tenho prova amanhã')).resolves.toBe('meus sentimentos');
-    await expect(HumorGeneratorService.generateReply('fiquei com 5,9')).resolves.toBe('evento canônico');
+    await expect(HumorGeneratorService.generateReply('tenho prova amanhã')).resolves.toContain('separa a matéria');
+    await expect(HumorGeneratorService.generateReply('fiquei com 5,9')).resolves.toContain('Nota apertada');
   });
 });

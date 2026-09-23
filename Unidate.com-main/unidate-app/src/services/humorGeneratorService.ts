@@ -53,12 +53,15 @@ export class HumorGeneratorService {
   }
 
   static async generateReply(context: string): Promise<string> {
-    const normalized = context.toLowerCase();
-    if (normalized.includes('prova')) return 'meus sentimentos';
-    if (normalized.includes('nota') || normalized.includes('5,9')) return 'evento canônico';
-    if (normalized.includes('cancel')) return 'deus trabalha';
-    if (normalized.includes('administra')) return 'força guerreiro';
-    return 'complicado';
+    const normalized = context.toLowerCase().trim();
+    if (!normalized) return 'Pode me contar um pouco mais?';
+    if (normalized.includes('prova') || normalized.includes('estudar')) return 'Entendi. Se puder, separa a matéria em blocos pequenos e combina uma revisão com alguém da turma. Qual disciplina está pegando mais?';
+    if (normalized.includes('nota') || normalized.includes('5,9')) return 'Nota apertada dá ansiedade mesmo. Vale conferir o critério da avaliação e conversar com o professor sobre a revisão. Você quer ajuda para organizar esse pedido?';
+    if (normalized.includes('evento') || normalized.includes('campus')) return 'Boa! Vou procurar o contexto do campus na conversa. Você já sabe a data ou o local para a gente organizar a informação?';
+    if (normalized.includes('cancel')) return 'Poxa, isso atrapalha o planejamento. Confere se a coordenação publicou uma nova data e avisa a turma por aqui.';
+    if (normalized.includes('administra')) return 'Posso ajudar a organizar isso. Qual é a situação e qual resultado você precisa alcançar?';
+    if (normalized.endsWith('?')) return 'Boa pergunta. Não quero inventar uma resposta: me diga o curso, campus ou data envolvidos para eu responder com contexto.';
+    return `Entendi: “${context.slice(0, 120)}”. Quer conversar melhor sobre isso ou transformar em uma publicação para a timeline?`;
   }
 
   static async generateThread(): Promise<HumorCandidate[]> { const post = await this.generatePost(); return [{ ...post, format: 'frase' }, { ...post, text: `${post.text}\n\ncontinua amanhã`, format: 'frase' }]; }
