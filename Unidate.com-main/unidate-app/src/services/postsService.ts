@@ -97,7 +97,7 @@ export class PostsService {
         .select(`
           id, content, type, image, location, tevi_data, poll_data, event_data,
           hashtags, likes_count, comments_count, created_at, updated_at,
-          author:profiles(id, display_name, photo_url, course, university)
+          author:profiles!posts_author_id_fkey(id, display_name, photo_url, course, university)
         `)
         .order('created_at', { ascending: false })
         .limit(limitCount);
@@ -233,8 +233,8 @@ export class PostsService {
         .from('posts')
         .select(`
           *,
-          author:profiles(id, display_name, photo_url, course, university),
-          likes:likes(user_id)
+          author:profiles!posts_author_id_fkey(id, display_name, photo_url, course, university),
+          likes:likes!likes_post_id_fkey(user_id)
         `)
         .contains('hashtags', [hashtag.toLowerCase().replace('#', '')])
         .order('created_at', { ascending: false })
