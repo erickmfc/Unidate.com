@@ -49,7 +49,7 @@ const TRENDING_HASHTAGS = [
 ];
 
 const Feed: React.FC = () => {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser, userProfile, loading: authLoading } = useAuth();
   const { showSuccess, showError } = useUniDateToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -95,8 +95,10 @@ const Feed: React.FC = () => {
   };
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    // Aguarda a restauração da sessão antes de consultar o feed.
+    if (authLoading) return;
+    void loadPosts();
+  }, [authLoading, currentUser?.uid]);
 
   useEffect(() => {
     let active = true;
