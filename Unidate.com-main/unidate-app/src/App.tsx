@@ -6,7 +6,6 @@ import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import { ToastProvider } from './components/UI/Toast';
 import Navbar from './components/Layout/Navbar';
 import LoadingSpinner from './components/UI/LoadingSpinner';
-import Footer from './components/UI/Footer';
 import ModernAdminLayout from './components/Admin/Layout/SimpleAdminLayout';
 import TermsAcceptanceGate from './components/Auth/TermsAcceptanceGate';
 
@@ -389,7 +388,6 @@ const AppContent: React.FC = () => {
           </Routes>
         </Suspense>
       </main>
-      {location.pathname !== '/login' && <Footer />}
     </div>
   );
 };

@@ -16,11 +16,13 @@ import {
   Eye,
   EyeOff,
   Save,
+  Loader2,
   RotateCcw,
   Info,
   AlertCircle,
   CheckCircle
 } from 'lucide-react';
+import { useUniDateToast } from '../../UI/Toast';
 
 interface FeatureFlag {
   id: string;
@@ -47,6 +49,9 @@ const FeatureFlags: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const { showSuccess, showError } = useUniDateToast();
 
   const categories = [
     { id: 'all', name: 'Todas', icon: Settings },
@@ -65,6 +70,7 @@ const FeatureFlags: React.FC = () => {
         const savedFeatures = localStorage.getItem('feature-flags');
         if (savedFeatures) {
           setFeatures(JSON.parse(savedFeatures));
+          setHasChanges(false);
           setLoading(false);
           return;
         }
@@ -171,6 +177,7 @@ const FeatureFlags: React.FC = () => {
         ];
 
         setFeatures(mockFeatures);
+        setHasChanges(false);
       } catch (error) {
         console.error('Erro ao carregar funcionalidades:', error);
       } finally {
@@ -195,13 +202,7 @@ const FeatureFlags: React.FC = () => {
         : feature
     );
     setFeatures(updatedFeatures);
-    
-    localStorage.setItem('feature-flags', JSON.stringify(updatedFeatures));
-    
-    const feature = features.find(f => f.id === featureId);
-    if (feature) {
-      alert(`Funcionalidade "${feature.name}" ${!feature.isEnabled ? 'ativada' : 'desativada'} com sucesso!`);
-    }
+    setHasChanges(true);
   };
 
   const toggleVisibility = (featureId: string) => {
@@ -210,6 +211,22 @@ const FeatureFlags: React.FC = () => {
         ? { ...feature, isVisible: !feature.isVisible }
         : feature
     ));
+    setHasChanges(true);
+  };
+
+  const saveChanges = async () => {
+    setSaving(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 350));
+      localStorage.setItem('feature-flags', JSON.stringify(features));
+      setHasChanges(false);
+      showSuccess('As alterações das funcionalidades foram salvas.');
+    } catch (error) {
+      console.error('Erro ao salvar funcionalidades:', error);
+      showError('Não foi possível salvar as funcionalidades.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -282,9 +299,13 @@ const FeatureFlags: React.FC = () => {
             {showAdvanced ? 'Ocultar' : 'Mostrar'} Avançado
           </button>
           
-          <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-            <Save className="h-4 w-4 inline mr-2" />
-            Salvar Alterações
+          <button
+            onClick={() => void saveChanges()}
+            disabled={saving || !hasChanges}
+            className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {saving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
+            {saving ? 'Salvando...' : 'Salvar Alterações'}
           </button>
         </div>
       </div>
@@ -403,6 +424,9 @@ const FeatureFlags: React.FC = () => {
                   <span className="text-sm font-medium text-gray-700">Ativar Funcionalidade</span>
                   <button
                     onClick={() => toggleFeature(feature.id)}
+                    type="button"
+                    aria-label={`${feature.isEnabled ? 'Desativar' : 'Ativar'} ${feature.name}`}
+                    aria-pressed={feature.isEnabled}
                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                       feature.isEnabled ? 'bg-purple-600' : 'bg-gray-200'
                     }`}
@@ -421,6 +445,9 @@ const FeatureFlags: React.FC = () => {
                       <span className="text-sm font-medium text-gray-700">Visível para Usuários</span>
                       <button
                         onClick={() => toggleVisibility(feature.id)}
+                        type="button"
+                        aria-label={`${feature.isVisible ? 'Ocultar' : 'Exibir'} ${feature.name}`}
+                        aria-pressed={feature.isVisible}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                           feature.isVisible ? 'bg-blue-600' : 'bg-gray-200'
                         }`}
