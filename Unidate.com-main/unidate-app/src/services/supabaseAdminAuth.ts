@@ -71,7 +71,38 @@ const sessionFromUser = (user: User | null): AdminSession | null => {
 
 export const loginAdmin = async (email: string, password: string): Promise<AdminSession> => {
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) throw error;
+  // Keep the documented local development account usable even when the
+  // Supabase seed user has not yet been provisioned. This branch is compiled
+  // out of production builds and never accepts these credentials in prod.
+  if (error) {
+    const isLocalDevAccount = import.meta.env.DEV &&
+      email.trim().toLowerCase() === 'admin@unidate.com' &&
+      password === 'admin123';
+    if (isLocalDevAccount) {
+      return {
+        user: {
+          uid: 'local-dev-admin',
+          email: 'admin@unidate.com',
+          displayName: 'Administrador UniDate',
+          role: 'super-admin',
+          isActive: true,
+          twoFactorEnabled: false,
+          createdAt: new Date(),
+          permissions: {
+            canManageUsers: true,
+            canModerateContent: true,
+            canManageEvents: true,
+            canManageAdmins: true,
+            canAccessSystemSettings: true,
+          },
+        },
+        isAuthenticated: true,
+        requiresTwoFactor: false,
+        twoFactorVerified: true,
+      };
+    }
+    throw error;
+  }
 
   const session = sessionFromUser(data.user);
   if (!session) {
