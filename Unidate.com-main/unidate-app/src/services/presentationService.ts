@@ -17,19 +17,9 @@ import {
 import { GeminiService } from './geminiService';
 import { ResearchPresentation, PresentationSection } from '../types/presentation';
 
-const GEMINI_API_KEYS = [
-  'AIzaSyDdymzukUt6h9-QsrPgHjwPmQCfneNAUGA',
-  'AIzaSyDRfqv4mH5N5MvbrWogMOWJzN1IOL7vq8g',
-  'AIzaSyBp1wEr4C2qDE78okeGaaaH8GW7YCtWpXc'
-];
-
-let currentApiKeyIndex = 0;
-
-const getNextApiKey = (): string => {
-  const key = GEMINI_API_KEYS[currentApiKeyIndex];
-  currentApiKeyIndex = (currentApiKeyIndex + 1) % GEMINI_API_KEYS.length;
-  return key;
-};
+// AI generation remains on local fallbacks until a protected server gateway is configured.
+const GEMINI_API_KEYS: string[] = [];
+const getNextApiKey = (): string => '';
 
 export class PresentationService {
   
@@ -139,6 +129,7 @@ export class PresentationService {
   private static async searchRealInformation(theme: string): Promise<string> {
     try {
       const apiKey = getNextApiKey();
+      if (!apiKey) return '';
       const searchPrompt = `Você tem acesso à internet. Pesquise informações REAIS, VERDADEIRAS e ATUAIS sobre "${theme}".
 
 IMPORTANTE:
@@ -372,8 +363,8 @@ Responda APENAS com JSON válido:
     for (let attempt = 0; attempt < GEMINI_API_KEYS.length; attempt++) {
       try {
         const apiKey = getNextApiKey();
-        console.log(`🔄 Tentativa ${attempt + 1} com API key ${apiKey.substring(0, 20)}...`);
-        
+        if (!apiKey) break;
+
         const response = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
           {
@@ -471,6 +462,15 @@ Responda APENAS com JSON:
 
     try {
       const apiKey = getNextApiKey();
+      if (!apiKey) {
+        return [
+          `Ilustração acadêmica de ${theme}, seção de introdução, composição editorial.`,
+          `Ilustração contextual de ${theme}, com elementos de estudo e pesquisa.`,
+          `Ilustração de resultados e realizações relacionados a ${theme}.`,
+          `Ilustração contemplativa para análise crítica de ${theme}.`,
+          `Ilustração de conclusão e reflexão sobre ${theme}.`,
+        ];
+      }
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
         {

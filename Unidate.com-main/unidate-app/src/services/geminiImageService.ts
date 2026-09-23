@@ -1,16 +1,5 @@
-const GEMINI_API_KEYS = [
-  'AIzaSyDdymzukUt6h9-QsrPgHjwPmQCfneNAUGA',
-  'AIzaSyDRfqv4mH5N5MvbrWogMOWJzN1IOL7vq8g',
-  'AIzaSyBp1wEr4C2qDE78okeGaaaH8GW7YCtWpXc'
-];
-
-let currentApiKeyIndex = 0;
-
-const getNextApiKey = (): string => {
-  const key = GEMINI_API_KEYS[currentApiKeyIndex];
-  currentApiKeyIndex = (currentApiKeyIndex + 1) % GEMINI_API_KEYS.length;
-  return key;
-};
+// Image descriptions use local fallbacks until a server-side AI gateway is configured.
+const getNextApiKey = (): string => '';
 
 export interface GeneratedImage {
   imageUrl: string;
@@ -68,6 +57,7 @@ Forneça elementos visuais ESPECÍFICOS e REAIS sobre "${theme}" para criar uma 
     let realVisualInfo = '';
     try {
       const searchApiKey = getNextApiKey();
+      if (!searchApiKey) return originalPrompt;
       const searchResponse = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${searchApiKey}`,
         {
@@ -124,6 +114,7 @@ Responda APENAS com a descrição visual detalhada, sem explicações.`;
 
     try {
       const apiKey = getNextApiKey();
+      if (!apiKey) return originalPrompt;
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
         {
@@ -187,6 +178,7 @@ Responda APENAS em JSON:
 
     try {
       const apiKey = getNextApiKey();
+      if (!apiKey) return this.getDefaultVisualDescription(theme, sectionType);
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`,
         {

@@ -198,22 +198,11 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
     }
   };
 
-  const extractHashtags = (text: string) => {
-    const hashtagRegex = /#\w+/g;
-    const hashtags = text.match(hashtagRegex) || [];
-    return hashtags;
-  };
-
-  const renderContent = () => {
-    const hashtags = extractHashtags(post.content);
-    let content = post.content;
-
-    hashtags.forEach(hashtag => {
-      content = content.replace(hashtag, `<span class="text-primary-600 font-medium">${hashtag}</span>`);
-    });
-
-    return { __html: content };
-  };
+  const renderContent = (): React.ReactNode => post.content
+    .split(/(#\w+)/g)
+    .map((part, index) => /^#\w+$/.test(part)
+      ? <span key={`${index}-${part}`} className="text-primary-600 font-medium">{part}</span>
+      : part);
 
   return (
     <div className={`card ${post.type === 'tevi' ? 'border-l-4 border-l-pink-500 bg-gradient-to-r from-pink-50 to-white' : ''}`}>
@@ -285,10 +274,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onShare, o
       </div>
 
       <div className="mb-4">
-        <div 
-          className="text-gray-900 mb-3"
-          dangerouslySetInnerHTML={renderContent()}
-        />
+        <div className="text-gray-900 mb-3">{renderContent()}</div>
         
         {post.location && (
           <div className="flex items-center space-x-2 text-sm text-gray-600 mb-3">

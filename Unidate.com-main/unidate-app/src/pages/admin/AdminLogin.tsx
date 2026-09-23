@@ -12,7 +12,7 @@ const AdminLogin: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showTwoFactor, setShowTwoFactor] = useState(true);
+  const [requiresTwoFactor, setRequiresTwoFactor] = useState(false);
   const { loginAdmin, verifyTwoFactor, adminSession } = useAdminAuth();
   const navigate = useNavigate();
 
@@ -30,19 +30,22 @@ const AdminLogin: React.FC = () => {
     setError('');
 
     try {
-      if (!formData.email || !formData.password || !formData.twoFactorCode) {
-        setError('Por favor, preencha todos os campos');
+      if (!formData.email || !formData.password || (requiresTwoFactor && !formData.twoFactorCode)) {
+        setError('Preencha os campos obrigatórios');
         return;
       }
 
-      await loginAdmin(formData.email, formData.password);
-      
-      const isValid = await verifyTwoFactor(formData.twoFactorCode);
-      if (isValid) {
-        navigate('/admin/dashboard');
-      } else {
-        setError('Código 2FA inválido');
+      const session = await loginAdmin(formData.email, formData.password);
+      if (session.requiresTwoFactor) {
+        setRequiresTwoFactor(true);
+        if (!formData.twoFactorCode) return;
       }
+
+      if (requiresTwoFactor || session.requiresTwoFactor) {
+        const isValid = await verifyTwoFactor(formData.twoFactorCode);
+        if (!isValid) throw new Error('Código 2FA inválido. Confira o autenticador e tente novamente.');
+      }
+      navigate('/admin/dashboard');
     } catch (error: any) {
       setError(error.message || 'Erro na autenticação');
     } finally {
@@ -129,7 +132,7 @@ const AdminLogin: React.FC = () => {
               </div>
             </div>
 
-            {showTwoFactor && (
+            {requiresTwoFactor && (
               <div>
                 <label htmlFor="twoFactorCode" className="block text-sm font-medium text-gray-300 mb-2">
                   Código de Verificação 2FA

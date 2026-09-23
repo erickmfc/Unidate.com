@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
 import { getUserProfile, UserProfile } from '../firebase/auth';
+import { logSiteActivity } from '../services/activityLogService';
 
 interface AuthContextType {
   currentUser: any | null;
@@ -68,6 +69,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setCurrentUser({ ...session.user, uid: session.user.id });
         const profile = await getUserProfile(session.user.id);
         setUserProfile(profile);
+        if (event === 'SIGNED_IN') {
+          // Run after the auth callback returns so the activity insert cannot hold
+          // Supabase Auth's session lock.
+          setTimeout(() => void logSiteActivity(session.user.id, 'login'), 0);
+        }
       } else {
         setCurrentUser(null);
         setUserProfile(null);
@@ -82,6 +88,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logoutUser = async (): Promise<void> => {
     try {
+      if (currentUser?.id) {
+        await logSiteActivity(currentUser.id, 'logout');
+      }
       await supabase.auth.signOut();
     } catch (error) {
       console.error('Erro ao fazer logout:', error);

@@ -14,7 +14,7 @@ const AdminRoute: React.FC<AdminRouteProps> = ({ children }) => {
     return <LoadingSpinner />;
   }
 
-  if (!isAuthenticated || !adminSession?.user) {
+  if (!isAuthenticated || !adminSession?.user || !adminSession.twoFactorVerified) {
     return <Navigate to="/admin/login" replace />;
   }
 

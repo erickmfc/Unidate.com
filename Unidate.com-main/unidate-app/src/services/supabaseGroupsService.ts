@@ -40,8 +40,6 @@ type GroupRow = {
   updated_at: string | null;
 };
 
-const currentUserId = async () => (await supabase.auth.getUser()).data.user?.id ?? null;
-
 const toGroup = (row: GroupRow, members: string[], userId: string | null): SupabaseGroup => ({
   id: row.id,
   name: row.name,
@@ -83,14 +81,17 @@ const attachMembers = async (rows: GroupRow[], userId: string | null): Promise<S
 
 export class SupabaseGroupsService {
   static async getGroups(limitCount = 50): Promise<SupabaseGroup[]> {
-    const userId = await currentUserId();
-    const { data, error } = await supabase
-      .from('groups')
-      .select('*')
-      .order('last_activity', { ascending: false })
-      .limit(limitCount);
-    if (error) throw error;
-    return attachMembers((data ?? []) as GroupRow[], userId);
+    const [userResult, groupsResult] = await Promise.all([
+      supabase.auth.getUser(),
+      supabase
+        .from('groups')
+        .select('id, name, description, category, university, image, tags, created_by, editors, max_members, is_public, upcoming_events, last_activity, created_at, updated_at')
+        .order('last_activity', { ascending: false })
+        .limit(limitCount),
+    ]);
+    if (groupsResult.error) throw groupsResult.error;
+    const userId = userResult.data.user?.id ?? null;
+    return attachMembers((groupsResult.data ?? []) as GroupRow[], userId);
   }
 
   static async createGroup(groupData: {

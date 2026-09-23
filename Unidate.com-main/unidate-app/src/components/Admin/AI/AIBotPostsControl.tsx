@@ -356,20 +356,6 @@ const AIBotPostsControl: React.FC = () => {
         return;
       }
       
-      const { signInWithEmailAndPassword } = await import('firebase/auth');
-      const { auth } = await import('../../../firebase/config');
-      
-      if (auth && !auth.currentUser) {
-        try {
-          const adminEmail = process.env.REACT_APP_ADMIN_EMAIL || 'admin@unidate.com';
-          const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
-          await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
-          console.log('✅ [AIBotPostsControl] Admin autenticado para criar post');
-        } catch (authError) {
-          console.warn('⚠️ [AIBotPostsControl] Erro ao autenticar admin:', authError);
-        }
-      }
-      
       let postId: string;
       if (previewContent) {
         const { PostsService } = await import('../../../services/postsService');

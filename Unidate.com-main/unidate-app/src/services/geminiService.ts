@@ -1,4 +1,5 @@
-const GEMINI_API_KEY = 'AIzaSyB55CBvbYRBq9YN1PgbHaJNbZpRVZBLEzU';
+// Provider credentials belong in a server-side function, never in this browser bundle.
+const GEMINI_API_KEY = '';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 export interface PhilosophicalThought {
@@ -79,6 +80,7 @@ export class GeminiService {
     theme?: string,
     context?: string
   ): Promise<Omit<PhilosophicalThought, 'hash'>> {
+    if (!GEMINI_API_KEY) return this.getDefaultThought();
     try {
       const prompt = this.buildPhilosophicalPrompt(theme, context);
       
@@ -357,6 +359,9 @@ Gere APENAS o pensamento, sem explicações, sem título, sem formatação.`;
     theme: string,
     type: 'lesson' | 'philosophy' | 'research' | 'doubt' | 'module'
   ): Promise<string> {
+    if (!GEMINI_API_KEY) {
+      return `Uma exploração sobre ${theme}. Este tema conecta ideias fundamentais com situações práticas e oferece caminhos para aprender, refletir e trocar conhecimento.`;
+    }
     try {
       const prompt = `Crie um conteúdo detalhado sobre "${theme}" do tipo ${type}.
 

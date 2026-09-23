@@ -83,27 +83,38 @@ export class PostsService {
 
   static async getPosts(limitCount: number = 50): Promise<Post[]> {
     try {
-      const cacheKey = `posts_${limitCount}`;
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUserId = session?.user.id;
+      const cacheKey = `posts_${currentUserId || 'guest'}_${limitCount}`;
       const cached = AppCache.get<Post[]>(cacheKey);
       if (cached) {
         console.log('📝 [POSTS] Retornando posts do cache');
         return cached;
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      const currentUserId = user?.id;
-
       const { data: postsData, error } = await supabase
         .from('posts')
         .select(`
-          *,
-          author:profiles(id, display_name, photo_url, course, university),
-          likes:likes(user_id)
+          id, content, type, image, location, tevi_data, poll_data, event_data,
+          hashtags, likes_count, comments_count, created_at, updated_at,
+          author:profiles(id, display_name, photo_url, course, university)
         `)
         .order('created_at', { ascending: false })
         .limit(limitCount);
 
       if (error) throw error;
+
+      const postIds = (postsData || []).map((post: any) => post.id);
+      let likedPostIds = new Set<string>();
+      if (currentUserId && postIds.length > 0) {
+        const { data: likes, error: likesError } = await supabase
+          .from('likes')
+          .select('post_id')
+          .eq('user_id', currentUserId)
+          .in('post_id', postIds);
+        if (likesError) throw likesError;
+        likedPostIds = new Set((likes || []).map((like: any) => like.post_id));
+      }
 
       const posts: Post[] = (postsData || []).map((p: any) => ({
         id: p.id,
@@ -120,7 +131,7 @@ export class PostsService {
         timestamp: p.created_at,
         likes: p.likes_count || 0,
         comments: p.comments_count || 0,
-        isLiked: currentUserId ? p.likes?.some((l: any) => l.user_id === currentUserId) : false,
+        isLiked: currentUserId ? likedPostIds.has(p.id) : false,
         location: p.location,
         teviData: p.tevi_data,
         pollData: p.poll_data,
@@ -130,7 +141,7 @@ export class PostsService {
         updatedAt: p.updated_at
       }));
 
-      AppCache.set(cacheKey, posts, 15000); // Cache por 15 segundos
+      AppCache.set(cacheKey, posts, 15000); // Cache separado por usuário para não vazar estado de curtida.
       console.log(`✅ ${posts.length} posts carregados do Supabase`);
       return posts;
     } catch (error) {

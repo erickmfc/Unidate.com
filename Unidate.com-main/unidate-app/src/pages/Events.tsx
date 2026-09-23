@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { EventsService, Event } from '../services/eventsService';
+import { logEventActivity } from '../services/activityLogService';
 import { useUniDateToast } from '../components/UI/Toast';
 
 const CATEGORY_STYLES: Record<string, { color: string; icon: string }> = {
@@ -33,7 +34,7 @@ const Events: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'official' | 'community' | 'my-events'>('upcoming');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const { userProfile } = useAuth();
+  const { userProfile, currentUser } = useAuth();
   const { showSuccess, showError } = useUniDateToast();
   
   const [events, setEvents] = useState<Event[]>([]);
@@ -89,12 +90,22 @@ const Events: React.FC = () => {
       const isAttendingPrev = prevEvent?.rsvpStatus === 'going';
       
       const newAttendees = await EventsService.toggleRSVP(eventId, isAttendingPrev);
+      const nextStatus = status === prevEvent?.rsvpStatus ? null : status;
+
+      if (currentUser?.id) {
+        const action = nextStatus === 'going'
+          ? 'rsvp_going'
+          : nextStatus === 'maybe'
+            ? 'rsvp_maybe'
+            : 'rsvp_cancelled';
+        void logEventActivity(currentUser.id, eventId, action);
+      }
       
       setEvents(events.map(event => 
         event.id === eventId 
           ? { 
               ...event, 
-              rsvpStatus: status === event.rsvpStatus ? null : status,
+              rsvpStatus: nextStatus,
               isAttending: status === 'going' ? !isAttendingPrev : false,
               attendees: newAttendees
             }
@@ -136,7 +147,10 @@ const Events: React.FC = () => {
         isAttending: true
       };
 
-      await EventsService.createEvent(newEventData);
+      const createdEvent = await EventsService.createEvent(newEventData);
+      if (currentUser?.id) {
+        void logEventActivity(currentUser.id, createdEvent.id, 'created');
+      }
       showSuccess('Evento criado com sucesso!');
       setShowCreateModal(false);
       setFormData({

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { UserPlus, Users, GraduationCap, X } from 'lucide-react';
-import { UserProfileService, UserProfile } from '../../services/userProfileService';
-import { useAuth } from '../../contexts/AuthContext';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ArrowUpRight, GraduationCap, UserPlus, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../contexts/AuthContext';
+import { FollowService, FollowSuggestion } from '../../services/followService';
 import { useToast } from '../../hooks/useToast';
 import UserAvatar from '../UI/UserAvatar';
 
@@ -14,251 +14,114 @@ const SuggestedProfiles: React.FC<SuggestedProfilesProps> = ({ maxProfiles = 5 }
   const { currentUser, userProfile } = useAuth();
   const { success, error } = useToast();
   const navigate = useNavigate();
-  const [suggestedProfiles, setSuggestedProfiles] = useState<UserProfile[]>([]);
+  const [suggestedProfiles, setSuggestedProfiles] = useState<FollowSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
-  const [addingIds, setAddingIds] = useState<Set<string>>(new Set());
+  const [followingId, setFollowingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (currentUser?.uid && userProfile) {
-      loadSuggestedProfiles();
+  const loadSuggestedProfiles = useCallback(async () => {
+    if (!currentUser?.uid || !userProfile) {
+      setSuggestedProfiles([]);
+      setLoading(false);
+      return;
     }
-  }, [currentUser?.uid, userProfile?.university, userProfile?.course]);
 
-  const loadSuggestedProfiles = async () => {
-    if (!currentUser?.uid || !userProfile) return;
-
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      const allUsers = await UserProfileService.getAllUsers(200);
-      
-      console.log('📊 Total de usuários encontrados:', allUsers.length);
-      console.log('👤 Perfil do usuário atual:', {
-        university: userProfile.university,
-        course: userProfile.course
-      });
-      
-      const otherUsers = allUsers.filter(user => user.uid !== currentUser.uid);
-      console.log('👥 Usuários após remover próprio:', otherUsers.length);
-      
-      const usersWithFriendshipStatus = await Promise.all(
-        otherUsers.map(async (user) => {
-          const isAlreadyColleague = await UserProfileService.checkFriendship(
-            currentUser.uid,
-            user.uid
-          );
-          return { user, isAlreadyColleague };
-        })
-      );
-
-      const notColleagues = usersWithFriendshipStatus
-        .filter(({ isAlreadyColleague }) => !isAlreadyColleague)
-        .map(({ user }) => user);
-      
-      console.log('✅ Usuários que não são colegas:', notColleagues.length);
-
-      const sorted = notColleagues
-        .map(user => {
-          let score = 0;
-          
-          if (user.university && userProfile.university && 
-              user.university.toLowerCase() === userProfile.university.toLowerCase()) {
-            score += 20;
-          }
-          
-          if (user.course && userProfile.course && 
-              user.course.toLowerCase() === userProfile.course.toLowerCase()) {
-            score += 15;
-          }
-          
-          if (user.avatar) score += 3;
-          if (user.bio && user.bio.length > 10) score += 2;
-          
-          if (user.postsCount && user.postsCount > 0) score += user.postsCount;
-          
-          return { user, score };
-        })
-        .sort((a, b) => b.score - a.score)
-        .map(({ user }) => user);
-
-      const finalProfiles = sorted
-        .filter(user => user.name && user.name !== 'Usuário')
-        .slice(0, maxProfiles);
-      
-      console.log('🎯 Perfis sugeridos finais:', finalProfiles.length);
-      setSuggestedProfiles(finalProfiles);
-    } catch (err) {
-      console.error('❌ Erro ao carregar perfis sugeridos:', err);
+      const suggestions = await FollowService.getSuggestions(currentUser.uid, userProfile, maxProfiles);
+      setSuggestedProfiles(suggestions);
+    } catch (loadError) {
+      console.error('Erro ao carregar colegas sugeridos:', loadError);
       setSuggestedProfiles([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUser?.uid, userProfile?.university, userProfile?.course, userProfile?.year, userProfile?.interests, maxProfiles]);
 
-  const handleAddAsColleague = async (userId: string, userName: string) => {
-    if (!currentUser?.uid) {
-      error('Erro', 'Você precisa estar logado para adicionar colegas.');
-      return;
-    }
+  useEffect(() => {
+    void loadSuggestedProfiles();
+  }, [loadSuggestedProfiles]);
 
-    if (currentUser.uid === userId) {
-      error('Erro', 'Você não pode adicionar a si mesmo como colega.');
-      return;
-    }
-
+  const handleFollow = async (profile: FollowSuggestion) => {
+    if (!currentUser?.uid || followingId) return;
+    setFollowingId(profile.uid);
     try {
-      setAddingIds(prev => new Set(prev).add(userId));
-      
-      console.log('🔄 [SUGGESTED] Adicionando colega:', { currentUserId: currentUser.uid, targetUserId: userId });
-      
-      await UserProfileService.addFriend(currentUser.uid, userId);
-      
-      console.log('✅ [SUGGESTED] Colega adicionado com sucesso');
-      success(`${userName} foi adicionado(a) como colega!`);
-      
-      setSuggestedProfiles(prev => prev.filter(p => p.uid !== userId));
-      
-      await loadSuggestedProfiles();
-    } catch (err: any) {
-      console.error('❌ [SUGGESTED] Erro ao adicionar colega:', err);
-      console.error('❌ [SUGGESTED] Detalhes do erro:', err.message);
-      
-      const errorMessage = err.message || 'Tente novamente.';
-      error('Erro ao adicionar colega', errorMessage);
+      await FollowService.follow(currentUser.uid, profile.uid);
+      setSuggestedProfiles(previous => previous.filter(item => item.uid !== profile.uid));
+      success(`${profile.name} entrou na sua rede do campus.`);
+    } catch (followError: any) {
+      error('Não foi possível seguir', followError?.message || 'Tente novamente.');
     } finally {
-      setAddingIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(userId);
-        return newSet;
-      });
+      setFollowingId(null);
     }
   };
-
-  const handleViewProfile = (userId: string) => {
-    navigate(`/user/${userId}`);
-  };
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-        <div className="flex items-center space-x-2 mb-4">
-          <Users className="h-5 w-5 text-indigo-500" />
-          <h3 className="text-lg font-semibold text-gray-900">Colegas Sugeridos</h3>
-        </div>
-        <div className="text-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-500 mx-auto"></div>
-          <p className="text-gray-500 text-sm mt-2">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (suggestedProfiles.length === 0) {
-    return (
-      <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-        <div className="flex items-center space-x-2 mb-4">
-          <Users className="h-5 w-5 text-indigo-500" />
-          <h3 className="text-lg font-semibold text-gray-900">Colegas Sugeridos</h3>
-        </div>
-        <div className="text-center py-6">
-          <GraduationCap className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-500 text-sm">Nenhum perfil sugerido no momento</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200">
-      <div className="flex items-center space-x-2 mb-4">
-        <Users className="h-5 w-5 text-indigo-500" />
-        <h3 className="text-lg font-semibold text-gray-900">Colegas Sugeridos</h3>
+    <section className="bg-white rounded-[28px] p-5 border border-slate-100 shadow-sm">
+      <div className="flex items-center justify-between mb-1">
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-indigo-600" />
+          <h3 className="font-extrabold text-slate-800 text-sm">Colegas que talvez conheça</h3>
+        </div>
+        <button
+          onClick={() => navigate('/discover')}
+          className="text-indigo-600 text-xs font-bold hover:underline"
+          aria-label="Ver mais sugestões"
+        >
+          Ver mais
+        </button>
       </div>
-      
-      <div className="space-y-4">
-        {suggestedProfiles.map((profile) => (
-          <div
-            key={profile.uid}
-            className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors group"
-          >
-            {}
-            <button
-              onClick={() => handleViewProfile(profile.uid)}
-              className="flex-shrink-0"
-            >
-              <UserAvatar
-                photoURL={profile.avatar}
-                displayName={profile.name}
-                size="md"
-                showGraduationCap={true}
-              />
-            </button>
+      <p className="text-xs text-slate-500 mb-4">Pessoas com cursos, campus ou interesses em comum.</p>
 
-            {}
-            <div className="flex-1 min-w-0">
+      {loading ? (
+        <div className="space-y-3" aria-label="Carregando sugestões">
+          {[0, 1, 2].map(item => <div key={item} className="h-16 animate-pulse rounded-2xl bg-slate-50" />)}
+        </div>
+      ) : suggestedProfiles.length === 0 ? (
+        <div className="rounded-2xl bg-slate-50 p-4 text-center">
+          <GraduationCap className="h-6 w-6 text-slate-400 mx-auto mb-2" />
+          <p className="text-xs text-slate-500">Ainda não encontramos novas afinidades.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {suggestedProfiles.map(profile => (
+            <article key={profile.uid} className="rounded-2xl border border-slate-100 p-3">
               <button
-                onClick={() => handleViewProfile(profile.uid)}
-                className="block w-full text-left"
+                onClick={() => navigate(`/profile/${profile.uid}`)}
+                className="w-full flex items-center gap-3 text-left"
               >
-                <div className="flex items-center space-x-2">
-                  <h4 className="font-semibold text-gray-900 truncate hover:text-indigo-600 transition-colors">
-                    {profile.name}
-                  </h4>
-                  {profile.university && userProfile?.university && 
-                   profile.university.toLowerCase() === userProfile.university.toLowerCase() && (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Mesma Universidade
+                <UserAvatar photoURL={profile.avatar} displayName={profile.name} size="md" showGraduationCap />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-bold text-slate-800">{profile.name}</span>
+                  <span className="block truncate text-[11px] text-slate-500">{profile.course || 'Curso não informado'}</span>
+                  <span className="block truncate text-[10px] text-slate-400">{profile.university || 'Universidade não informada'}</span>
+                </span>
+                <ArrowUpRight className="h-4 w-4 shrink-0 text-slate-400" />
+              </button>
+
+              {profile.commonalities.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {profile.commonalities.slice(0, 2).map(reason => (
+                    <span key={reason} className="rounded-full bg-indigo-50 px-2 py-1 text-[10px] font-semibold text-indigo-700">
+                      {reason}
                     </span>
-                  )}
+                  ))}
                 </div>
-                <p className="text-sm text-gray-600 truncate mt-1">
-                  {profile.course || 'Curso não informado'}
-                  {profile.course && userProfile?.course && 
-                   profile.course.toLowerCase() === userProfile.course.toLowerCase() && (
-                    <span className="ml-2 text-xs text-indigo-600 font-medium">• Mesmo curso</span>
-                  )}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {profile.university || 'Universidade não informada'}
-                </p>
-                {profile.postsCount > 0 && (
-                  <p className="text-xs text-indigo-500 mt-1 font-medium">
-                    {profile.postsCount} {profile.postsCount === 1 ? 'post' : 'posts'}
-                  </p>
-                )}
-              </button>
+              )}
 
-              {}
               <button
-                onClick={() => handleAddAsColleague(profile.uid, profile.name)}
-                disabled={addingIds.has(profile.uid)}
-                className="mt-2 w-full flex items-center justify-center space-x-2 px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => void handleFollow(profile)}
+                disabled={followingId !== null}
+                className="mt-3 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 px-3 py-2 text-xs font-bold text-white transition hover:from-indigo-600 hover:to-purple-700 disabled:cursor-wait disabled:opacity-60"
+                title="Colegar: seguir esta pessoa no UniDate"
               >
-                {addingIds.has(profile.uid) ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Adicionando...</span>
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="h-4 w-4" />
-                    <span>Adicionar como Colega</span>
-                  </>
-                )}
+                <UserPlus className="h-3.5 w-3.5" />
+                {followingId === profile.uid ? 'Entrando na rede…' : 'Colegar'}
               </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {}
-      <button
-        onClick={() => navigate('/discover')}
-        className="mt-4 w-full text-center text-sm text-indigo-600 hover:text-indigo-700 font-medium py-2"
-      >
-        Ver mais perfis →
-      </button>
-    </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
   );
 };
 

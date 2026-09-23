@@ -5,7 +5,7 @@ interface AdminAuthContextType {
   adminSession: AdminSession | null;
   loading: boolean;
   isAuthenticated: boolean;
-  loginAdmin: (email: string, password: string) => Promise<void>;
+  loginAdmin: (email: string, password: string) => Promise<AdminSession>;
   logoutAdmin: () => Promise<void>;
   verifyTwoFactor: (token: string) => Promise<boolean>;
   refreshAdminData: () => Promise<void>;
@@ -15,7 +15,7 @@ const AdminAuthContext = createContext<AdminAuthContextType>({
   adminSession: null,
   loading: true,
   isAuthenticated: false,
-  loginAdmin: async () => {},
+  loginAdmin: async () => { throw new Error('Autenticação indisponível'); },
   logoutAdmin: async () => {},
   verifyTwoFactor: async () => false,
   refreshAdminData: async () => {},
@@ -62,11 +62,12 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
     };
   }, []);
 
-  const handleLoginAdmin = async (email: string, password: string): Promise<void> => {
+  const handleLoginAdmin = async (email: string, password: string): Promise<AdminSession> => {
     try {
       setLoading(true);
       const session = await loginAdmin(email, password);
       setAdminSession(session);
+      return session;
     } catch (error: any) {
       console.error('Erro no login de admin:', error);
       setAdminSession(null);
@@ -120,7 +121,7 @@ export const AdminAuthProvider: React.FC<AdminAuthProviderProps> = ({ children }
   const value: AdminAuthContextType = {
     adminSession,
     loading,
-    isAuthenticated: adminSession?.isAuthenticated || false,
+    isAuthenticated: Boolean(adminSession?.isAuthenticated && adminSession.twoFactorVerified),
     loginAdmin: handleLoginAdmin,
     logoutAdmin: handleLogoutAdmin,
     verifyTwoFactor: handleVerifyTwoFactor,

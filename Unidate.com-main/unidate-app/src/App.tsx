@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import SiteActivityTracker from './components/SiteActivityTracker';
 import { AdminAuthProvider } from './contexts/AdminAuthContext';
 import { ToastProvider } from './components/UI/Toast';
 import Navbar from './components/Layout/Navbar';
@@ -376,6 +377,7 @@ const App: React.FC = () => {
       <AdminAuthProvider>
         <ToastProvider>
           <Router>
+            <SiteActivityTracker />
             <AppContent />
           </Router>
         </ToastProvider>

@@ -14,6 +14,11 @@ export interface UserProfile {
   friendsCount: number;
   isFriend: boolean;
   userType?: 'aluno' | 'professor' | 'uni';
+  year?: number;
+  period?: number;
+  interests?: string[];
+  registrationNumber?: string;
+  isVerified?: boolean;
 }
 
 export interface UserPost {
@@ -69,7 +74,12 @@ export class UserProfileService {
         postsCount,
         friendsCount,
         isFriend,
-        userType: profile.user_type || 'aluno'
+        userType: profile.user_type || 'aluno',
+        year: profile.year ?? undefined,
+        period: profile.period ?? undefined,
+        interests: profile.interests || [],
+        registrationNumber: profile.registration_number || undefined,
+        isVerified: Boolean(profile.is_verified),
       };
 
       AppCache.set(cacheKey, profileData, 120000); // 2 minutos de cache

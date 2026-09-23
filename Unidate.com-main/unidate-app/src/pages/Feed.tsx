@@ -23,6 +23,8 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import { useUniDateToast } from '../components/UI/Toast';
 import { PostsService, Post } from '../services/postsService';
+import { FollowService } from '../services/followService';
+import SuggestedProfiles from '../components/Feed/SuggestedProfiles';
 import { supabase } from '../supabaseClient';
 
 const FEED_CATEGORIES = [
@@ -55,6 +57,8 @@ const Feed: React.FC = () => {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [followingUserIds, setFollowingUserIds] = useState<string[]>([]);
+  const [loadingFollowing, setLoadingFollowing] = useState(true);
   const [activeCategory, setActiveCategory] = useState('tudo');
   const [activeTab, setActiveTab] = useState<'text' | 'tevi' | 'poll'>('text');
   
@@ -93,6 +97,36 @@ const Feed: React.FC = () => {
   useEffect(() => {
     loadPosts();
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    const loadFollowingIds = async () => {
+      if (!currentUser?.uid) {
+        setFollowingUserIds([]);
+        setLoadingFollowing(false);
+        return;
+      }
+
+      setLoadingFollowing(true);
+      try {
+        const ids = await FollowService.getFollowingIds(currentUser.uid);
+        if (active) setFollowingUserIds(ids);
+      } catch (error) {
+        console.error('Erro ao carregar a rede do feed:', error);
+        if (active) setFollowingUserIds([]);
+      } finally {
+        if (active) setLoadingFollowing(false);
+      }
+    };
+
+    const refreshFollowing = () => void loadFollowingIds();
+    void loadFollowingIds();
+    window.addEventListener('unidate-follows-updated', refreshFollowing);
+    return () => {
+      active = false;
+      window.removeEventListener('unidate-follows-updated', refreshFollowing);
+    };
+  }, [currentUser?.uid]);
 
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -283,7 +317,10 @@ const Feed: React.FC = () => {
     let filtered = posts;
 
     // Filter by category
-    if (activeCategory === 'em-alta') {
+    if (activeCategory === 'seguindo') {
+      const followingIds = new Set(followingUserIds);
+      filtered = filtered.filter(post => followingIds.has(post.author.uid));
+    } else if (activeCategory === 'em-alta') {
       filtered = [...filtered].sort((a, b) => b.likes - a.likes);
     } else if (activeCategory === 'grupos') {
       filtered = filtered.filter(p => p.content.toLowerCase().includes('grupo') || p.hashtags.includes('Grupo'));
@@ -307,10 +344,13 @@ const Feed: React.FC = () => {
       <Sidebar activeHashtag={tagFilter || undefined} onHashtagClick={(tag) => setSearchParams({ tag })} />
 
       {/* Grid Principal de 2 Colunas (Centro Feed + Direita Ações) */}
-      <div className="flex-1 ml-64 min-h-screen flex justify-center bg-slate-50">
-        <div className="flex w-full max-w-[1280px] justify-between">
+    <div className="flex-1 ml-64 min-h-screen flex justify-center bg-slate-50">
+        <div className="grid w-full max-w-[1560px] grid-cols-1 2xl:grid-cols-[250px_minmax(0,1fr)_360px]">
+          <aside className="px-6 py-8 2xl:col-start-1 2xl:row-start-1">
+            <SuggestedProfiles maxProfiles={5} />
+          </aside>
           {/* Coluna Central: Feed */}
-          <div className="flex-1 max-w-[760px] px-6 py-8">
+          <div className="min-w-0 w-full max-w-[760px] px-6 py-8 2xl:col-start-2 2xl:row-start-1">
           
           {/* Barra de Pesquisa */}
           <div className="relative mb-6">
@@ -557,7 +597,7 @@ const Feed: React.FC = () => {
           </div>
 
           {/* Lista de Posts */}
-          {loading ? (
+          {loading || (activeCategory === 'seguindo' && loadingFollowing) ? (
             <div className="flex justify-center py-20">
               <div className="h-10 w-10 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
             </div>
@@ -567,7 +607,11 @@ const Feed: React.FC = () => {
                 <div key={post.id} className="bg-white rounded-3xl p-6 border border-slate-100 shadow-sm hover:shadow-md transition-all">
                   {/* Cabeçalho do Post */}
                   <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => navigate(`/profile/${post.author.uid}`)}
+                      className="flex items-center space-x-3 text-left"
+                      aria-label={`Ver perfil de ${post.author.name}`}
+                    >
                       <img 
                         src={post.author.avatar || '/api/placeholder/40/40'} 
                         alt="" 
@@ -584,7 +628,7 @@ const Feed: React.FC = () => {
                           {post.author.university.split(' - ')[0]} &bull; {new Date(post.createdAt || post.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
-                    </div>
+                    </button>
                     
                     <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-50 rounded-lg">
                       <MoreHorizontal className="h-4 w-4" />
@@ -750,13 +794,17 @@ const Feed: React.FC = () => {
           {!loading && filteredPosts.length === 0 && (
             <div className="text-center py-12 bg-white rounded-3xl border border-slate-100/50">
               <MessageCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 text-xs">Nenhuma publicação encontrada nesta categoria.</p>
+              <p className="text-slate-500 text-xs">
+                {activeCategory === 'seguindo' && followingUserIds.length === 0
+                  ? 'Colegue com pessoas para ver as publicações delas aqui.'
+                  : 'Nenhuma publicação encontrada nesta categoria.'}
+              </p>
             </div>
           )}
         </div>
 
         {/* Coluna Direita: Ações e Resumo do Campus */}
-        <div className="w-80 xl:w-96 px-6 py-8 border-l border-slate-100 flex flex-col space-y-6">
+        <div className="w-full max-w-[384px] px-6 py-8 border-l border-slate-100 flex flex-col space-y-6 2xl:col-start-3 2xl:row-start-1">
           
           {/* Card: Resumo do Campus */}
           <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">

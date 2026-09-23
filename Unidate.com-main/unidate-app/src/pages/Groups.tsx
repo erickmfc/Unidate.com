@@ -71,14 +71,20 @@ const Groups: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let active = true;
+    const userId = currentUser?.uid;
+    if (!userId) {
+      setGroups([]);
+      setLoading(false);
+      return;
+    }
+
     const loadGroups = async () => {
       try {
         setLoading(true);
-        
         const supabaseGroups = await SupabaseGroupsService.getGroups(50);
-        
-        const convertedGroups = await Promise.all(
-          supabaseGroups.map(async (group: SupabaseGroup): Promise<Group | null> => ({
+
+        const convertedGroups = supabaseGroups.map((group: SupabaseGroup): Group => ({
             id: group.id,
             name: group.name,
             description: group.description,
@@ -86,33 +92,30 @@ const Groups: React.FC = () => {
             maxMembers: group.maxMembers,
             category: group.category,
             university: group.university,
-            isJoined: group.members.includes(currentUser?.uid || ''),
+            isJoined: group.members.includes(userId),
             lastActivity: group.lastActivity ? new Date(group.lastActivity).toISOString() : new Date().toISOString(),
             image: group.image,
             tags: group.tags,
             createdBy: group.createdBy,
-            isOwner: group.createdBy === currentUser?.uid,
-            isEditor: group.editors?.includes(currentUser?.uid || '') || false,
+            isOwner: group.createdBy === userId,
+            isEditor: group.editors?.includes(userId) || false,
             isPublic: group.isPublic,
             upcomingEvents: group.upcomingEvents
-          }))
-        );
-        
-        const validGroups = convertedGroups.filter((g): g is Group => g !== null);
-        setGroups(validGroups);
-        console.log(`✅ ${validGroups.length} grupos carregados do Supabase`);
+          }));
+        if (!active) return;
+        setGroups(convertedGroups);
+        console.log(`✅ ${convertedGroups.length} grupos carregados do Supabase`);
       } catch (error) {
         console.error('❌ Erro ao carregar grupos:', error);
-        setGroups([]);
+        if (active) setGroups([]);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
     };
 
-    if (currentUser) {
-      loadGroups();
-    }
-  }, [currentUser]);
+    void loadGroups();
+    return () => { active = false; };
+  }, [currentUser?.uid]);
 
   const categories = [
     { id: 'all', name: 'Todos', color: 'from-purple-500 to-pink-500' },
@@ -204,7 +207,7 @@ const Groups: React.FC = () => {
       }
     };
     checkUserGroups();
-  }, [currentUser]);
+  }, [currentUser?.uid]);
 
   const handleCreateGroup = () => {
     if (hasCreatedGroup) {

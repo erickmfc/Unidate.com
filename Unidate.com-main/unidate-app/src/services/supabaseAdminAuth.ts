@@ -32,7 +32,9 @@ const isAdminRole = (role: unknown): role is RawAdminRole =>
   role === 'super-admin' || role === 'moderator' || role === 'admin';
 
 const mapAdminUser = (user: User): AdminUser | null => {
-  const roleClaim = user.app_metadata?.role ?? user.user_metadata?.role;
+  // user_metadata is editable by the user. Administrative roles must come from
+  // server-controlled app_metadata only.
+  const roleClaim = user.app_metadata?.role;
   if (!isAdminRole(roleClaim)) return null;
 
   const role: AdminUser['role'] = roleClaim === 'admin' ? 'moderator' : roleClaim;
@@ -58,11 +60,12 @@ const mapAdminUser = (user: User): AdminUser | null => {
 const sessionFromUser = (user: User | null): AdminSession | null => {
   const adminUser = user ? mapAdminUser(user) : null;
   if (!adminUser) return null;
+  const requiresTwoFactor = adminUser.twoFactorEnabled;
   return {
     user: adminUser,
-    isAuthenticated: true,
-    requiresTwoFactor: adminUser.twoFactorEnabled,
-    twoFactorVerified: !adminUser.twoFactorEnabled,
+    isAuthenticated: !requiresTwoFactor,
+    requiresTwoFactor,
+    twoFactorVerified: !requiresTwoFactor,
   };
 };
 
@@ -90,8 +93,30 @@ export const getCurrentAdminSession = async (): Promise<AdminSession | null> => 
 
 export const verifyTwoFactor = async (uid: string, code: string): Promise<AdminSession | null> => {
   const session = await getCurrentAdminSession();
-  if (!session || session.user.uid !== uid || !/^\d{6}$/.test(code)) return null;
-  return { ...session, requiresTwoFactor: false, twoFactorVerified: true };
+  if (!session || session.user.uid !== uid) return null;
+  if (!session.requiresTwoFactor) {
+    return { ...session, isAuthenticated: true, twoFactorVerified: true };
+  }
+  if (!/^\d{6}$/.test(code)) return null;
+
+  const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
+  if (factorsError) throw factorsError;
+  const factor = factors.totp.find((candidate) => candidate.status === 'verified');
+  if (!factor) throw new Error('Nenhum autenticador TOTP verificado está configurado para esta conta.');
+
+  const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({ factorId: factor.id });
+  if (challengeError) throw challengeError;
+  const { error: verifyError } = await supabase.auth.mfa.verify({
+    factorId: factor.id,
+    challengeId: challenge.id,
+    code,
+  });
+  if (verifyError) return null;
+
+  const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (assuranceError) throw assuranceError;
+  if (assurance.currentLevel !== 'aal2') return null;
+  return { ...session, isAuthenticated: true, requiresTwoFactor: false, twoFactorVerified: true };
 };
 
 export const isAdminLoggedIn = async (): Promise<boolean> => Boolean(await getCurrentAdminSession());

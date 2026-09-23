@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Search, 
   MoreVertical, 
@@ -76,9 +76,9 @@ const ChatPage: React.FC = () => {
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
-  const [showFollowers, setShowFollowers] = useState(false);
-  const [followers, setFollowers] = useState<UserProfile[]>([]);
-  const [loadingFollowers, setLoadingFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
+  const [followingUsers, setFollowingUsers] = useState<UserProfile[]>([]);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
@@ -324,36 +324,36 @@ const ChatPage: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [userSearchTerm, currentUser?.uid]);
 
-  // Buscar quem te segue
-  const loadFollowers = async () => {
+  // Carregar as conexões que o usuário iniciou em Descobrir.
+  const loadFollowing = useCallback(async () => {
     if (!currentUser?.uid) return;
 
     try {
-      setLoadingFollowers(true);
-      const followerIds: string[] = [];
+      setLoadingFollowing(true);
 
-      const { data: matches, error } = await supabase.from('matches').select('user1_id, user2_id')
-        .eq('status', 'accepted')
-        .or(`user1_id.eq.${currentUser.uid},user2_id.eq.${currentUser.uid}`);
+      const { data: matches, error } = await supabase.from('matches').select('user2_id')
+        .eq('user1_id', currentUser.uid)
+        .in('status', ['pending', 'accepted']);
       if (error) throw error;
-      (matches || []).forEach((match) => {
-        followerIds.push(match.user1_id === currentUser.uid ? match.user2_id : match.user1_id);
-      });
+      const followingIds = Array.from(new Set((matches || []).map(match => match.user2_id)));
 
-      // Carregar perfil de cada seguidor
-      const followerProfiles = await Promise.all(
-        followerIds.map(id => UserProfileService.getUserProfile(id))
+      const followingProfiles = await Promise.all(
+        followingIds.map(id => UserProfileService.getUserProfile(id))
       );
 
-      const validFollowers = followerProfiles.filter(f => f !== null) as UserProfile[];
-      setFollowers(validFollowers);
+      const validProfiles = followingProfiles.filter(profile => profile !== null) as UserProfile[];
+      setFollowingUsers(validProfiles);
     } catch (error) {
-      console.error('Erro ao carregar seguidores:', error);
-      setFollowers([]);
+      console.error('Erro ao carregar pessoas que você segue:', error);
+      setFollowingUsers([]);
     } finally {
-      setLoadingFollowers(false);
+      setLoadingFollowing(false);
     }
-  };
+  }, [currentUser?.uid]);
+
+  useEffect(() => {
+    void loadFollowing();
+  }, [loadFollowing]);
 
   const handleStartChat = async (userId: string) => {
     if (!currentUser?.uid) return;
@@ -597,7 +597,7 @@ const ChatPage: React.FC = () => {
           <button 
             onClick={() => {
               setShowNewChatModal(true);
-              setShowFollowers(false);
+              setShowFollowing(false);
             }}
             className="px-3 py-1 bg-pink-500 text-white rounded-lg text-sm hover:bg-pink-600 transition-colors"
           >
@@ -647,6 +647,39 @@ const ChatPage: React.FC = () => {
               </div>
             </div>
           ))}
+
+          <div className="border-t border-gray-700">
+            <h3 className="px-4 pt-4 pb-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Pessoas que sigo
+            </h3>
+            {loadingFollowing ? (
+              <p className="px-4 pb-4 text-sm text-gray-500">Carregando...</p>
+            ) : followingUsers.filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
+              <p className="px-4 pb-4 text-sm text-gray-500">Você ainda não segue ninguém.</p>
+            ) : (
+              followingUsers
+                .filter(person => person.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .map(person => (
+                  <button
+                    key={person.uid}
+                    onClick={() => void handleStartChat(person.uid)}
+                    className="w-full p-4 border-b border-gray-700 cursor-pointer transition-colors hover:bg-gray-700/50 flex items-center space-x-3 text-left"
+                  >
+                    <UserAvatar
+                      photoURL={person.avatar}
+                      displayName={person.name}
+                      size="md"
+                      showGraduationCap={true}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-white font-semibold truncate">{person.name}</h3>
+                      <p className="text-sm text-gray-400 truncate">{person.course} - {person.university}</p>
+                    </div>
+                    <MessageCircle className="h-5 w-5 text-pink-500" />
+                  </button>
+                ))
+            )}
+          </div>
         </div>
       </div>
 
@@ -1058,7 +1091,7 @@ const ChatPage: React.FC = () => {
                   setShowNewChatModal(false);
                   setUserSearchTerm('');
                   setSearchResults([]);
-                  setShowFollowers(false);
+                  setShowFollowing(false);
                 }}
                 className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
               >
@@ -1070,12 +1103,12 @@ const ChatPage: React.FC = () => {
             <div className="flex border-b border-gray-700">
               <button
                 onClick={() => {
-                  setShowFollowers(false);
+                  setShowFollowing(false);
                   setUserSearchTerm('');
                   setSearchResults([]);
                 }}
                 className={`flex-1 px-6 py-3 text-center font-medium transition-colors ${
-                  !showFollowers
+                  !showFollowing
                     ? 'text-pink-500 border-b-2 border-pink-500'
                     : 'text-gray-400 hover:text-white'
                 }`}
@@ -1084,24 +1117,24 @@ const ChatPage: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  setShowFollowers(true);
-                  loadFollowers();
+                  setShowFollowing(true);
+                  loadFollowing();
                   setUserSearchTerm('');
                   setSearchResults([]);
                 }}
                 className={`flex-1 px-6 py-3 text-center font-medium transition-colors ${
-                  showFollowers
+                  showFollowing
                     ? 'text-pink-500 border-b-2 border-pink-500'
                     : 'text-gray-400 hover:text-white'
                 }`}
               >
-                Quem Te Segue
+                Pessoas que sigo
               </button>
             </div>
 
             {/* Conteúdo */}
             <div className="flex-1 overflow-y-auto p-6">
-              {!showFollowers ? (
+              {!showFollowing ? (
                 // Busca de Usuários
                 <div className="space-y-4">
                   <div className="relative">
@@ -1161,35 +1194,35 @@ const ChatPage: React.FC = () => {
                   )}
                 </div>
               ) : (
-                // Quem Te Segue
+                // Pessoas que o usuário segue
                 <div className="space-y-4">
-                  {loadingFollowers ? (
+                  {loadingFollowing ? (
                     <div className="text-center py-8">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500 mx-auto"></div>
                       <p className="text-gray-400 mt-2">Carregando...</p>
                     </div>
-                  ) : followers.length === 0 ? (
+                  ) : followingUsers.length === 0 ? (
                     <div className="text-center py-8">
                       <Users className="h-12 w-12 text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-400">Ninguém te segue ainda</p>
+                      <p className="text-gray-400">Você ainda não segue ninguém</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {followers.map((follower) => (
+                      {followingUsers.map((followedUser) => (
                         <button
-                          key={follower.uid}
-                          onClick={() => handleStartChat(follower.uid)}
+                          key={followedUser.uid}
+                          onClick={() => handleStartChat(followedUser.uid)}
                           className="w-full p-4 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center space-x-3 transition-colors"
                         >
                           <UserAvatar
-                            photoURL={follower.avatar}
-                            displayName={follower.name}
+                            photoURL={followedUser.avatar}
+                            displayName={followedUser.name}
                             size="md"
                             showGraduationCap={true}
                           />
                           <div className="flex-1 text-left">
-                            <h3 className="text-white font-semibold">{follower.name}</h3>
-                            <p className="text-gray-400 text-sm">{follower.course} - {follower.university}</p>
+                            <h3 className="text-white font-semibold">{followedUser.name}</h3>
+                            <p className="text-gray-400 text-sm">{followedUser.course} - {followedUser.university}</p>
                           </div>
                           <MessageCircle className="h-5 w-5 text-pink-500" />
                         </button>
