@@ -14,6 +14,7 @@ export interface DemoBotProfile {
   is_active: boolean;
   city?: string;
   institution?: string;
+  course?: string;
   public_disclosure?: string;
   writing_style?: string;
   topics?: string[];
