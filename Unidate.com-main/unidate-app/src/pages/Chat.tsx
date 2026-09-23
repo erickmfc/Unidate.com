@@ -189,7 +189,7 @@ const ChatPage: React.FC = () => {
               role: '',
               tags: [],
               rating: 0,
-              isAutomated: isAutomated || looksLikeAutomatedProfile(contactProfile.name)
+              isAutomated: isAutomated || contactProfile.isAutomated || looksLikeAutomatedProfile(contactProfile.name)
             };
 
             return {
@@ -473,7 +473,7 @@ const ChatPage: React.FC = () => {
           role: '',
           tags: [],
           rating: 0,
-          isAutomated: isAutomated || looksLikeAutomatedProfile(contactProfile.name)
+          isAutomated: isAutomated || contactProfile.isAutomated || looksLikeAutomatedProfile(contactProfile.name)
         };
 
       // Adicionar à lista de conversas se não existir.
