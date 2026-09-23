@@ -87,9 +87,16 @@ Deno.serve(async (req) => {
     }, { onConflict: 'bot_key' });
     if (botError) return json({ error: botError.message }, 500);
 
-    const { count } = await admin.from('posts').select('id', { count: 'exact', head: true }).eq('author_id', authUserId);
-    if ((count ?? 0) === 0) {
-      await admin.from('posts').insert({ author_id: authUserId, content: postTemplates[index], type: 'text', hashtags: ['campus', 'unidate'] });
+    const { data: existingPosts } = await admin.from('posts').select('id').eq('author_id', authUserId).order('created_at', { ascending: true });
+    const missingPosts = Math.max(0, 3 - (existingPosts?.length ?? 0));
+    if (missingPosts > 0) {
+      const postsToInsert = Array.from({ length: missingPosts }, (_, offset) => ({
+        author_id: authUserId,
+        content: postTemplates[(index + offset) % postTemplates.length],
+        type: 'text',
+        hashtags: ['campus', 'unidate'],
+      }));
+      await admin.from('posts').insert(postsToInsert);
     }
     seeded.push({ name: bot.name, handle: bot.handle, isAutomated: true });
   }
