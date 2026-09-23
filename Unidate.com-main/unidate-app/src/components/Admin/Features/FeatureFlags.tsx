@@ -202,16 +202,21 @@ const FeatureFlags: React.FC = () => {
         : feature
     );
     setFeatures(updatedFeatures);
-    setHasChanges(true);
+    localStorage.setItem('feature-flags', JSON.stringify(updatedFeatures));
+    window.dispatchEvent(new CustomEvent('unidate:feature-flags-changed', { detail: updatedFeatures }));
+    setHasChanges(false);
+    const changed = updatedFeatures.find(feature => feature.id === featureId);
+    if (changed) showSuccess(`${changed.name} ${changed.isEnabled ? 'ativada' : 'desativada'}.`);
   };
 
   const toggleVisibility = (featureId: string) => {
-    setFeatures(features.map(feature => 
-      feature.id === featureId 
-        ? { ...feature, isVisible: !feature.isVisible }
-        : feature
-    ));
-    setHasChanges(true);
+    const updatedFeatures = features.map(feature =>
+      feature.id === featureId ? { ...feature, isVisible: !feature.isVisible } : feature
+    );
+    setFeatures(updatedFeatures);
+    localStorage.setItem('feature-flags', JSON.stringify(updatedFeatures));
+    window.dispatchEvent(new CustomEvent('unidate:feature-flags-changed', { detail: updatedFeatures }));
+    setHasChanges(false);
   };
 
   const saveChanges = async () => {
