@@ -4,6 +4,8 @@
 revoke execute on function public.sync_group_member_count() from anon, authenticated;
 revoke execute on function public.create_direct_chat(uuid) from anon;
 revoke execute on function public.get_active_people_count() from anon;
+revoke execute on function public.send_chat_message(uuid, text, text, uuid) from anon;
+revoke execute on function public.publish_bot_post(uuid, text, text, text, text[]) from anon;
 
 create index if not exists group_announcements_group_id_idx on public.group_announcements (group_id);
 create index if not exists group_announcements_created_by_idx on public.group_announcements (created_by);
