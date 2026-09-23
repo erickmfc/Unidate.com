@@ -52,7 +52,6 @@ interface ChatContact {
   role?: string;
   tags?: string[];
   rating?: number;
-  isAutomated?: boolean;
   sharedDocuments?: Array<{ name: string; type: string; size: string }>;
 }
 
@@ -185,7 +184,6 @@ const ChatPage: React.FC = () => {
               email: contactProfile.email,
               avatar: contactProfile.avatar,
               isOnline: contactProfile.isAutomated ? true : false,
-              isAutomated: contactProfile.isAutomated,
               status: 'Online',
               workHours: '',
               role: '',
@@ -470,7 +468,6 @@ const ChatPage: React.FC = () => {
           email: contactProfile.email,
           avatar: contactProfile.avatar,
           isOnline: contactProfile.isAutomated ? true : false,
-          isAutomated: contactProfile.isAutomated,
           status: 'Online',
           workHours: '',
           role: '',
