@@ -1,6 +1,7 @@
 jest.mock('../supabaseClient', () => ({
   supabase: {
     rpc: jest.fn(),
+    auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'me' } } }) },
     from: jest.fn()
   }
 }));
