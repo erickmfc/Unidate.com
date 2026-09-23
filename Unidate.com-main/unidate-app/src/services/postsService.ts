@@ -36,6 +36,9 @@ export interface Post {
   hashtags: string[];
   createdAt: any;
   updatedAt: any;
+  sourceGroupPost?: boolean;
+  groupId?: string;
+  groupName?: string;
 }
 
 export class PostsService {
@@ -95,9 +98,8 @@ export class PostsService {
       const { data: postsData, error } = await supabase
         .from('posts')
         .select(`
-          id, content, type, image, location, tevi_data, poll_data, event_data,
-          hashtags, likes_count, comments_count, created_at, updated_at,
-          author:profiles(id, display_name, photo_url, course, university)
+          id, author_id, content, type, image, location, tevi_data, poll_data, event_data,
+          hashtags, likes_count, comments_count, created_at, updated_at
         `)
         .order('created_at', { ascending: false })
         .limit(limitCount);
@@ -105,48 +107,70 @@ export class PostsService {
       if (error) throw error;
 
       const postIds = (postsData || []).map((post: any) => post.id);
+      const authorIds = Array.from(new Set((postsData || []).map((post: any) => post.author_id)));
+      let profilesById = new Map<string, any>();
       let likedPostIds = new Set<string>();
+
+      if (authorIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, display_name, photo_url, course, university')
+          .in('id', authorIds);
+
+        if (profilesError) {
+          console.warn('Não foi possível carregar perfis dos autores do Feed:', profilesError);
+        } else {
+          profilesById = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
+        }
+      }
+
       if (currentUserId && postIds.length > 0) {
         const { data: likes, error: likesError } = await supabase
           .from('likes')
           .select('post_id')
           .eq('user_id', currentUserId)
           .in('post_id', postIds);
-        if (likesError) throw likesError;
-        likedPostIds = new Set((likes || []).map((like: any) => like.post_id));
+        if (likesError) {
+          console.warn('Não foi possível carregar curtidas do Feed:', likesError);
+        } else {
+          likedPostIds = new Set((likes || []).map((like: any) => like.post_id));
+        }
       }
 
-      const posts: Post[] = (postsData || []).map((p: any) => ({
-        id: p.id,
-        author: {
-          uid: p.author?.id || '',
-          name: p.author?.display_name || 'Usuário',
-          course: p.author?.course || '',
-          university: p.author?.university || '',
-          avatar: p.author?.photo_url || ''
-        },
-        content: p.content,
-        type: p.type,
-        image: p.image,
-        timestamp: p.created_at,
-        likes: p.likes_count || 0,
-        comments: p.comments_count || 0,
-        isLiked: currentUserId ? likedPostIds.has(p.id) : false,
-        location: p.location,
-        teviData: p.tevi_data,
-        pollData: p.poll_data,
-        event: p.event_data,
-        hashtags: p.hashtags || [],
-        createdAt: p.created_at,
-        updatedAt: p.updated_at
-      }));
+      const posts: Post[] = (postsData || []).map((p: any) => {
+        const author = profilesById.get(p.author_id);
+        return {
+          id: p.id,
+          author: {
+            uid: p.author_id || '',
+            name: author?.display_name || 'Usuário',
+            course: author?.course || '',
+            university: author?.university || '',
+            avatar: author?.photo_url || ''
+          },
+          content: p.content,
+          type: p.type,
+          image: p.image,
+          timestamp: p.created_at,
+          likes: p.likes_count || 0,
+          comments: p.comments_count || 0,
+          isLiked: currentUserId ? likedPostIds.has(p.id) : false,
+          location: p.location,
+          teviData: p.tevi_data,
+          pollData: p.poll_data,
+          event: p.event_data,
+          hashtags: p.hashtags || [],
+          createdAt: p.created_at,
+          updatedAt: p.updated_at
+        };
+      });
 
       AppCache.set(cacheKey, posts, 15000); // Cache separado por usuário para não vazar estado de curtida.
       console.log(`✅ ${posts.length} posts carregados do Supabase`);
       return posts;
     } catch (error) {
       console.error('❌ Erro ao carregar posts do Supabase:', error);
-      return [];
+      throw error instanceof Error ? error : new Error('Falha ao carregar as publicações.');
     }
   }
 

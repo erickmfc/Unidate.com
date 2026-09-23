@@ -33,6 +33,7 @@ import { ChatService, ChatMessage, Chat } from '../services/chatService';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
 import { FollowService } from '../services/followService';
 import UserAvatar from '../components/UI/UserAvatar';
+import { useUniDateToast } from '../components/UI/Toast';
 
 interface ChatContact {
   id: string;
@@ -63,6 +64,7 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, userProfile, logoutUser } = useAuth();
+  const { showError, showSuccess } = useUniDateToast();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -79,6 +81,7 @@ const ChatPage: React.FC = () => {
   const [showFollowing, setShowFollowing] = useState(false);
   const [followingUsers, setFollowingUsers] = useState<UserProfile[]>([]);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
+  const [startingChatFor, setStartingChatFor] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
@@ -276,26 +279,31 @@ const ChatPage: React.FC = () => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedChat || !currentUser) return;
 
+    const messageContent = newMessage.trim();
     try {
       // Enviar mensagem real via ChatService
       await ChatService.sendMessage(
         selectedChat,
         currentUser.uid,
         userProfile?.displayName || 'Você',
-        newMessage,
+        messageContent,
         'text'
       );
 
       setNewMessage('');
+      const messages = await ChatService.getChatMessages(selectedChat, 50);
+      setCurrentMessages(messages);
 
       // Atualizar última mensagem na lista
-      setConversations(conversations.map(chat =>
+      setConversations(previous => previous.map(chat =>
         chat.id === selectedChat
-          ? { ...chat, lastMessage: newMessage, timestamp: 'Agora' }
+          ? { ...chat, lastMessage: messageContent, timestamp: 'Agora' }
           : chat
       ));
+      showSuccess('Mensagem enviada!');
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+      showError(error instanceof Error ? error.message : 'Não foi possível enviar a mensagem.');
     }
   };
 
@@ -360,13 +368,17 @@ const ChatPage: React.FC = () => {
     if (!currentUser?.uid) return;
 
     try {
+      setStartingChatFor(userId);
       // Criar ou obter chat
       const chatId = await ChatService.getOrCreateChat(currentUser.uid, userId);
       
       // Buscar perfil do contato
       const contactProfile = await UserProfileService.getUserProfile(userId);
-      if (contactProfile) {
-        const contact: ChatContact = {
+      if (!contactProfile) {
+        throw new Error('Não foi possível carregar o perfil da pessoa.');
+      }
+
+      const contact: ChatContact = {
           id: userId,
           name: contactProfile.name,
           email: contactProfile.email,
@@ -379,29 +391,34 @@ const ChatPage: React.FC = () => {
           rating: 0
         };
 
-        // Adicionar à lista de conversas se não existir
-        const existingChat = conversations.find(c => c.contactId === userId);
-        if (!existingChat) {
-          const newConversation: ChatConversation = {
-            id: chatId,
-            contactId: userId,
-            contact,
-            lastMessage: '',
-            timestamp: 'Agora',
-            unreadCount: 0,
-            messages: []
-          };
-          setConversations([newConversation, ...conversations]);
+      // Adicionar à lista de conversas se não existir.
+      setConversations(previous => {
+        if (previous.some(conversation => conversation.contactId === userId || conversation.id === chatId)) {
+          return previous;
         }
-      }
+        const newConversation: ChatConversation = {
+          id: chatId,
+          contactId: userId,
+          contact,
+          lastMessage: '',
+          timestamp: 'Agora',
+          unreadCount: 0,
+          messages: []
+        };
+        return [newConversation, ...previous];
+      });
       
       // Selecionar o chat
       setSelectedChat(chatId);
       setShowNewChatModal(false);
       setUserSearchTerm('');
       setSearchResults([]);
+      showSuccess('Conversa aberta!');
     } catch (error) {
       console.error('Erro ao iniciar conversa:', error);
+      showError(error instanceof Error ? error.message : 'Não foi possível abrir a conversa.');
+    } finally {
+      setStartingChatFor(null);
     }
   }
 
@@ -664,6 +681,7 @@ const ChatPage: React.FC = () => {
                   <button
                     key={person.uid}
                     onClick={() => void handleStartChat(person.uid)}
+                    disabled={startingChatFor === person.uid}
                     className="w-full p-4 border-b border-gray-700 cursor-pointer transition-colors hover:bg-gray-700/50 flex items-center space-x-3 text-left"
                   >
                     <UserAvatar
@@ -1170,6 +1188,7 @@ const ChatPage: React.FC = () => {
                         <button
                           key={user.uid}
                           onClick={() => handleStartChat(user.uid)}
+                          disabled={startingChatFor === user.uid}
                           className="w-full p-4 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center space-x-3 transition-colors"
                         >
                           <UserAvatar
@@ -1213,6 +1232,7 @@ const ChatPage: React.FC = () => {
                         <button
                           key={followedUser.uid}
                           onClick={() => handleStartChat(followedUser.uid)}
+                          disabled={startingChatFor === followedUser.uid}
                           className="w-full p-4 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center space-x-3 transition-colors"
                         >
                           <UserAvatar

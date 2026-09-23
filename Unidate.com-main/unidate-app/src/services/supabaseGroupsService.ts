@@ -5,6 +5,7 @@ export interface SupabaseGroup {
   name: string;
   description: string;
   members: string[];
+  memberCount: number;
   editors: string[];
   maxMembers?: number;
   category: string;
@@ -33,6 +34,7 @@ type GroupRow = {
   created_by: string | null;
   editors: string[] | null;
   max_members: number | null;
+  members_count: number;
   is_public: boolean | null;
   upcoming_events: SupabaseGroup['upcomingEvents'] | null;
   last_activity: string | null;
@@ -40,11 +42,12 @@ type GroupRow = {
   updated_at: string | null;
 };
 
-const toGroup = (row: GroupRow, members: string[], userId: string | null): SupabaseGroup => ({
+const toGroup = (row: GroupRow, members: string[], memberCount: number, userId: string | null): SupabaseGroup => ({
   id: row.id,
   name: row.name,
   description: row.description ?? '',
   members,
+  memberCount,
   editors: row.editors ?? [],
   maxMembers: row.max_members ?? undefined,
   category: row.category ?? 'Social',
@@ -62,21 +65,21 @@ const toGroup = (row: GroupRow, members: string[], userId: string | null): Supab
   updatedAt: row.updated_at ?? row.created_at,
 });
 
-const attachMembers = async (rows: GroupRow[], userId: string | null): Promise<SupabaseGroup[]> => {
+const attachCurrentMembership = async (rows: GroupRow[], userId: string | null): Promise<SupabaseGroup[]> => {
   if (rows.length === 0) return [];
+  if (!userId) return rows.map((row) => toGroup(row, [], row.members_count || 0, null));
   const ids = rows.map((row) => row.id);
   const { data, error } = await supabase
     .from('group_members')
     .select('group_id, user_id')
+    .eq('user_id', userId)
     .in('group_id', ids);
   if (error) throw error;
-  const membersByGroup = new Map<string, string[]>();
-  (data ?? []).forEach((member) => {
-    const members = membersByGroup.get(member.group_id) ?? [];
-    members.push(member.user_id);
-    membersByGroup.set(member.group_id, members);
+  const joinedIds = new Set((data ?? []).map((member) => member.group_id));
+  return rows.map((row) => {
+    const isJoined = joinedIds.has(row.id);
+    return toGroup(row, isJoined ? [userId] : [], row.members_count || 0, userId);
   });
-  return rows.map((row) => toGroup(row, membersByGroup.get(row.id) ?? [], userId));
 };
 
 export class SupabaseGroupsService {
@@ -85,13 +88,13 @@ export class SupabaseGroupsService {
       supabase.auth.getUser(),
       supabase
         .from('groups')
-        .select('id, name, description, category, university, image, tags, created_by, editors, max_members, is_public, upcoming_events, last_activity, created_at, updated_at')
+        .select('id, name, description, category, university, image, tags, created_by, editors, max_members, members_count, is_public, upcoming_events, last_activity, created_at, updated_at')
         .order('last_activity', { ascending: false })
         .limit(limitCount),
     ]);
     if (groupsResult.error) throw groupsResult.error;
     const userId = userResult.data.user?.id ?? null;
-    return attachMembers((groupsResult.data ?? []) as GroupRow[], userId);
+    return attachCurrentMembership((groupsResult.data ?? []) as GroupRow[], userId);
   }
 
   static async createGroup(groupData: {

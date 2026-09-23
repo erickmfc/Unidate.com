@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser, loginWithRegistration } from '../../firebase/auth';
+import { loginUser } from '../../firebase/auth';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Eye, 
@@ -8,17 +8,14 @@ import {
   Mail, 
   Lock, 
   AlertCircle,
-  Hash,
   LogIn
 } from 'lucide-react';
 import GoogleSignInButton from './GoogleSignInButton';
 import LoginStats from './LoginStats';
 
 const LoginForm: React.FC = () => {
-  const [loginMethod, setLoginMethod] = useState<'email' | 'registration'>('registration');
   const [formData, setFormData] = useState({
     email: '',
-    registrationNumber: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -41,11 +38,7 @@ const LoginForm: React.FC = () => {
     setError('');
 
     try {
-      if (loginMethod === 'registration') {
-        await loginWithRegistration(formData.registrationNumber, formData.password);
-      } else {
-        await loginUser(formData.email, formData.password);
-      }
+      await loginUser(formData.email.trim(), formData.password);
 
       navigate('/dashboard');
     } catch (error: any) {
@@ -74,65 +67,26 @@ const LoginForm: React.FC = () => {
         <LoginStats className="mb-6" />
         
         {}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-1">
-          <div className="flex">
-            <button
-              type="button"
-              onClick={() => setLoginMethod('registration')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                loginMethod === 'registration'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Hash className="h-4 w-4" />
-              <span>Matrícula</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setLoginMethod('email')}
-              className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-lg text-sm font-medium transition-all duration-200 ${
-                loginMethod === 'email'
-                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Mail className="h-4 w-4" />
-              <span>E-mail</span>
-            </button>
-          </div>
-        </div>
-
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 space-y-4">
             {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {loginMethod === 'registration' ? 'Número de Matrícula' : 'E-mail Institucional'}
+                E-mail institucional
               </label>
               <div className="relative">
-                {loginMethod === 'registration' ? (
-                  <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                ) : (
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                )}
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <input
-                  name={loginMethod === 'registration' ? 'registrationNumber' : 'email'}
-                  type={loginMethod === 'registration' ? 'text' : 'email'}
-                  autoComplete={loginMethod === 'registration' ? 'username' : 'email'}
+                  name="email"
+                  type="email"
+                  autoComplete="email"
                   required
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                  placeholder={loginMethod === 'registration' ? 'Ex: 2023123456' : 'seu.email@email.com'}
-                  value={loginMethod === 'registration' ? formData.registrationNumber : formData.email}
+                  placeholder="seu.email@universidade.edu.br"
+                  value={formData.email}
                   onChange={handleChange}
-                  aria-describedby={loginMethod === 'registration' ? 'registration-help' : undefined}
                 />
               </div>
-              {loginMethod === 'registration' && (
-                <p id="registration-help" className="text-xs text-gray-500 mt-1">
-                  Use apenas o número da sua matrícula
-                </p>
-              )}
             </div>
 
             {}

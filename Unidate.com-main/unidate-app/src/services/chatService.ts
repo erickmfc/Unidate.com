@@ -58,24 +58,17 @@ const mapChat = (row: any, participantRows: any[] = []): Chat => ({
 
 export class ChatService {
   static async getOrCreateChat(userId1: string, userId2: string): Promise<string> {
-    const { data: memberships, error: membershipError } = await supabase
-      .from('chat_participants').select('chat_id, user_id').in('user_id', [userId1, userId2]);
-    if (membershipError) throw membershipError;
-    const counts = new Map<string, Set<string>>();
-    (memberships || []).forEach((membership) => {
-      const users = counts.get(membership.chat_id) || new Set<string>();
-      users.add(membership.user_id); counts.set(membership.chat_id, users);
-    });
-    const existing = Array.from(counts.entries()).find(([, users]) => users.size === 2);
-    if (existing) return existing[0];
+    if (!userId1 || !userId2 || userId1 === userId2) {
+      throw new Error('Destinatário inválido');
+    }
 
-    const { data: chat, error: chatError } = await supabase.from('chats').insert({ is_active: true }).select('id').single();
-    if (chatError || !chat) throw chatError || new Error('Não foi possível criar o chat');
-    const { error: participantsError } = await supabase.from('chat_participants').insert([
-      { chat_id: chat.id, user_id: userId1 }, { chat_id: chat.id, user_id: userId2 },
-    ]);
-    if (participantsError) throw participantsError;
-    return chat.id;
+    const { data, error } = await supabase.rpc('create_direct_chat', {
+      target_user_id: userId2,
+    });
+    if (error || !data) {
+      throw error || new Error('Não foi possível criar a conversa');
+    }
+    return data as string;
   }
 
   static async sendMessage(chatId: string, senderId: string, senderName: string, content: string,
@@ -85,7 +78,10 @@ export class ChatService {
       reply_to: replyTo || null, is_read: false,
     }).select('id').single();
     if (error || !data) throw error || new Error('Não foi possível enviar a mensagem');
-    await supabase.from('chats').update({ last_message: content, last_message_at: new Date().toISOString() }).eq('id', chatId);
+    const { error: chatError } = await supabase.from('chats')
+      .update({ last_message: content, last_message_at: new Date().toISOString() })
+      .eq('id', chatId);
+    if (chatError) throw chatError;
     return data.id;
   }
 

@@ -8,9 +8,12 @@ import Navbar from './components/Layout/Navbar';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 import Footer from './components/UI/Footer';
 import ModernAdminLayout from './components/Admin/Layout/SimpleAdminLayout';
+import TermsAcceptanceModal from './components/Auth/TermsAcceptanceModal';
+import { hasAcceptedTerms } from './services/termsAcceptanceService';
 
 const LoginForm = lazy(() => import('./components/Auth/LoginForm'));
 const ForgotPassword = lazy(() => import('./components/Auth/ForgotPassword'));
+const ResetPassword = lazy(() => import('./components/Auth/ResetPassword'));
 const RegisterForm = lazy(() => import('./components/Auth/RegisterForm'));
 const HomePage = lazy(() => import('./pages/HomePage'));
 const About = lazy(() => import('./pages/About'));
@@ -98,6 +101,7 @@ const AppContent: React.FC = () => {
           <Route path="/features" element={<Features />} />
           <Route path="/login" element={<LoginForm />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/register" element={<RegisterForm />} />
           <Route path="/onboarding" element={<OnboardingFlow />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
@@ -371,6 +375,38 @@ const AppContent: React.FC = () => {
   );
 };
 
+const TermsAcceptanceGate: React.FC = () => {
+  const { currentUser, isAuthenticated, loading } = useAuth();
+  const [showTerms, setShowTerms] = React.useState(false);
+
+  React.useEffect(() => {
+    setShowTerms(false);
+
+    if (loading || !isAuthenticated || !currentUser?.id) return undefined;
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const accepted = await hasAcceptedTerms(currentUser.id);
+        if (!cancelled && !accepted) setShowTerms(true);
+      } catch (error) {
+        // Fail closed: without a successful verification, the person must be
+        // able to read and retry the acceptance instead of bypassing it.
+        console.error('Erro ao verificar aceite dos termos:', error);
+        if (!cancelled) setShowTerms(true);
+      }
+    }, 10_000);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [currentUser?.id, isAuthenticated, loading]);
+
+  if (!showTerms || !currentUser?.id) return null;
+  return <TermsAcceptanceModal userId={currentUser.id} onAccepted={() => setShowTerms(false)} />;
+};
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -379,6 +415,7 @@ const App: React.FC = () => {
           <Router>
             <SiteActivityTracker />
             <AppContent />
+            <TermsAcceptanceGate />
           </Router>
         </ToastProvider>
       </AdminAuthProvider>

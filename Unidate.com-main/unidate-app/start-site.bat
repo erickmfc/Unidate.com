@@ -24,6 +24,7 @@ echo.
 echo ========================================
 echo    SERVIDOR INICIANDO...
 echo    URL: http://localhost:3000
+echo    Celular: use http://IP-DO-PC:3000 na mesma rede Wi-Fi, nao localhost
 echo ========================================
 echo.
 echo Pressione Ctrl+C para parar o servidor

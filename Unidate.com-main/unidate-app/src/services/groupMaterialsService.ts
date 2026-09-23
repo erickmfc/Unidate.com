@@ -1,227 +1,43 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
-  getDoc,
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
-  limit, 
-  where,
-  serverTimestamp,
-  Timestamp,
-  arrayUnion,
-  arrayRemove,
-  increment
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { supabase } from '../supabaseClient';
 
 export interface GroupMaterial {
-  id: string;
-  groupId: string;
-  materialId?: string;
-  title: string;
-  description: string;
-  type: 'resumo' | 'livro' | 'video' | 'link' | 'exercicio' | 'prova';
-  subject: string;
-  category: string;
-  difficulty: 'iniciante' | 'intermediario' | 'avancado';
-  tags: string[];
-  fileUrl?: string;
-  externalUrl?: string;
-  sharedBy: string;
-  sharedByName: string;
-  downloads: number;
-  views: number;
-  likes: string[];
-  comments: number;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  id: string; groupId: string; title: string; description: string; type: string;
+  subject: string; category: string; difficulty: string; tags: string[];
+  fileUrl?: string; externalUrl?: string; sharedBy: string; sharedByName: string;
+  downloads: number; views: number; likes: string[]; comments: number;
+  createdAt: string; updatedAt: string;
 }
 
+const mapMaterial = (row: any): GroupMaterial => ({
+  id: row.id, groupId: row.group_id, title: row.title, description: row.description || '',
+  type: row.type || 'link', subject: row.subject || '', category: row.category || '',
+  difficulty: row.difficulty || 'iniciante', tags: row.tags || [],
+  fileUrl: row.file_url || undefined, externalUrl: row.external_url || undefined,
+  sharedBy: row.shared_by, sharedByName: row.shared_by_name || 'Usuário',
+  downloads: row.downloads || 0, views: row.views || 0, likes: row.likes || [],
+  comments: row.comments_count || 0, createdAt: row.created_at, updatedAt: row.updated_at || row.created_at,
+});
+
 export class GroupMaterialsService {
-  static async shareMaterial(
-    groupId: string,
-    materialData: {
-      title: string;
-      description: string;
-      type: GroupMaterial['type'];
-      subject: string;
-      category: string;
-      difficulty: GroupMaterial['difficulty'];
-      tags: string[];
-      fileUrl?: string;
-      externalUrl?: string;
-      sharedBy: string;
-      sharedByName: string;
-    }
-  ): Promise<string> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const materialRef = await addDoc(collection(db, 'groupMaterials'), {
-        ...materialData,
-        groupId,
-        downloads: 0,
-        views: 0,
-        likes: [],
-        comments: 0,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      console.log('✅ Material compartilhado no grupo:', materialRef.id);
-      return materialRef.id;
-    } catch (error) {
-      console.error('❌ Erro ao compartilhar material:', error);
-      throw error;
-    }
+  static async shareMaterial(groupId: string, data: Omit<GroupMaterial, 'id'|'groupId'|'downloads'|'views'|'likes'|'comments'|'createdAt'|'updatedAt'>): Promise<string> {
+    const { data: row, error } = await supabase.from('group_materials').insert({
+      group_id: groupId, title: data.title.trim(), description: data.description.trim(), type: data.type,
+      subject: data.subject.trim(), category: data.category.trim(), difficulty: data.difficulty, tags: data.tags || [],
+      file_url: data.fileUrl || null, external_url: data.externalUrl || null,
+      shared_by: data.sharedBy, shared_by_name: data.sharedByName,
+    }).select('id').single();
+    if (error || !row) throw error || new Error('Não foi possível compartilhar o material');
+    return row.id;
   }
 
-  static async getGroupMaterials(
-    groupId: string,
-    filters?: {
-      type?: string[];
-      subject?: string[];
-      difficulty?: string[];
-      searchQuery?: string;
-    }
-  ): Promise<GroupMaterial[]> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      let q = query(
-        collection(db, 'groupMaterials'),
-        where('groupId', '==', groupId),
-        orderBy('createdAt', 'desc')
-      );
-
-      const snapshot = await getDocs(q);
-      const materials: GroupMaterial[] = [];
-
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        const material: GroupMaterial = {
-          id: doc.id,
-          groupId: data.groupId,
-          materialId: data.materialId,
-          title: data.title,
-          description: data.description,
-          type: data.type,
-          subject: data.subject,
-          category: data.category,
-          difficulty: data.difficulty,
-          tags: data.tags || [],
-          fileUrl: data.fileUrl,
-          externalUrl: data.externalUrl,
-          sharedBy: data.sharedBy,
-          sharedByName: data.sharedByName,
-          downloads: data.downloads || 0,
-          views: data.views || 0,
-          likes: data.likes || [],
-          comments: data.comments || 0,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt
-        };
-
-        if (filters) {
-          if (filters.type && filters.type.length > 0 && !filters.type.includes(material.type)) {
-            return;
-          }
-          if (filters.subject && filters.subject.length > 0 && !filters.subject.includes(material.subject)) {
-            return;
-          }
-          if (filters.difficulty && filters.difficulty.length > 0 && !filters.difficulty.includes(material.difficulty)) {
-            return;
-          }
-          if (filters.searchQuery) {
-            const query = filters.searchQuery.toLowerCase();
-            const matches = 
-              material.title.toLowerCase().includes(query) ||
-              material.description.toLowerCase().includes(query) ||
-              material.tags.some(tag => tag.toLowerCase().includes(query));
-            if (!matches) return;
-          }
-        }
-
-        materials.push(material);
-      });
-
-      return materials;
-    } catch (error) {
-      console.error('❌ Erro ao buscar materiais do grupo:', error);
-      return [];
-    }
-  }
-
-  static async incrementViews(materialId: string): Promise<void> {
-    try {
-      if (!db) return;
-
-      const materialRef = doc(db, 'groupMaterials', materialId);
-      await updateDoc(materialRef, {
-        views: increment(1),
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error('❌ Erro ao incrementar visualizações:', error);
-    }
-  }
-
-  static async toggleLike(materialId: string, userId: string, isLiking: boolean): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const materialRef = doc(db, 'groupMaterials', materialId);
-      
-      if (isLiking) {
-        await updateDoc(materialRef, {
-          likes: arrayUnion(userId),
-          updatedAt: serverTimestamp()
-        });
-      } else {
-        await updateDoc(materialRef, {
-          likes: arrayRemove(userId),
-          updatedAt: serverTimestamp()
-        });
-      }
-    } catch (error) {
-      console.error('❌ Erro ao atualizar curtida:', error);
-      throw error;
-    }
+  static async getGroupMaterials(groupId: string): Promise<GroupMaterial[]> {
+    const { data, error } = await supabase.from('group_materials').select('*').eq('group_id', groupId).order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapMaterial);
   }
 
   static async deleteMaterial(materialId: string, userId: string): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const materialRef = doc(db, 'groupMaterials', materialId);
-      const materialDoc = await getDoc(materialRef);
-      
-      if (!materialDoc.exists()) {
-        throw new Error('Material não encontrado');
-      }
-
-      const materialData = materialDoc.data();
-      if (materialData.sharedBy !== userId) {
-        throw new Error('Você não tem permissão para deletar este material');
-      }
-
-      await deleteDoc(materialRef);
-      console.log('✅ Material deletado do grupo');
-    } catch (error) {
-      console.error('❌ Erro ao deletar material:', error);
-      throw error;
-    }
+    const { error } = await supabase.from('group_materials').delete().eq('id', materialId).eq('shared_by', userId);
+    if (error) throw error;
   }
 }

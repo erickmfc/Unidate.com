@@ -25,6 +25,8 @@ import { useUniDateToast } from '../components/UI/Toast';
 import { PostsService, Post } from '../services/postsService';
 import { FollowService } from '../services/followService';
 import SuggestedProfiles from '../components/Feed/SuggestedProfiles';
+import CampusSummary from '../components/Feed/CampusSummary';
+import { GroupPostsService } from '../services/groupPostsService';
 import { supabase } from '../supabaseClient';
 
 const FEED_CATEGORIES = [
@@ -49,14 +51,17 @@ const TRENDING_HASHTAGS = [
 ];
 
 const Feed: React.FC = () => {
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser, userProfile, loading: authLoading } = useAuth();
   const { showSuccess, showError } = useUniDateToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tagFilter = searchParams.get('tag');
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [groupFeedPosts, setGroupFeedPosts] = useState<Post[]>([]);
+  const [loadingGroupFeed, setLoadingGroupFeed] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [postsError, setPostsError] = useState<string | null>(null);
   const [followingUserIds, setFollowingUserIds] = useState<string[]>([]);
   const [loadingFollowing, setLoadingFollowing] = useState(true);
   const [activeCategory, setActiveCategory] = useState('tudo');
@@ -84,19 +89,44 @@ const Feed: React.FC = () => {
   const loadPosts = async () => {
     try {
       setLoading(true);
+      setPostsError(null);
       const data = await PostsService.getPosts(50);
       setPosts(data);
     } catch (e) {
       console.error(e);
-      showError('Erro ao buscar posts.');
+      const message = e instanceof Error ? e.message : 'Não foi possível carregar as publicações.';
+      setPostsError(message);
+      showError(message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadPosts();
-  }, []);
+    // A sessão do Supabase é restaurada de forma assíncrona. Esperar o AuthContext
+    // terminar evita consultar o feed como visitante e guardar um resultado vazio.
+    if (authLoading) return;
+    void loadPosts();
+  }, [authLoading, currentUser?.uid]);
+
+  useEffect(() => {
+    let active = true;
+    if (activeCategory !== 'grupos') return;
+    if (!currentUser?.uid) {
+      setGroupFeedPosts([]);
+      return;
+    }
+
+    setLoadingGroupFeed(true);
+    GroupPostsService.getJoinedGroupFeed(currentUser.uid, 50)
+      .then(data => { if (active) setGroupFeedPosts(data); })
+      .catch(error => {
+        console.error('Erro ao carregar feed dos grupos:', error);
+        if (active) setGroupFeedPosts([]);
+      })
+      .finally(() => { if (active) setLoadingGroupFeed(false); });
+    return () => { active = false; };
+  }, [activeCategory, currentUser?.uid]);
 
   useEffect(() => {
     let active = true;
@@ -177,7 +207,17 @@ const Feed: React.FC = () => {
         }
       }
 
-      await PostsService.createPost(postData);
+      const postId = await PostsService.createPost(postData);
+      const createdAt = new Date().toISOString();
+      const newPost: Post = {
+        ...postData,
+        id: postId,
+        author: { ...postData.author, uid: currentUser?.uid || '' },
+        timestamp: createdAt,
+        createdAt,
+        updatedAt: createdAt
+      };
+      setPosts(previous => [newPost, ...previous.filter(post => post.id !== postId)]);
       showSuccess('Publicação criada!');
       setContent('');
       setMediaUrl('');
@@ -187,7 +227,7 @@ const Feed: React.FC = () => {
       setTeviLoc('');
       setTeviClothing('');
       setTeviActivity('');
-      loadPosts();
+      await loadPosts();
     } catch (error: any) {
       console.error(error);
       showError('Erro ao publicar: ' + error.message);
@@ -197,18 +237,18 @@ const Feed: React.FC = () => {
   const handleLike = async (postId: string, isLiked: boolean) => {
     try {
       if (!currentUser) return;
-      await PostsService.toggleLike(postId, currentUser.uid, isLiked);
+      const post = posts.find(item => item.id === postId);
+      if (post?.sourceGroupPost) {
+        await GroupPostsService.toggleLike(postId, currentUser.uid, !isLiked);
+      } else {
+        await PostsService.toggleLike(postId, currentUser.uid, isLiked);
+      }
       
-      setPosts(posts.map(p => {
-        if (p.id === postId) {
-          return {
-            ...p,
-            isLiked: !isLiked,
-            likes: p.likes + (isLiked ? -1 : 1)
-          };
-        }
-        return p;
-      }));
+      const updateLikedPost = (items: Post[]) => items.map(p => p.id === postId
+        ? { ...p, isLiked: !isLiked, likes: p.likes + (isLiked ? -1 : 1) }
+        : p);
+      setPosts(updateLikedPost);
+      setGroupFeedPosts(updateLikedPost);
     } catch (e) {
       console.error(e);
       showError('Erro ao curtir post.');
@@ -272,8 +312,19 @@ const Feed: React.FC = () => {
 
   const handlePollVote = async (postId: string, optionIndex: number) => {
     try {
-      const post = posts.find(p => p.id === postId);
+      const post = [...posts, ...groupFeedPosts].find(p => p.id === postId);
       if (!post || !post.pollData) return;
+
+      if (post.sourceGroupPost) {
+        await GroupPostsService.votePoll(postId, currentUser?.uid || '', optionIndex);
+        const votes = [...post.pollData.votes];
+        votes[optionIndex] = (votes[optionIndex] || 0) + 1;
+        setGroupFeedPosts(previous => previous.map(item => item.id === postId && item.pollData
+          ? { ...item, pollData: { ...item.pollData, votes } }
+          : item));
+        showSuccess('Voto registrado!');
+        return;
+      }
 
       const votes = [...post.pollData.votes];
       votes[optionIndex] = (votes[optionIndex] || 0) + 1;
@@ -323,7 +374,7 @@ const Feed: React.FC = () => {
     } else if (activeCategory === 'em-alta') {
       filtered = [...filtered].sort((a, b) => b.likes - a.likes);
     } else if (activeCategory === 'grupos') {
-      filtered = filtered.filter(p => p.content.toLowerCase().includes('grupo') || p.hashtags.includes('Grupo'));
+      filtered = groupFeedPosts;
     } else if (activeCategory === 'hashtags') {
       filtered = filtered.filter(p => p.hashtags.length > 0);
     }
@@ -343,14 +394,14 @@ const Feed: React.FC = () => {
       {/* Coluna Esquerda: Sidebar */}
       <Sidebar activeHashtag={tagFilter || undefined} onHashtagClick={(tag) => setSearchParams({ tag })} />
 
-      {/* Grid Principal de 2 Colunas (Centro Feed + Direita Ações) */}
+      {/* Feed, sugestões de colegas e ações do campus */}
     <div className="flex-1 ml-64 min-h-screen flex justify-center bg-slate-50">
-        <div className="grid w-full max-w-[1560px] grid-cols-1 2xl:grid-cols-[250px_minmax(0,1fr)_360px]">
-          <aside className="px-6 py-8 2xl:col-start-1 2xl:row-start-1">
+        <div className="grid w-full max-w-[1560px] grid-cols-1 xl:grid-cols-[250px_minmax(0,1fr)_360px]">
+          <aside className="px-6 py-8 xl:col-start-1 xl:row-start-1">
             <SuggestedProfiles maxProfiles={5} />
           </aside>
           {/* Coluna Central: Feed */}
-          <div className="min-w-0 w-full max-w-[760px] px-6 py-8 2xl:col-start-2 2xl:row-start-1">
+          <div className="min-w-0 w-full max-w-[760px] px-6 py-8 xl:col-start-2 xl:row-start-1">
           
           {/* Barra de Pesquisa */}
           <div className="relative mb-6">
@@ -597,7 +648,7 @@ const Feed: React.FC = () => {
           </div>
 
           {/* Lista de Posts */}
-          {loading || (activeCategory === 'seguindo' && loadingFollowing) ? (
+          {loading || (activeCategory === 'seguindo' && loadingFollowing) || (activeCategory === 'grupos' && loadingGroupFeed) ? (
             <div className="flex justify-center py-20">
               <div className="h-10 w-10 border-4 border-indigo-500/20 border-t-indigo-600 rounded-full animate-spin"></div>
             </div>
@@ -627,6 +678,11 @@ const Feed: React.FC = () => {
                         <p className="text-[10px] text-slate-400 mt-0.5">
                           {post.author.university.split(' - ')[0]} &bull; {new Date(post.createdAt || post.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </p>
+                        {post.sourceGroupPost && (
+                          <button onClick={() => navigate(`/groups/${post.groupId}`)} className="mt-1 text-[10px] font-bold text-indigo-600 hover:underline">
+                            {post.groupName}
+                          </button>
+                        )}
                       </div>
                     </button>
                     
@@ -724,11 +780,11 @@ const Feed: React.FC = () => {
                       </button>
 
                       <button 
-                        onClick={() => toggleCommentsBox(post.id)}
+                        onClick={() => post.sourceGroupPost ? navigate(`/groups/${post.groupId}`) : toggleCommentsBox(post.id)}
                         className="flex items-center space-x-1.5 hover:text-indigo-500 transition-all"
                       >
                         <MessageCircle className="h-4.5 w-4.5" />
-                        <span>{post.comments}</span>
+                        <span>{post.sourceGroupPost ? `Ver no grupo · ${post.comments}` : post.comments}</span>
                       </button>
                     </div>
 
@@ -791,7 +847,15 @@ const Feed: React.FC = () => {
           )}
 
           {/* Empty State */}
-          {!loading && filteredPosts.length === 0 && (
+          {!loading && postsError && activeCategory !== 'grupos' && (
+            <div role="alert" className="text-center py-12 bg-white rounded-3xl border border-amber-100">
+              <p className="text-slate-600 text-sm mb-4">Não foi possível atualizar o Feed. Tente novamente.</p>
+              <button onClick={() => void loadPosts()} className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700">
+                Tentar novamente
+              </button>
+            </div>
+          )}
+          {!loading && !postsError && filteredPosts.length === 0 && (
             <div className="text-center py-12 bg-white rounded-3xl border border-slate-100/50">
               <MessageCircle className="h-12 w-12 text-slate-300 mx-auto mb-3" />
               <p className="text-slate-500 text-xs">
@@ -804,35 +868,9 @@ const Feed: React.FC = () => {
         </div>
 
         {/* Coluna Direita: Ações e Resumo do Campus */}
-        <div className="w-full max-w-[384px] px-6 py-8 border-l border-slate-100 flex flex-col space-y-6 2xl:col-start-3 2xl:row-start-1">
+        <div className="w-full max-w-[384px] px-6 py-8 border-l border-slate-100 flex flex-col space-y-6 xl:col-start-3 xl:row-start-1">
           
-          {/* Card: Resumo do Campus */}
-          <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">
-            <div className="flex justify-between items-center mb-5">
-              <h3 className="font-extrabold text-slate-800 text-sm">Resumo do Campus</h3>
-              <button onClick={() => navigate('/discover')} className="text-indigo-600 text-xs font-bold hover:underline">Ver tudo</button>
-            </div>
-
-            <div className="grid grid-cols-3 gap-3 mb-6">
-              <div className="bg-pink-50/50 border border-pink-100/30 rounded-2xl p-3.5 text-center">
-                <span className="text-sm font-bold text-pink-600 block">120</span>
-                <span className="text-[10px] text-slate-400 block font-semibold mt-1">#TeVi hoje</span>
-              </div>
-              <div className="bg-emerald-50/50 border border-emerald-100/30 rounded-2xl p-3.5 text-center">
-                <span className="text-sm font-bold text-emerald-600 block">342</span>
-                <span className="text-[10px] text-slate-400 block font-semibold mt-1">Pessoas online</span>
-              </div>
-              <div className="bg-indigo-50/50 border border-indigo-100/30 rounded-2xl p-3.5 text-center">
-                <span className="text-sm font-bold text-indigo-600 block">8</span>
-                <span className="text-[10px] text-slate-400 block font-semibold mt-1">Eventos hoje</span>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-bold bg-slate-50 p-3 rounded-2xl border border-slate-100/40">
-              <span className="text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">+23%</span>
-              <span>mais interações que ontem</span>
-            </div>
-          </div>
+          <CampusSummary />
 
           {/* Card: Ações Rápidas */}
           <div className="bg-white rounded-[32px] p-6 border border-slate-100 shadow-sm">

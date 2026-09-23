@@ -126,7 +126,9 @@ export const logoutUser = async (): Promise<void> => {
 };
 
 export const resetPassword = async (email: string): Promise<void> => {
-  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  const baseUrl = process.env.REACT_APP_SITE_URL?.trim() || window.location.origin;
+  const redirectTo = new URL('/reset-password', baseUrl).toString();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
   if (error) throw error;
 };
 

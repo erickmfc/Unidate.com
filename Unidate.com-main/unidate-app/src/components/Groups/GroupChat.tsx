@@ -40,8 +40,6 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
         setCanAccessChat(hasAccess);
         
         if (hasAccess) {
-          await UserStatusService.setUserOnline(currentUser.uid, groupId);
-          
           const unsubscribe = GroupChatService.subscribeToGroupMessages(
             groupId,
             (newMessages) => {
@@ -76,9 +74,6 @@ const GroupChat: React.FC<GroupChatProps> = ({ groupId, groupName, onClose }) =>
     return () => {
       if (unsubscribe) {
         unsubscribe();
-      }
-      if (currentUser) {
-        UserStatusService.setUserOffline(currentUser.uid);
       }
     };
   }, [groupId, currentUser, showError]);

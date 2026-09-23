@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { Post } from './postsService';
 
 type TimestampLike = { toDate: () => Date; seconds: number; nanoseconds: number };
 const asTimestamp = (value?: string | null): TimestampLike => {
@@ -24,6 +25,50 @@ const mapPost = (row: any): GroupPost => ({
 });
 
 export class GroupPostsService {
+  static async getJoinedGroupFeed(userId: string, limitCount = 50): Promise<Post[]> {
+    const { data: memberships, error: membershipError } = await supabase
+      .from('group_members').select('group_id').eq('user_id', userId);
+    if (membershipError) throw membershipError;
+    const groupIds = Array.from(new Set((memberships || []).map(row => row.group_id)));
+    if (groupIds.length === 0) return [];
+
+    const { data, error } = await supabase.from('group_posts')
+      .select('id, group_id, author_id, content, type, image, poll_data, likes, comments_count, hashtags, created_at, updated_at, author:profiles(id, display_name, photo_url, course, university), group:groups(name)')
+      .in('group_id', groupIds).order('created_at', { ascending: false }).limit(limitCount);
+    if (error) throw error;
+
+    return (data || []).map((row: any): Post => {
+      const storedVotes = row.poll_data?.votes;
+      const votes = Array.isArray(storedVotes)
+        ? storedVotes
+        : row.poll_data?.options?.map((_: string, index: number) => Object.values(storedVotes || {}).filter((vote: any) => vote === index).length);
+      return {
+        id: row.id,
+        author: {
+          uid: row.author_id,
+          name: row.author?.display_name || 'Usuário',
+          course: row.author?.course || '',
+          university: row.author?.university || '',
+          avatar: row.author?.photo_url || '',
+        },
+        content: row.content,
+        type: row.type || 'text',
+        image: row.image || undefined,
+        timestamp: row.created_at,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        likes: (row.likes || []).length,
+        isLiked: (row.likes || []).includes(userId),
+        comments: row.comments_count || 0,
+        hashtags: row.hashtags || [],
+        pollData: row.poll_data ? { question: row.poll_data.question || '', options: row.poll_data.options || [], votes: votes || [] } : undefined,
+        sourceGroupPost: true,
+        groupId: row.group_id,
+        groupName: row.group?.name || 'Grupo',
+      };
+    });
+  }
+
   static async createPost(groupId: string, postData: { author: GroupPost['author']; content: string; type: GroupPost['type']; image?: string; pollData?: GroupPost['pollData'] }): Promise<string> {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuário não autenticado');

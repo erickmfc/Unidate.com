@@ -88,7 +88,7 @@ const Groups: React.FC = () => {
             id: group.id,
             name: group.name,
             description: group.description,
-            members: group.members.length,
+            members: group.memberCount,
             maxMembers: group.maxMembers,
             category: group.category,
             university: group.university,

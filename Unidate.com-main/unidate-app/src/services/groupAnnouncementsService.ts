@@ -1,19 +1,4 @@
-import { 
-  collection, 
-  doc, 
-  addDoc, 
-  getDocs, 
-  getDoc,
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
-  limit, 
-  where,
-  serverTimestamp,
-  Timestamp
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { supabase } from '../supabaseClient';
 
 export interface GroupAnnouncement {
   id: string;
@@ -23,10 +8,10 @@ export interface GroupAnnouncement {
   createdBy: string;
   createdByName: string;
   isPinned: boolean;
-  priority: 'low' | 'medium' | 'high';
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
+  priority: 'low' | 'medium' | 'high'; createdAt: string; updatedAt: string;
 }
+
+const mapAnnouncement = (row: any): GroupAnnouncement => ({ id: row.id, groupId: row.group_id, title: row.title, content: row.content, createdBy: row.created_by, createdByName: row.created_by_name || 'Usuário', isPinned: Boolean(row.is_pinned), priority: row.priority || 'medium', createdAt: row.created_at, updatedAt: row.updated_at || row.created_at });
 
 export class GroupAnnouncementsService {
   static async createAnnouncement(
@@ -40,101 +25,24 @@ export class GroupAnnouncementsService {
       priority?: GroupAnnouncement['priority'];
     }
   ): Promise<string> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const announcementRef = await addDoc(collection(db, 'groupAnnouncements'), {
-        ...announcementData,
-        groupId,
-        isPinned: announcementData.isPinned || false,
-        priority: announcementData.priority || 'medium',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      console.log('✅ Anúncio criado:', announcementRef.id);
-      return announcementRef.id;
-    } catch (error) {
-      console.error('❌ Erro ao criar anúncio:', error);
-      throw error;
-    }
+    const { data, error } = await supabase.from('group_announcements').insert({ group_id: groupId, title: announcementData.title.trim(), content: announcementData.content.trim(), created_by: announcementData.createdBy, created_by_name: announcementData.createdByName, is_pinned: announcementData.isPinned ?? false, priority: announcementData.priority ?? 'medium' }).select('id').single();
+    if (error || !data) throw error || new Error('Não foi possível criar o anúncio');
+    return data.id;
   }
 
   static async getGroupAnnouncements(groupId: string): Promise<GroupAnnouncement[]> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const q = query(
-        collection(db, 'groupAnnouncements'),
-        where('groupId', '==', groupId),
-        orderBy('isPinned', 'desc'),
-        orderBy('createdAt', 'desc')
-      );
-
-      const snapshot = await getDocs(q);
-      const announcements: GroupAnnouncement[] = [];
-
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        announcements.push({
-          id: doc.id,
-          ...data,
-          createdAt: data.createdAt,
-          updatedAt: data.updatedAt
-        } as GroupAnnouncement);
-      });
-
-      return announcements;
-    } catch (error) {
-      console.error('❌ Erro ao buscar anúncios:', error);
-      return [];
-    }
+    const { data, error } = await supabase.from('group_announcements').select('*').eq('group_id', groupId).order('is_pinned', { ascending: false }).order('created_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapAnnouncement);
   }
 
   static async togglePin(announcementId: string, isPinned: boolean): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const announcementRef = doc(db, 'groupAnnouncements', announcementId);
-      await updateDoc(announcementRef, {
-        isPinned,
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error('❌ Erro ao atualizar fixação:', error);
-      throw error;
-    }
+    const { error } = await supabase.from('group_announcements').update({ is_pinned: isPinned }).eq('id', announcementId);
+    if (error) throw error;
   }
 
   static async deleteAnnouncement(announcementId: string, userId: string): Promise<void> {
-    try {
-      if (!db) {
-        throw new Error('Firebase não inicializado');
-      }
-
-      const announcementRef = doc(db, 'groupAnnouncements', announcementId);
-      const announcementDoc = await getDoc(announcementRef);
-      
-      if (!announcementDoc.exists()) {
-        throw new Error('Anúncio não encontrado');
-      }
-
-      const announcementData = announcementDoc.data() as GroupAnnouncement;
-      if (announcementData.createdBy !== userId) {
-        throw new Error('Você não tem permissão para deletar este anúncio');
-      }
-
-      await deleteDoc(announcementRef);
-      console.log('✅ Anúncio deletado');
-    } catch (error) {
-      console.error('❌ Erro ao deletar anúncio:', error);
-      throw error;
-    }
+    const { error } = await supabase.from('group_announcements').delete().eq('id', announcementId).eq('created_by', userId);
+    if (error) throw error;
   }
 }

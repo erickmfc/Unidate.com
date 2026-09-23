@@ -62,23 +62,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     getInitialSession();
 
-    // 2. Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    // Keep this callback synchronous: Supabase Auth holds a lock while it runs.
+    // Profile reads are deferred so they cannot block sign-in or recovery events.
+    let authEventId = 0;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      const currentEventId = ++authEventId;
       setLoading(true);
       if (session) {
         setCurrentUser({ ...session.user, uid: session.user.id });
-        const profile = await getUserProfile(session.user.id);
-        setUserProfile(profile);
+        setTimeout(() => {
+          void getUserProfile(session.user.id)
+            .then(profile => {
+              if (authEventId === currentEventId) setUserProfile(profile);
+            })
+            .catch(error => console.error('Erro ao carregar perfil após autenticação:', error))
+            .finally(() => {
+              if (authEventId === currentEventId) setLoading(false);
+            });
+        }, 0);
         if (event === 'SIGNED_IN') {
-          // Run after the auth callback returns so the activity insert cannot hold
-          // Supabase Auth's session lock.
           setTimeout(() => void logSiteActivity(session.user.id, 'login'), 0);
         }
       } else {
         setCurrentUser(null);
         setUserProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {

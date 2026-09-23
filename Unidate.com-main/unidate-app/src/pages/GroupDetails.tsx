@@ -29,6 +29,7 @@ interface Group {
   name: string;
   description: string;
   members: string[];
+  memberCount: number;
   editors: string[];
   maxMembers?: number;
   category: string;
@@ -231,7 +232,7 @@ const GroupDetails: React.FC = () => {
                     <div>
                       <p className="text-sm text-gray-500">Membros</p>
                       <p className="font-semibold text-gray-900">
-                        {group.members.length}{group.maxMembers ? `/${group.maxMembers}` : ''}
+                        {group.memberCount}{group.maxMembers ? `/${group.maxMembers}` : ''}
                       </p>
                     </div>
                   </div>

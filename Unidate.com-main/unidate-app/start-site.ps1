@@ -25,6 +25,7 @@ Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "    SERVIDOR INICIANDO..." -ForegroundColor Cyan
 Write-Host "    URL: http://localhost:3000" -ForegroundColor Cyan
+Write-Host "    Celular: use http://IP-DO-PC:3000 na mesma rede Wi-Fi (não localhost)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Pressione Ctrl+C para parar o servidor" -ForegroundColor Yellow
