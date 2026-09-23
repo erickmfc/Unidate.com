@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { Activity, Bot, CheckCircle2, Clock3, Pause, Play, RefreshCw, Settings2, Sparkles } from 'lucide-react';
+import { Activity, Bot, CheckCircle2, Clock3, Pause, Play, RefreshCw, Save, Settings2, Sparkles } from 'lucide-react';
 import SimpleAdminLayout from '../../components/Admin/Layout/SimpleAdminLayout';
 import { BotActivityLog, BotAutomationSettings, DemoBotProfile, botAutomationService } from '../../services/botAutomationService';
 import { useUniDateToast } from '../../components/UI/Toast';
 
 const PERSONA_KEYS = ['lara-saquarema', 'julia-saquarema', 'marina-saquarema', 'sofia-saquarema', 'beatriz-saquarema', 'camila-saquarema', 'isabela-saquarema', 'renata-saquarema', 'paula-saquarema'];
+type BotDraft = { daily_post_limit: number; daily_comment_limit: number; initiative_level: 'reserved' | 'normal' | 'high'; response_probability: number };
 
 const AutomatedActivityPage: React.FC = () => {
   const { showError, showSuccess } = useUniDateToast();
   const [settings, setSettings] = useState<BotAutomationSettings | null>(null);
   const [bots, setBots] = useState<DemoBotProfile[]>([]);
   const [logs, setLogs] = useState<BotActivityLog[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, BotDraft>>({});
   const [loading, setLoading] = useState(true);
   const [working, setWorking] = useState(false);
 
@@ -23,6 +25,12 @@ const AutomatedActivityPage: React.FC = () => {
       ]);
       setSettings(nextSettings);
       setBots(nextBots);
+      setDrafts(Object.fromEntries(nextBots.map((bot) => [bot.bot_key, {
+        daily_post_limit: bot.daily_post_limit ?? 1,
+        daily_comment_limit: bot.daily_comment_limit ?? 1,
+        initiative_level: bot.initiative_level ?? 'normal',
+        response_probability: bot.response_probability ?? 0.2,
+      }])));
       setLogs(nextLogs);
     } catch (error: any) {
       showError(error?.message || 'Não foi possível carregar a atividade automatizada.');
@@ -56,7 +64,7 @@ const AutomatedActivityPage: React.FC = () => {
     try {
       for (const key of PERSONA_KEYS) await botAutomationService.provisionCampusPersona(key);
       await load();
-      showSuccess('As quatro personagens foram cadastradas individualmente.');
+      showSuccess('As personagens foram cadastradas individualmente.');
     } catch (error: any) { showError(error?.message || 'Não foi possível cadastrar todas as personagens.'); }
     finally { setWorking(false); }
   };
@@ -76,6 +84,22 @@ const AutomatedActivityPage: React.FC = () => {
       await botAutomationService.updateBotProfileSettings(bot.bot_key, { is_active: !bot.is_active });
       await load();
     } catch (error: any) { showError(error?.message || 'Não foi possível atualizar a personagem.'); }
+  };
+
+  const saveBot = async (bot: DemoBotProfile) => {
+    const draft = drafts[bot.bot_key];
+    if (!draft) return;
+    setWorking(true);
+    try {
+      await botAutomationService.updateBotProfileSettings(bot.bot_key, draft);
+      await load();
+      showSuccess(`Ajustes de ${bot.display_name} atualizados.`);
+    } catch (error: any) { showError(error?.message || 'Não foi possível atualizar a personagem.'); }
+    finally { setWorking(false); }
+  };
+
+  const updateDraft = (botKey: string, patch: Partial<BotDraft>) => {
+    setDrafts((current) => ({ ...current, [botKey]: { ...current[botKey], ...patch } }));
   };
 
   if (loading || !settings) return <SimpleAdminLayout><div className="p-8 text-gray-300">Carregando atividade automatizada...</div></SimpleAdminLayout>;
@@ -108,7 +132,10 @@ const AutomatedActivityPage: React.FC = () => {
         </section>
 
         <section className="rounded-2xl bg-gray-800 p-5"><div className="mb-4 flex items-center gap-2"><Settings2 className="h-5 w-5 text-violet-300" /><h2 className="text-lg font-semibold">Por personagem</h2></div><div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {bots.filter((bot) => bot.bot_key !== 'erick-campus').map((bot) => <article key={bot.bot_key} className="rounded-xl border border-gray-700 bg-gray-900 p-4"><div className="flex items-center gap-3"><img src={bot.photo_url || '/api/placeholder/64/64'} alt={bot.display_name} className="h-12 w-12 rounded-full object-cover" /><div className="min-w-0"><h3 className="truncate font-semibold">{bot.display_name}</h3><p className="truncate text-xs text-gray-400">{bot.institution} • {bot.course}</p></div></div><p className="mt-3 text-xs text-gray-400">{bot.public_disclosure || 'Personagem virtual'} • {bot.city || 'Saquarema'}</p><div className="mt-3 flex items-center justify-between text-sm"><span className={bot.is_active ? 'text-emerald-300' : 'text-gray-500'}>{bot.is_active ? 'Ativa' : 'Pausada'}</span><button onClick={() => void toggleBot(bot)} className="rounded-lg bg-gray-700 px-3 py-1.5 hover:bg-gray-600">{bot.is_active ? 'Pausar' : 'Ativar'}</button></div><div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-400"><span>Posts/dia: {bot.daily_post_limit ?? 1}</span><span>Comentários: {bot.daily_comment_limit ?? 1}</span><span>Iniciativa: {bot.initiative_level ?? 'normal'}</span><span>Resposta: {Math.round((bot.response_probability ?? 0) * 100)}%</span></div></article>)}
+          {bots.filter((bot) => bot.bot_key !== 'erick-campus').map((bot) => {
+            const draft = drafts[bot.bot_key] ?? { daily_post_limit: bot.daily_post_limit ?? 1, daily_comment_limit: bot.daily_comment_limit ?? 1, initiative_level: bot.initiative_level ?? 'normal', response_probability: bot.response_probability ?? 0.2 };
+            return <article key={bot.bot_key} className="rounded-xl border border-gray-700 bg-gray-900 p-4"><div className="flex items-center gap-3"><img src={bot.photo_url || '/api/placeholder/64/64'} alt={bot.display_name} className="h-12 w-12 rounded-full object-cover" /><div className="min-w-0"><h3 className="truncate font-semibold">{bot.display_name}</h3><p className="truncate text-xs text-gray-400">{bot.institution} • {bot.course}</p></div></div><p className="mt-3 text-xs text-gray-400">{bot.public_disclosure || 'Personagem virtual'} • {bot.city || 'Saquarema'}</p><div className="mt-3 flex items-center justify-between text-sm"><span className={bot.is_active ? 'text-emerald-300' : 'text-gray-500'}>{bot.is_active ? 'Ativa' : 'Pausada'}</span><button onClick={() => void toggleBot(bot)} disabled={working} className="rounded-lg bg-gray-700 px-3 py-1.5 hover:bg-gray-600 disabled:opacity-50">{bot.is_active ? 'Pausar' : 'Ativar'}</button></div><div className="mt-3 grid grid-cols-2 gap-2 text-xs"><label className="text-gray-400">Posts/dia<input type="number" min="0" max="20" value={draft.daily_post_limit} onChange={(event) => updateDraft(bot.bot_key, { daily_post_limit: Number(event.target.value) })} className="mt-1 w-full rounded bg-gray-800 px-2 py-1 text-gray-100" /></label><label className="text-gray-400">Comentários/dia<input type="number" min="0" max="50" value={draft.daily_comment_limit} onChange={(event) => updateDraft(bot.bot_key, { daily_comment_limit: Number(event.target.value) })} className="mt-1 w-full rounded bg-gray-800 px-2 py-1 text-gray-100" /></label><label className="text-gray-400">Iniciativa<select value={draft.initiative_level} onChange={(event) => updateDraft(bot.bot_key, { initiative_level: event.target.value as BotDraft['initiative_level'] })} className="mt-1 w-full rounded bg-gray-800 px-2 py-1 text-gray-100"><option value="reserved">Contida</option><option value="normal">Normal</option><option value="high">Alta</option></select></label><label className="text-gray-400">Resposta: {Math.round(draft.response_probability * 100)}%<input type="range" min="0" max="100" value={Math.round(draft.response_probability * 100)} onChange={(event) => updateDraft(bot.bot_key, { response_probability: Number(event.target.value) / 100 })} className="mt-2 w-full accent-violet-500" /></label></div><button onClick={() => void saveBot(bot)} disabled={working} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-violet-700 px-3 py-2 text-sm hover:bg-violet-600 disabled:opacity-50"><Save className="h-4 w-4" />Salvar ajustes</button></article>;
+          })}
         </div></section>
 
         <section className="rounded-2xl bg-gray-800 p-5"><div className="mb-4 flex items-center gap-2"><Clock3 className="h-5 w-5 text-violet-300" /><h2 className="text-lg font-semibold">Histórico de decisões</h2></div><div className="overflow-x-auto"><table className="min-w-full text-left text-sm"><thead className="text-xs uppercase text-gray-500"><tr><th className="px-3 py-2">Horário</th><th className="px-3 py-2">Personagem</th><th className="px-3 py-2">Ação</th><th className="px-3 py-2">Decisão</th></tr></thead><tbody>{logs.map((log) => <tr key={log.id} className="border-t border-gray-700"><td className="px-3 py-2 text-gray-400">{new Date(log.created_at).toLocaleString('pt-BR')}</td><td className="px-3 py-2">{log.bot_key}</td><td className="px-3 py-2"><span className="inline-flex items-center gap-1">{log.action === 'skip' ? <Clock3 className="h-3 w-3" /> : <CheckCircle2 className="h-3 w-3 text-emerald-400" />}{log.action}</span></td><td className="px-3 py-2 text-gray-400">{log.decision_reason || log.content || '—'}</td></tr>)}</tbody></table>{logs.length === 0 && <p className="py-8 text-center text-sm text-gray-500">Ainda não há decisões registradas.</p>}</div></section>

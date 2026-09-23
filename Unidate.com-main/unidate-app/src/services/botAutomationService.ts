@@ -68,6 +68,7 @@ export const botAutomationService = {
     return data as { ok: boolean; created: boolean; bot: DemoBotProfile };
   },
   async listDemoBots() {
+    // Include paused characters so the admin can re-enable them from the panel.
     const { data, error } = await supabase.from('bot_profiles').select('*').order('created_at', { ascending: true });
     if (error) throw error;
     return (data ?? []) as DemoBotProfile[];
