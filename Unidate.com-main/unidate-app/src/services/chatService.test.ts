@@ -23,21 +23,14 @@ describe('ChatService', () => {
   });
 
   test('sends a message and updates the conversation preview', async () => {
-    const messageQuery: any = {};
-    messageQuery.insert = jest.fn(() => messageQuery);
-    messageQuery.select = jest.fn(() => messageQuery);
-    messageQuery.single = jest.fn().mockResolvedValue({ data: { id: 'message-1' }, error: null });
-
-    const chatQuery: any = {};
-    chatQuery.update = jest.fn(() => chatQuery);
-    chatQuery.eq = jest.fn().mockResolvedValue({ error: null });
-
-    mockFrom.mockImplementation((table: string) => table === 'messages' ? messageQuery : chatQuery);
+    mockRpc.mockResolvedValue({ data: 'message-1', error: null });
 
     await expect(ChatService.sendMessage('chat-1', 'me', 'Matheus', 'Olá!')).resolves.toBe('message-1');
-    expect(messageQuery.insert).toHaveBeenCalledWith(expect.objectContaining({
-      chat_id: 'chat-1', sender_id: 'me', content: 'Olá!'
-    }));
-    expect(chatQuery.update).toHaveBeenCalledWith(expect.objectContaining({ last_message: 'Olá!' }));
+    expect(mockRpc).toHaveBeenCalledWith('send_chat_message', {
+      target_chat_id: 'chat-1',
+      message_content: 'Olá!',
+      message_type: 'text',
+      reply_to_message_id: null,
+    });
   });
 });
