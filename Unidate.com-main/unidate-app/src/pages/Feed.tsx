@@ -72,6 +72,18 @@ const Feed: React.FC = () => {
   const [content, setContent] = useState('');
   const [mediaUrl, setMediaUrl] = useState('');
   const [showMediaInput, setShowMediaInput] = useState(false);
+  const [isMediaDragging, setIsMediaDragging] = useState(false);
+  const mediaInputRef = React.useRef<HTMLInputElement>(null);
+
+  const readImageFile = (file?: File) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setMediaUrl(String(reader.result || ''));
+      setShowMediaInput(true);
+    };
+    reader.readAsDataURL(file);
+  };
   
   // Enquete (Poll) state
   const [pollQuestion, setPollQuestion] = useState('');
@@ -569,13 +581,20 @@ const Feed: React.FC = () => {
 
               {/* URL de mídia se aberto */}
               {showMediaInput && (
-                <input 
-                  type="text" 
-                  placeholder="Cole aqui o link da imagem (URL da foto)..." 
-                  value={mediaUrl}
-                  onChange={(e) => setMediaUrl(e.target.value)}
-                  className="w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs outline-none text-slate-700 focus:ring-2 focus:ring-indigo-500/20"
-                />
+                <div
+                  onDragOver={(event) => { event.preventDefault(); setIsMediaDragging(true); }}
+                  onDragLeave={() => setIsMediaDragging(false)}
+                  onDrop={(event) => { event.preventDefault(); setIsMediaDragging(false); readImageFile(event.dataTransfer.files[0]); }}
+                  className={`space-y-2 rounded-xl border-2 border-dashed p-3 transition-colors ${isMediaDragging ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-slate-50'}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input ref={mediaInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => readImageFile(event.target.files?.[0])} />
+                    <button type="button" onClick={() => mediaInputRef.current?.click()} className="rounded-lg bg-indigo-600 px-3 py-2 text-xs font-bold text-white hover:bg-indigo-700">Escolher imagem</button>
+                    <span className="text-[11px] text-slate-500">ou arraste uma imagem aqui</span>
+                  </div>
+                  <input type="text" placeholder="Ou cole aqui o link da imagem..." value={mediaUrl.startsWith('data:') ? '' : mediaUrl} onChange={(e) => setMediaUrl(e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20" />
+                  {mediaUrl && <img src={mediaUrl} alt="Prévia da publicação" className="max-h-40 w-full rounded-lg object-cover" />}
+                </div>
               )}
 
               {/* Botões de Ação */}
