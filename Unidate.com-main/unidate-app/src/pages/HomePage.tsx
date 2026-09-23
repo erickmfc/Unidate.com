@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Footer from '../components/UI/Footer';
 import { 
   Heart, 
   Users, 
@@ -331,6 +332,8 @@ const HomePage: React.FC = () => {
           )}
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 };
