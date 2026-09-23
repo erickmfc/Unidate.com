@@ -25,7 +25,8 @@ import {
   CheckCheck,
   X,
   Sparkles,
-  Zap
+  Zap,
+  GraduationCap
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -33,7 +34,8 @@ import { ChatService, ChatMessage, Chat } from '../services/chatService';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
 import { FollowService } from '../services/followService';
 import UserAvatar from '../components/UI/UserAvatar';
-import { useUniDateToast } from '../components/UI/Toast';
+import NotificationSystem from '../components/UI/NotificationSystem';
+import { useNotifications } from '../hooks/useNotifications';
 
 interface ChatContact {
   id: string;
@@ -82,9 +84,13 @@ const ChatPage: React.FC = () => {
   const [followingUsers, setFollowingUsers] = useState<UserProfile[]>([]);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [startingChatFor, setStartingChatFor] = useState<string | null>(null);
+  const [activeCall, setActiveCall] = useState<'video' | 'audio' | null>(null);
+  const { notifications, removeNotification, showSuccess, showError, showInfo } = useNotifications();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
   const unsubscribeMessagesRef = useRef<(() => void) | null>(null);
+  const hydratedMessageIdsRef = useRef<Set<string>>(new Set());
+  const messagesReadyRef = useRef(false);
 
   // Dados mockados para demonstração
   const mockContacts: ChatContact[] = [
@@ -202,6 +208,7 @@ const ChatPage: React.FC = () => {
   // Carregar mensagens reais quando uma conversa é selecionada
   useEffect(() => {
     if (!selectedChat || !currentUser?.uid) return;
+    messagesReadyRef.current = false;
 
     // Limpar subscription anterior
     if (unsubscribeMessagesRef.current) {
@@ -214,6 +221,8 @@ const ChatPage: React.FC = () => {
       try {
         const messages = await ChatService.getChatMessages(selectedChat, 50);
         setCurrentMessages(messages);
+        hydratedMessageIdsRef.current = new Set(messages.map((message) => message.id));
+        messagesReadyRef.current = true;
         
         // Marcar mensagens como lidas
         await ChatService.markMessagesAsRead(selectedChat, currentUser.uid);
@@ -228,6 +237,15 @@ const ChatPage: React.FC = () => {
     const unsubscribe = ChatService.subscribeToChatMessages(
       selectedChat,
       (messages) => {
+        if (messagesReadyRef.current) {
+          const incomingMessages = messages.filter((message) =>
+            !hydratedMessageIdsRef.current.has(message.id) && message.senderId !== currentUser?.uid
+          );
+          incomingMessages.forEach((message) => {
+            showInfo(`Nova mensagem de ${message.senderName}`, message.content);
+          });
+        }
+        hydratedMessageIdsRef.current = new Set(messages.map((message) => message.id));
         setCurrentMessages(messages);
         // Marcar como lidas quando receber
         if (currentUser?.uid) {
@@ -244,7 +262,7 @@ const ChatPage: React.FC = () => {
         unsubscribeMessagesRef.current();
       }
     };
-  }, [selectedChat, currentUser?.uid]);
+  }, [selectedChat, currentUser?.uid, showInfo]);
 
   useEffect(() => {
     // Scroll para última mensagem
@@ -300,11 +318,20 @@ const ChatPage: React.FC = () => {
           ? { ...chat, lastMessage: messageContent, timestamp: 'Agora' }
           : chat
       ));
-      showSuccess('Mensagem enviada!');
+      showSuccess('Mensagem enviada', `Mensagem enviada para ${currentContact?.name || 'seu contato'}.`);
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      showError(error instanceof Error ? error.message : 'Não foi possível enviar a mensagem.');
+      const detail = error instanceof Error ? error.message : 'Tente novamente em alguns instantes.';
+      showError('Não foi possível enviar', detail);
     }
+  };
+
+  const handleStartCall = (kind: 'video' | 'audio') => {
+    setActiveCall(kind);
+    showInfo(
+      kind === 'video' ? 'Chamada de vídeo iniciada' : 'Chamada de áudio iniciada',
+      `Conectando você à rotina da faculdade com ${currentContact?.name || 'seu contato'}.`
+    );
   };
 
   // Buscar usuários pelo nome com debounce
@@ -413,10 +440,10 @@ const ChatPage: React.FC = () => {
       setShowNewChatModal(false);
       setUserSearchTerm('');
       setSearchResults([]);
-      showSuccess('Conversa aberta!');
+      showSuccess('Conversa pronta', `Você pode conversar com ${contactProfile?.name || 'seu contato'}.`);
     } catch (error) {
       console.error('Erro ao iniciar conversa:', error);
-      showError(error instanceof Error ? error.message : 'Não foi possível abrir a conversa.');
+      showError('Não foi possível abrir a conversa', 'Tente novamente ou atualize a página.');
     } finally {
       setStartingChatFor(null);
     }
@@ -456,7 +483,8 @@ const ChatPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 flex relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex relative overflow-hidden">
+      <NotificationSystem notifications={notifications} onRemove={removeNotification} />
       {/* Animação de fundo chamativa */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         {/* Ondas animadas */}
@@ -482,7 +510,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* 1. Barra Lateral Esquerda (Navegação) */}
-      <div className="w-16 bg-gray-800 flex flex-col items-center py-4 space-y-6 relative z-10">
+      <div className="w-16 bg-slate-900/95 flex flex-col items-center py-4 space-y-6 relative z-10 border-r border-slate-800">
         <button 
           onClick={() => navigate('/dashboard')}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
@@ -569,7 +597,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* 2. Painel Central-Esquerdo (Lista de Conversas) */}
-      <div className="w-80 bg-gray-800 border-r border-gray-700 flex flex-col relative z-10">
+      <div className="w-80 bg-slate-900/95 border-r border-slate-800 flex flex-col relative z-10">
         {/* Cabeçalho com animação */}
         <div className="p-4 border-b border-gray-700 relative overflow-hidden">
           {/* Efeito de brilho animado no cabeçalho */}
@@ -583,17 +611,18 @@ const ChatPage: React.FC = () => {
               </div>
             </div>
             <h2 className="text-white font-bold text-lg relative">
-              Conversation
+              Conversas
               <span className="absolute -top-1 -right-6 text-xs bg-pink-500 text-white px-1.5 py-0.5 rounded-full animate-bounce">
                 💬
               </span>
             </h2>
+            <p className="relative z-10 mt-1 text-xs text-indigo-200/70">Seu campus, suas conexões</p>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Q Search here"
+              placeholder="Buscar conversas"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -608,7 +637,7 @@ const ChatPage: React.FC = () => {
               onClick={() => setShowRecentDropdown(!showRecentDropdown)}
               className="flex items-center space-x-2 text-gray-300 hover:text-white"
             >
-              <span>Recent Chats</span>
+              <span>Conversas recentes</span>
               <ChevronDown className="h-4 w-4" />
             </button>
           </div>
@@ -619,7 +648,7 @@ const ChatPage: React.FC = () => {
             }}
             className="px-3 py-1 bg-pink-500 text-white rounded-lg text-sm hover:bg-pink-600 transition-colors"
           >
-            New Chat
+            Nova conversa
           </button>
         </div>
 
@@ -703,7 +732,7 @@ const ChatPage: React.FC = () => {
       </div>
 
       {/* 3. Painel Central-Direito (Janela de Chat) */}
-      <div className="flex-1 bg-gray-900 flex flex-col">
+      <div className="flex-1 bg-slate-950 flex flex-col">
         {currentConversation ? (
           <>
             {/* Cabeçalho do Chat com animação */}
@@ -740,10 +769,7 @@ const ChatPage: React.FC = () => {
               
               <div className="flex items-center space-x-2 relative z-10">
                 <button 
-                  onClick={() => {
-                    // TODO: Implementar chamada de vídeo
-                    console.log('Iniciar chamada de vídeo com', currentContact?.name);
-                  }}
+                  onClick={() => handleStartCall('video')}
                   className="p-2 hover:bg-gray-700 rounded-lg transition-all hover:scale-110 relative group"
                   title="Chamada de vídeo"
                 >
@@ -751,10 +777,7 @@ const ChatPage: React.FC = () => {
                   <div className="absolute inset-0 rounded-lg bg-pink-500/20 opacity-0 group-hover:opacity-100 transition-opacity animate-pulse"></div>
                 </button>
                 <button 
-                  onClick={() => {
-                    // TODO: Implementar chamada de áudio
-                    console.log('Iniciar chamada de áudio com', currentContact?.name);
-                  }}
+                  onClick={() => handleStartCall('audio')}
                   className="p-2 hover:bg-gray-700 rounded-lg transition-all hover:scale-110 relative group"
                   title="Chamada de áudio"
                 >
@@ -763,6 +786,23 @@ const ChatPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {activeCall && (
+              <div className="mx-4 mt-4 rounded-2xl border border-indigo-400/30 bg-gradient-to-r from-indigo-900/70 via-purple-900/70 to-fuchsia-900/70 p-4 shadow-xl">
+                <div className="flex items-center gap-4">
+                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-400/20">
+                    <GraduationCap className="h-7 w-7 text-indigo-200 animate-bounce" />
+                    <span className="absolute inset-0 rounded-2xl border border-indigo-300/50 animate-ping" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-indigo-200">UniDate em chamada</p>
+                    <h4 className="mt-1 font-semibold text-white">Conectando à rotina da faculdade</h4>
+                    <p className="mt-1 text-sm text-indigo-100/80">{activeCall === 'video' ? 'Vídeo' : 'Áudio'} com {currentContact?.name}. Ideias, aulas e projetos mais perto de você.</p>
+                  </div>
+                  <button type="button" onClick={() => setActiveCall(null)} className="rounded-lg px-3 py-2 text-sm text-indigo-100 hover:bg-white/10">Encerrar</button>
+                </div>
+              </div>
+            )}
 
             {/* Área de Mensagens */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -824,8 +864,7 @@ const ChatPage: React.FC = () => {
                 <button 
                   type="button" 
                   onClick={() => {
-                    // TODO: Implementar seletor de emoji
-                    console.log('Abrir seletor de emoji');
+                    setNewMessage((current) => `${current}${current ? ' ' : ''}😊`);
                   }}
                   className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                   title="Emoji"
@@ -858,7 +897,7 @@ const ChatPage: React.FC = () => {
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type a message here"
+                  placeholder="Escreva uma mensagem…"
                   className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                 />
                 
@@ -915,14 +954,14 @@ const ChatPage: React.FC = () => {
 
       {/* 4. Painel Direito (Informações do Contato) */}
       {currentContact && (
-        <div className="w-80 bg-gray-800 border-l border-gray-700 flex flex-col">
+        <div className="w-80 bg-slate-900/95 border-l border-slate-800 flex flex-col">
           {/* Cabeçalho Superior */}
           <div className="p-4 border-b border-gray-700">
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Q Search here"
+                placeholder="Buscar no chat"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
@@ -930,7 +969,7 @@ const ChatPage: React.FC = () => {
             </div>
             <div className="flex items-center justify-between">
               <button 
-                onClick={() => navigate('/dashboard')}
+                onClick={() => showInfo('Central de notificações', 'Você verá aqui avisos de mensagens, grupos e eventos.')}
                 className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
                 title="Notificações"
               >
@@ -967,7 +1006,7 @@ const ChatPage: React.FC = () => {
                       className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-600 flex items-center space-x-2"
                     >
                       <User className="h-4 w-4" />
-                      <span>Profile</span>
+                  <span>Meu perfil</span>
                     </button>
                     <button 
                       onClick={() => {
@@ -977,7 +1016,7 @@ const ChatPage: React.FC = () => {
                       className="w-full px-4 py-2 text-left text-gray-300 hover:bg-gray-600 flex items-center space-x-2"
                     >
                       <Settings className="h-4 w-4" />
-                      <span>Settings</span>
+                      <span>Configurações</span>
                     </button>
                     <hr className="my-2 border-gray-600" />
                     <button
@@ -989,7 +1028,7 @@ const ChatPage: React.FC = () => {
                       className="w-full px-4 py-2 text-left text-red-400 hover:bg-gray-600 flex items-center space-x-2"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span>Sign Out</span>
+                      <span>Sair</span>
                     </button>
                   </div>
                 )}

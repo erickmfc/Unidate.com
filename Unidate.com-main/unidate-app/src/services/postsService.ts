@@ -254,8 +254,8 @@ export class PostsService {
         .from('posts')
         .select(`
           *,
-          author:profiles(id, display_name, photo_url, course, university),
-          likes:likes(user_id)
+          author:profiles!posts_author_id_fkey(id, display_name, photo_url, course, university),
+          likes:likes!likes_post_id_fkey(user_id)
         `)
         .contains('hashtags', [hashtag.toLowerCase().replace('#', '')])
         .order('created_at', { ascending: false })

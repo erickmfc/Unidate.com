@@ -62,6 +62,8 @@ export class ChatService {
       throw new Error('Destinatário inválido');
     }
 
+    // A função RPC cria os dois participantes em uma transação protegida.
+    // Inserir o segundo participante pelo navegador é bloqueado pela política RLS.
     const { data, error } = await supabase.rpc('create_direct_chat', {
       target_user_id: userId2,
     });
@@ -73,8 +75,10 @@ export class ChatService {
 
   static async sendMessage(chatId: string, senderId: string, senderName: string, content: string,
     type: 'text' | 'image' | 'file' | 'system' = 'text', replyTo?: string): Promise<string> {
+    const { data: authData } = await supabase.auth.getUser();
+    const effectiveSenderId = authData.user?.id || senderId;
     const { data, error } = await supabase.from('messages').insert({
-      chat_id: chatId, sender_id: senderId, sender_name: senderName, content, type,
+      chat_id: chatId, sender_id: effectiveSenderId, sender_name: senderName, content, type,
       reply_to: replyTo || null, is_read: false,
     }).select('id').single();
     if (error || !data) throw error || new Error('Não foi possível enviar a mensagem');
