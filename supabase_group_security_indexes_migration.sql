@@ -2,6 +2,7 @@
 -- Applied to project xrwsmxqxqzrqzqmyjcwt on 2026-09-22.
 
 revoke execute on function public.sync_group_member_count() from anon, authenticated;
+revoke execute on function public.sync_group_member_count() from public;
 revoke execute on function public.create_direct_chat(uuid) from anon;
 revoke execute on function public.get_active_people_count() from anon;
 revoke execute on function public.send_chat_message(uuid, text, text, uuid) from anon;
