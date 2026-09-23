@@ -87,8 +87,6 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
       {isAutomated && (
         <span
           className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-sm"
-          title="Personagem virtual"
-          aria-label="Personagem virtual"
         />
       )}
     </div>

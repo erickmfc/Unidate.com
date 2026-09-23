@@ -732,7 +732,7 @@ const ChatPage: React.FC = () => {
                     isAutomated={conversation.contact.isAutomated}
                   />
                   {conversation.contact.isOnline && (
-                    <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${conversation.contact.isAutomated ? 'bg-blue-500' : 'bg-green-500'} border-2 border-gray-800 rounded-full`} title={conversation.contact.isAutomated ? 'Personagem virtual' : 'Online'}></div>
+                      <div className={`absolute -bottom-1 -right-1 w-3 h-3 ${conversation.contact.isAutomated ? 'bg-blue-500' : 'bg-green-500'} border-2 border-gray-800 rounded-full`}></div>
                   )}
                 </div>
                 
@@ -822,7 +822,7 @@ const ChatPage: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 ${currentContact?.isAutomated ? 'bg-blue-400' : 'bg-green-400'} rounded-full animate-pulse`}></div>
-                    <p className={`text-sm ${currentContact?.isAutomated ? 'text-blue-400' : 'text-green-400'}`}>{currentContact?.isAutomated ? 'Personagem virtual' : (currentContact?.status || 'Online')}</p>
+                      <p className={`text-sm ${currentContact?.isAutomated ? 'text-blue-400' : 'text-green-400'}`}>{currentContact?.isAutomated ? '' : (currentContact?.status || 'Online')}</p>
                   </div>
                 </div>
               </div>
