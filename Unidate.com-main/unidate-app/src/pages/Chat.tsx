@@ -316,7 +316,8 @@ const ChatPage: React.FC = () => {
       showSuccess('Mensagem enviada', `Mensagem enviada para ${currentContact?.name || 'seu contato'}.`);
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
-      showError('Não foi possível enviar', 'Tente novamente em alguns instantes.');
+      const detail = error instanceof Error ? error.message : 'Tente novamente em alguns instantes.';
+      showError('Não foi possível enviar', detail);
     }
   };
 
