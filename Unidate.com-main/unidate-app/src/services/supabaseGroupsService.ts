@@ -175,6 +175,15 @@ export class SupabaseGroupsService {
     if (error) throw error;
   }
 
+  static async deleteGroup(groupId: string, userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('groups')
+      .delete()
+      .eq('id', groupId)
+      .eq('created_by', userId);
+    if (error) throw error;
+  }
+
   static async addEditor(groupId: string, userId: string): Promise<void> {
     const { data, error } = await supabase.from('groups').select('editors').eq('id', groupId).single();
     if (error) throw error;

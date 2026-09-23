@@ -174,6 +174,19 @@ const GroupDetails: React.FC = () => {
     }
   };
 
+  const handleDeleteGroup = async () => {
+    if (!currentUser || !group || !group.isOwner) return;
+    if (!window.confirm(`Excluir o grupo "${group.name}"? Esta ação não pode ser desfeita.`)) return;
+    try {
+      await SupabaseGroupsService.deleteGroup(group.id, currentUser.uid);
+      showSuccess('Grupo excluído com sucesso.');
+      navigate('/groups');
+    } catch (error) {
+      console.error('Erro ao excluir grupo:', error);
+      showError('Não foi possível excluir o grupo.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -348,6 +361,14 @@ const GroupDetails: React.FC = () => {
                     >
                       Editar informações do grupo
                     </button>
+                    {group.isOwner && (
+                      <button
+                        onClick={handleDeleteGroup}
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                      >
+                        Excluir grupo
+                      </button>
+                    )}
                   )}
 
                   <button 
