@@ -42,6 +42,7 @@ const AdvancedAnalytics = lazy(() => import('./components/Admin/Analytics/Advanc
 const NotificationSystem = lazy(() => import('./components/Admin/Notifications/NotificationSystem'));
 const AdvancedReports = lazy(() => import('./components/Admin/Reports/AdvancedReports'));
 const AIControlPage = lazy(() => import('./pages/admin/AIControlPage'));
+const AutomatedActivityPage = lazy(() => import('./pages/admin/AutomatedActivityPage'));
 const SOSPage = lazy(() => import('./pages/SOSPage'));
 const AnonymousWallPage = lazy(() => import('./pages/AnonymousWallPage'));
 const Events = lazy(() => import('./pages/Events'));
@@ -277,6 +278,14 @@ const AppContent: React.FC = () => {
                 <AIControlPage />
               </AdminRoute>
             } 
+          />
+          <Route
+            path="/admin/automated-activity"
+            element={
+              <AdminRoute>
+                <AutomatedActivityPage />
+              </AdminRoute>
+            }
           />
           <Route 
             path="/admin/users" 
