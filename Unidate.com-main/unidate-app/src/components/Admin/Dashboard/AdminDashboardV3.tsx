@@ -54,6 +54,15 @@ const AdminDashboardV3: React.FC = () => {
   const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d'>('24h');
+  const [maintenanceMode, setMaintenanceMode] = useState(() =>
+    window.localStorage.getItem('unidate:maintenance-mode') === 'on'
+  );
+
+  const toggleMaintenanceMode = () => {
+    const next = !maintenanceMode;
+    setMaintenanceMode(next);
+    window.localStorage.setItem('unidate:maintenance-mode', next ? 'on' : 'off');
+  };
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -319,13 +328,13 @@ const AdminDashboardV3: React.FC = () => {
           </button>
           
           <button 
-            onClick={() => alert('Funcionalidade de manutenção será implementada em breve')}
+            onClick={toggleMaintenanceMode}
             className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Settings className="h-5 w-5 text-purple-500" />
             <div className="text-left">
-              <p className="font-medium text-gray-900">Ativar Modo Manutenção</p>
-              <p className="text-sm text-gray-500">Manter o sistema offline</p>
+              <p className="font-medium text-gray-900">{maintenanceMode ? 'Desativar Modo Manutenção' : 'Ativar Modo Manutenção'}</p>
+              <p className="text-sm text-gray-500">{maintenanceMode ? 'Sistema marcado como em manutenção' : 'Manter o sistema offline'}</p>
             </div>
           </button>
         </div>
