@@ -52,6 +52,7 @@ const SimpleAdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     { id: 'dashboard', name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
     { id: 'analytics', name: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
     { id: 'ai-control', name: 'Controle de IA', href: '/admin/ai-control', icon: Bot },
+    { id: 'automated-activity', name: 'Atividade Automatizada', href: '/admin/automated-activity', icon: Bot },
     { id: 'notifications', name: 'Notificações', href: '/admin/notifications', icon: Bell },
     { id: 'reports', name: 'Relatórios', href: '/admin/reports', icon: FileText },
     { id: 'users', name: 'Usuários', href: '/admin/users', icon: Users },
