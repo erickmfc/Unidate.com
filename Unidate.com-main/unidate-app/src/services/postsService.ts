@@ -145,10 +145,7 @@ export class PostsService {
       console.log(`✅ ${posts.length} posts carregados do Supabase`);
       return posts;
     } catch (error) {
-      const details = error && typeof error === 'object'
-        ? JSON.stringify(error)
-        : String(error);
-      console.error('❌ Erro ao carregar posts do Supabase:', details);
+      console.error('❌ Erro ao carregar posts do Supabase:', error);
       throw error instanceof Error ? error : new Error('Falha ao carregar as publicações.');
     }
   }
