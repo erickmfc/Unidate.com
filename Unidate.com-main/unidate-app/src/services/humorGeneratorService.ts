@@ -55,6 +55,12 @@ export class HumorGeneratorService {
   static async generateReply(context: string): Promise<string> {
     const normalized = context.toLowerCase().trim();
     if (!normalized) return 'Pode me contar um pouco mais?';
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-bot-reply', { body: { message: context, botName: 'UniDate sem contexto', personality: 'acolhedora e bem-humorada' } });
+      if (!error && typeof data?.content === 'string' && data.content.trim()) return data.content.trim();
+    } catch {
+      // A resposta local continua disponível quando a função de IA não está configurada.
+    }
     if (normalized.includes('prova') || normalized.includes('estudar')) return 'Entendi. Se puder, separa a matéria em blocos pequenos e combina uma revisão com alguém da turma. Qual disciplina está pegando mais?';
     if (normalized.includes('nota') || normalized.includes('5,9')) return 'Nota apertada dá ansiedade mesmo. Vale conferir o critério da avaliação e conversar com o professor sobre a revisão. Você quer ajuda para organizar esse pedido?';
     if (normalized.includes('evento') || normalized.includes('campus')) return 'Boa! Vou procurar o contexto do campus na conversa. Você já sabe a data ou o local para a gente organizar a informação?';
