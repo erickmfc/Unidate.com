@@ -71,16 +71,14 @@ export class ChatService {
 
   static async sendMessage(chatId: string, senderId: string, senderName: string, content: string,
     type: 'text' | 'image' | 'file' | 'system' = 'text', replyTo?: string): Promise<string> {
-    const { data: authData } = await supabase.auth.getUser();
-    const effectiveSenderId = authData.user?.id || senderId;
-    const { data, error } = await supabase.from('messages').insert({
-      chat_id: chatId, sender_id: effectiveSenderId, sender_name: senderName, content, type,
-      reply_to: replyTo || null, is_read: false,
-    }).select('id').single();
+    const { data, error } = await supabase.rpc('send_chat_message', {
+      target_chat_id: chatId,
+      message_content: content,
+      message_type: type,
+      reply_to_message_id: replyTo || null,
+    });
     if (error || !data) throw error || new Error('Não foi possível enviar a mensagem');
-    const { error: chatUpdateError } = await supabase.from('chats').update({ last_message: content, last_message_at: new Date().toISOString() }).eq('id', chatId);
-    if (chatUpdateError) throw chatUpdateError;
-    return data.id;
+    return data as string;
   }
 
   static async getChatMessages(chatId: string, limitCount = 50): Promise<ChatMessage[]> {
