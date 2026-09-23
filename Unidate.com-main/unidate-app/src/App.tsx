@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useLayoutEffect } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SiteActivityTracker from './components/SiteActivityTracker';
@@ -75,8 +75,15 @@ const AppContent: React.FC = () => {
   const { loading } = useAuth();
   const location = useLocation();
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    window.history.scrollRestoration = 'manual';
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+    const frame = window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, [location.pathname]);
 
   if (loading) {
