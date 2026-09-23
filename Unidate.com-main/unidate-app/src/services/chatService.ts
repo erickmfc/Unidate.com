@@ -75,8 +75,8 @@ export class ChatService {
 
   static async sendMessage(chatId: string, senderId: string, senderName: string, content: string,
     type: 'text' | 'image' | 'file' | 'system' = 'text', replyTo?: string): Promise<string> {
-    const { data: authData } = await supabase.auth.getUser();
-    const effectiveSenderId = authData.user?.id || senderId;
+    const authResult = await supabase.auth?.getUser?.();
+    const effectiveSenderId = authResult?.data?.user?.id || senderId;
     const { data, error } = await supabase.from('messages').insert({
       chat_id: chatId, sender_id: effectiveSenderId, sender_name: senderName, content, type,
       reply_to: replyTo || null, is_read: false,

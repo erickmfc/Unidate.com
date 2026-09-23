@@ -66,7 +66,6 @@ const ChatPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, userProfile, logoutUser } = useAuth();
-  const { showError, showSuccess } = useUniDateToast();
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
