@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { registerUser, isInstitutionalEmail } from '../../firebase/auth';
+import { registerUser, isInstitutionalEmail } from '../../services/supabaseAuth';
 import { universities } from '../../data/universities';
 import { personalityQuestions, getRandomQuestions } from '../../data/personalityQuestions';
 import { 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { signInWithGooglePopup } from '../../firebase/googleAuth';
+import { signInWithGooglePopup } from '../../services/supabaseGoogleAuth';
 import { Loader2 } from 'lucide-react';
 
 interface GoogleSignInButtonProps {

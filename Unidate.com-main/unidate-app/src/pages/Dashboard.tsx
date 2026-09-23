@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useUniDateToast } from '../components/UI/Toast';
 import { DashboardService, UserStats, RecentActivity } from '../services/dashboardService';
-import { updateUserProfile } from '../firebase/auth';
+import { updateUserProfile } from '../services/supabaseAuth';
 import {
   Heart,
   Users,

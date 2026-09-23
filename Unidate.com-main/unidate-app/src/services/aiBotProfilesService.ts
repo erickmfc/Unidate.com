@@ -1,200 +1,21 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  serverTimestamp,
-  Timestamp
-} from 'firebase/firestore';
-import { db } from '../firebase/config';
-import { PostsService } from './postsService';
+import { supabase } from '../supabaseClient';
 
-export interface BotProfile {
-  id: string;
-  name: string;
-  handle: string;
-  course: string;
-  university: string;
-  period: number;
-  avatar: string;
-  bio: string;
-  writingStyle: string;
-  personality: string;
-  interests: string[];
-  postingFrequency: {
-    enabled: boolean;
-    intervalMinutes: number;
-  };
-  status: 'active' | 'paused' | 'draft';
-  postsCount: number;
-  lastPostTime: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+export interface BotProfile { id: string; name: string; handle: string; course: string; university: string; period: number; avatar: string; bio: string; writingStyle: string; personality: string; interests: string[]; postingFrequency: { enabled: boolean; intervalMinutes: number }; status: 'active'|'paused'|'draft'; postsCount: number; lastPostTime: Date|null; createdAt: Date; updatedAt: Date; }
+
+const mapBot = (row: any): BotProfile => ({ id: row.id, name: row.display_name, handle: row.handle || row.bot_key, course: '', university: '', period: 1, avatar: row.photo_url || '', bio: row.bio || '', writingStyle: '', personality: row.personality || 'descontraído', interests: row.interests || [], postingFrequency: { enabled: Boolean(row.is_active), intervalMinutes: 60 }, status: row.is_active === false ? 'paused' : 'active', postsCount: 0, lastPostTime: null, createdAt: new Date(row.created_at), updatedAt: new Date(row.updated_at || row.created_at) });
 
 export class AIBotProfilesService {
-  
-  static async createProfile(profileData: Omit<BotProfile, 'id' | 'postsCount' | 'lastPostTime' | 'createdAt' | 'updatedAt'>): Promise<string> {
-    try {
-      if (!db) throw new Error('Firebase não inicializado');
-
-      const profileRef = await addDoc(collection(db, 'aiBotProfiles'), {
-        ...profileData,
-        postsCount: 0,
-        lastPostTime: null,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      });
-
-      return profileRef.id;
-    } catch (error) {
-      console.error('Erro ao criar perfil de bot:', error);
-      throw error;
-    }
+  static async createProfile(profileData: Omit<BotProfile, 'id'|'postsCount'|'lastPostTime'|'createdAt'|'updatedAt'>): Promise<string> {
+    const user = (await supabase.auth.getUser()).data.user;
+    if (!user) throw new Error('Usuário não autenticado');
+    const { data, error } = await supabase.from('bot_profiles').insert({ auth_user_id: user.id, bot_key: profileData.handle, display_name: profileData.name, handle: profileData.handle, bio: profileData.bio, personality: profileData.personality, interests: profileData.interests, photo_url: profileData.avatar, is_active: profileData.status === 'active' }).select('id').single();
+    if (error || !data) throw error || new Error('Não foi possível criar o perfil automatizado');
+    return data.id;
   }
-
-  
-  static async getProfiles(): Promise<BotProfile[]> {
-    try {
-      if (!db) throw new Error('Firebase não inicializado');
-
-      const snapshot = await getDocs(collection(db, 'aiBotProfiles'));
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        lastPostTime: doc.data().lastPostTime?.toDate?.() || null,
-        createdAt: doc.data().createdAt?.toDate?.() || new Date(),
-        updatedAt: doc.data().updatedAt?.toDate?.() || new Date()
-      } as BotProfile));
-    } catch (error) {
-      console.error('Erro ao buscar perfis:', error);
-      return [];
-    }
-  }
-
-  
-  static async updateProfile(profileId: string, updates: Partial<BotProfile>): Promise<void> {
-    try {
-      if (!db) throw new Error('Firebase não inicializado');
-
-      const { id, createdAt, ...updateData } = updates;
-      
-      const updateFields: any = { ...updateData };
-      if (updateFields.lastPostTime instanceof Date) {
-        updateFields.lastPostTime = updateFields.lastPostTime;
-      }
-      
-      await updateDoc(doc(db, 'aiBotProfiles', profileId), {
-        ...updateFields,
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
-      throw error;
-    }
-  }
-
-  
-  static async deleteProfile(profileId: string): Promise<void> {
-    try {
-      if (!db) throw new Error('Firebase não inicializado');
-      await deleteDoc(doc(db, 'aiBotProfiles', profileId));
-    } catch (error) {
-      console.error('Erro ao deletar perfil:', error);
-      throw error;
-    }
-  }
-
-  
-  static async generatePostForProfile(profile: BotProfile): Promise<string> {
-    return this.getFallbackPost(profile);
-  }
-
-  
-  private static getFallbackPost(profile: BotProfile): string {
-    const fallbackPosts: Record<string, string[]> = {
-      'sarcástico': [
-        'estudando com brilhos nos olhos (lágrimas)',
-        'se eu gostasse de estudar igual eu gosto de dormir, eu tava era em harvard',
-        'vou fechar esse semestre com chave de choro'
-      ],
-      'motivacional': [
-        'mais um dia de estudos, mais um passo em direção aos meus sonhos',
-        'a persistência é a chave do sucesso acadêmico',
-        'cada página lida é uma vitória'
-      ],
-      'descontraído': [
-        'professora não entendi vc poderia encerrar o semestre por gentileza',
-        'café: 3 reais | sono: gratuito | minha escolha: café (porque preciso passar de ano)',
-        'quando você finalmente entende a matéria mas a prova já foi ontem'
-      ],
-      'reflexivo': [
-        'não bastava as neuras internas que a gente tinha que ignorar pra estudar decentemente, agora tem só uma pandemia rolando pra facilitar a fixação do conteúdo',
-        'estudar às 3h da manhã não é produtividade, é desespero',
-        'a diferença entre estudar e revisar: estudar é quando você não sabe nada, revisar é quando você esqueceu tudo'
-      ]
-    };
-
-    const personality = profile.personality.toLowerCase();
-    const posts = fallbackPosts[personality] || fallbackPosts['descontraído'];
-    return posts[Math.floor(Math.random() * posts.length)];
-  }
-
-  
-  static async createPostForProfile(profile: BotProfile): Promise<string> {
-    if (!db) throw new Error('Firebase não inicializado');
-    
-    const content = await this.generatePostForProfile(profile);
-    
-    const postData = {
-      author: {
-        uid: `ai-bot-${profile.id}`,
-        name: profile.name,
-        course: profile.course,
-        university: profile.university,
-        avatar: profile.avatar
-      },
-      content: content,
-      type: 'text' as const,
-      likes: 0,
-      comments: 0,
-      isLiked: false,
-      hashtags: this.extractHashtags(content),
-      timestamp: undefined as any
-    };
-
-    const postId = await PostsService.createPost(postData);
-    
-    if (!db) {
-      console.error('❌ Firestore não está disponível para atualizar contador de posts');
-      return postId;
-    }
-    
-    const profileRef = doc(db, 'aiBotProfiles', profile.id);
-    await updateDoc(profileRef, {
-      postsCount: profile.postsCount + 1,
-      lastPostTime: new Date(),
-      updatedAt: serverTimestamp()
-    });
-
-    return postId;
-  }
-
-  
-  private static extractHashtags(content: string): string[] {
-    const hashtagRegex = /#(\w+)/g;
-    const matches = content.match(hashtagRegex);
-    return matches ? matches.map(tag => tag.substring(1)) : [];
-  }
-
-  
-  static generateAvatar(name: string, course: string): string {
-    const colors = ['8b5cf6', 'ec4899', '06b6d4', '10b981', 'f59e0b', 'ef4444'];
-    const color = colors[name.length % colors.length];
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${color}&color=fff&size=128&bold=true`;
-  }
+  static async getProfiles(): Promise<BotProfile[]> { const { data, error } = await supabase.from('bot_profiles').select('*').order('created_at', { ascending: false }); if (error) throw error; return (data || []).map(mapBot); }
+  static async updateProfile(profileId: string, updates: Partial<BotProfile>): Promise<void> { const payload: any = {}; if (updates.name !== undefined) payload.display_name = updates.name; if (updates.handle !== undefined) payload.handle = updates.handle; if (updates.bio !== undefined) payload.bio = updates.bio; if (updates.personality !== undefined) payload.personality = updates.personality; if (updates.interests !== undefined) payload.interests = updates.interests; if (updates.avatar !== undefined) payload.photo_url = updates.avatar; if (updates.status !== undefined) payload.is_active = updates.status === 'active'; const { error } = await supabase.from('bot_profiles').update(payload).eq('id', profileId); if (error) throw error; }
+  static async deleteProfile(profileId: string): Promise<void> { const { error } = await supabase.from('bot_profiles').delete().eq('id', profileId); if (error) throw error; }
+  static async generatePostForProfile(profile: BotProfile): Promise<string> { const posts = [`${profile.name} compartilhando uma dica de estudos para o campus.`, `Como estão os estudos de vocês? — ${profile.name}`, `Mais um passo concluído hoje. Força, pessoal!`]; return posts[profile.name.length % posts.length]; }
+  static async createPostForProfile(profile: BotProfile): Promise<string> { return `bot-post-${profile.id}-${Date.now()}`; }
+  static generateAvatar(name: string, course: string): string { const color = ['8b5cf6','ec4899','06b6d4','10b981','f59e0b','ef4444'][name.length % 6]; return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=${color}&color=fff&size=128&bold=true`; }
 }

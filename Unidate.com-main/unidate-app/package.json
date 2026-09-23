@@ -14,7 +14,6 @@
     "@types/react-dom": "^18.0.6",
     "@types/react-router-dom": "^5.3.3",
     "autoprefixer": "^10.4.16",
-    "firebase": "^10.14.1",
     "lucide-react": "^0.294.0",
     "postcss": "^8.4.32",
     "react": "^18.2.0",

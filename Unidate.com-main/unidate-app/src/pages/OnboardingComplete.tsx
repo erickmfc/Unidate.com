@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { updateUserProfile } from '../firebase/auth';
+import { updateUserProfile } from '../services/supabaseAuth';
 import { useAuth } from '../contexts/AuthContext';
 import { ProfilePhotoService } from '../services/profilePhotoService';
 import { useUniDateToast } from '../components/UI/Toast';

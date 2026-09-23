@@ -138,7 +138,7 @@ const ChatPage: React.FC = () => {
     }
   ];
 
-  // Carregar conversas reais do Firebase
+  // Carregar conversas reais do Supabase
   useEffect(() => {
     const loadConversations = async () => {
       if (!currentUser?.uid) return;
@@ -1041,7 +1041,7 @@ const ChatPage: React.FC = () => {
                 const tag = prompt('Digite uma tag para este contato:');
                 if (tag && tag.trim()) {
                   console.log('Adicionar tag:', tag, 'para', currentContact?.name);
-                  // TODO: Salvar tag no Firebase
+                  // TODO: Persistir tag no Supabase
                 }
               }}
               className="w-full flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
@@ -1056,7 +1056,7 @@ const ChatPage: React.FC = () => {
                 const rating = prompt('Avalie esta conversa (1-5 estrelas):');
                 if (rating && !isNaN(Number(rating)) && Number(rating) >= 1 && Number(rating) <= 5) {
                   console.log('Avaliação:', rating, 'estrelas para', currentContact?.name);
-                  // TODO: Salvar avaliação no Firebase
+                  // TODO: Persistir avaliação no Supabase
                 }
               }}
               className="w-full flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"

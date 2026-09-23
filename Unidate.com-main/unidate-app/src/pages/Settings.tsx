@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { updateUserProfile } from '../firebase/auth';
+import { updateUserProfile } from '../services/supabaseAuth';
 import { ProfilePhotoService } from '../services/profilePhotoService';
 import { useUniDateToast } from '../components/UI/Toast';
 import { 
@@ -131,10 +131,6 @@ const Settings: React.FC = () => {
 
       if (selectedFile) {
         try {
-          if (userProfile?.photoURL && userProfile.photoURL.includes('firebasestorage.googleapis.com')) {
-            await ProfilePhotoService.deleteProfilePhoto(userProfile.photoURL);
-          }
-
           photoURL = await ProfilePhotoService.uploadProfilePhoto(selectedFile, currentUser.uid);
           showSuccess('Foto de perfil atualizada com sucesso! 📸');
         } catch (uploadError: any) {

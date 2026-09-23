@@ -43,10 +43,10 @@ const UserManagement: React.FC = () => {
         setLoading(true);
         console.log('📊 Carregando usuários do admin...');
         
-        const firebaseUsers = await AdminUsersService.getUsers(200);
+        const supabaseUsers = await AdminUsersService.getUsers(200);
         
-        console.log(`✅ ${firebaseUsers.length} usuários carregados`);
-        setUsers(firebaseUsers);
+        console.log(`✅ ${supabaseUsers.length} usuários carregados`);
+        setUsers(supabaseUsers);
       } catch (error) {
         console.error('❌ Erro ao carregar usuários:', error);
         setUsers([]);

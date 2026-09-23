@@ -154,6 +154,27 @@ export class SupabaseGroupsService {
     if (error) throw error;
   }
 
+  static async updateGroup(groupId: string, userId: string, updates: {
+    name?: string;
+    description?: string;
+    category?: string;
+    university?: string;
+    tags?: string[];
+    maxMembers?: number;
+    isPublic?: boolean;
+  }): Promise<void> {
+    const payload: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (updates.name !== undefined) payload.name = updates.name.trim();
+    if (updates.description !== undefined) payload.description = updates.description.trim();
+    if (updates.category !== undefined) payload.category = updates.category;
+    if (updates.university !== undefined) payload.university = updates.university;
+    if (updates.tags !== undefined) payload.tags = updates.tags;
+    if (updates.maxMembers !== undefined) payload.max_members = updates.maxMembers;
+    if (updates.isPublic !== undefined) payload.is_public = updates.isPublic;
+    const { error } = await supabase.from('groups').update(payload).eq('id', groupId).eq('created_by', userId);
+    if (error) throw error;
+  }
+
   static async addEditor(groupId: string, userId: string): Promise<void> {
     const { data, error } = await supabase.from('groups').select('editors').eq('id', groupId).single();
     if (error) throw error;

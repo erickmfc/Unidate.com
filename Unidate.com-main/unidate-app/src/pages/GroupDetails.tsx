@@ -60,6 +60,9 @@ const GroupDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showEditorsModal, setShowEditorsModal] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({ name: '', description: '', category: '', university: '' });
+  const [editImage, setEditImage] = useState('');
 
   useEffect(() => {
     if (groupId) {
@@ -85,6 +88,8 @@ const GroupDetails: React.FC = () => {
           isOwner: isUserOwner,
           isEditor: isUserEditor
         });
+        setEditForm({ name: foundGroup.name, description: foundGroup.description, category: foundGroup.category, university: foundGroup.university });
+        setEditImage(foundGroup.image || '');
       } else {
         console.error('Grupo não encontrado');
         navigate('/groups');
@@ -123,9 +128,7 @@ const GroupDetails: React.FC = () => {
       
       let errorMessage = 'Erro ao atualizar grupo. Tente novamente.';
       
-      if (error.message.includes('Firebase não inicializado')) {
-        errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
-      } else if (error.message.includes('Grupo não encontrado')) {
+      if (error.message.includes('Grupo não encontrado')) {
         errorMessage = 'Grupo não encontrado. Ele pode ter sido removido.';
       } else if (error.message.includes('permission')) {
         errorMessage = 'Você não tem permissão para realizar esta ação.';
@@ -152,6 +155,22 @@ const GroupDetails: React.FC = () => {
     } catch (error) {
       console.error('Erro ao atualizar foto do grupo:', error);
       showError('Erro ao atualizar foto do grupo. Tente novamente.');
+    }
+  };
+
+  const handleSaveGroup = async () => {
+    if (!currentUser || !groupId || !group || !editForm.name.trim()) return;
+    try {
+      await SupabaseGroupsService.updateGroup(groupId, currentUser.uid, editForm);
+      if (editImage.trim() !== (group.image || '')) {
+        await SupabaseGroupsService.updateGroupImage(groupId, currentUser.uid, editImage.trim());
+      }
+      setShowEditModal(false);
+      await loadGroupDetails();
+      showSuccess('Informações do grupo atualizadas!');
+    } catch (error) {
+      console.error('Erro ao atualizar grupo:', error);
+      showError('Não foi possível salvar as informações do grupo.');
     }
   };
 
@@ -312,13 +331,22 @@ const GroupDetails: React.FC = () => {
                     {group.isJoined ? 'Sair do Grupo' : 'Entrar no Grupo'}
                   </button>
 
-                  {(group.isOwner || group.isEditor) && (
+                  {group.isOwner && (
                     <button
                       onClick={() => setShowEditorsModal(true)}
                       className="w-full px-4 py-2 bg-purple-100 text-purple-700 rounded-lg font-medium hover:bg-purple-200 transition-colors flex items-center justify-center space-x-2"
                     >
                       <Shield className="h-4 w-4" />
                       <span>Gerenciar Editores</span>
+                    </button>
+                  )}
+
+                  {group.isOwner && (
+                    <button
+                      onClick={() => setShowEditModal(true)}
+                      className="w-full px-4 py-2 bg-white border border-purple-200 text-purple-700 rounded-lg font-medium hover:bg-purple-50 transition-colors"
+                    >
+                      Editar informações do grupo
                     </button>
                   )}
 
@@ -377,6 +405,33 @@ const GroupDetails: React.FC = () => {
           currentEditors={group.editors}
           onEditorsUpdated={handleEditorsUpdated}
         />
+      )}
+
+      {showEditModal && group && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-lg w-full p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Editar grupo</h2>
+              <button onClick={() => setShowEditModal(false)} className="text-gray-500">Fechar</button>
+            </div>
+            {([['name', 'Nome'], ['description', 'Descrição'], ['category', 'Categoria'], ['university', 'Universidade']] as const).map(([key, label]) => (
+              <label key={key} className="block text-sm font-medium text-gray-700">
+                {label}
+                {key === 'description' ? (
+                  <textarea value={editForm[key]} onChange={event => setEditForm(prev => ({ ...prev, [key]: event.target.value }))} rows={3} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+                ) : (
+                  <input value={editForm[key]} onChange={event => setEditForm(prev => ({ ...prev, [key]: event.target.value }))} className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+                )}
+              </label>
+            ))}
+            <label className="block text-sm font-medium text-gray-700">
+              URL da imagem de capa
+              <input value={editImage} onChange={event => setEditImage(event.target.value)} placeholder="https://..." className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2" />
+              <span className="mt-1 block text-xs font-normal text-gray-500">Cole um link público de imagem para atualizar a capa.</span>
+            </label>
+            <button onClick={handleSaveGroup} disabled={!editForm.name.trim()} className="w-full rounded-lg bg-purple-600 px-4 py-2 text-white disabled:opacity-50">Salvar alterações</button>
+          </div>
+        </div>
       )}
 
       {}

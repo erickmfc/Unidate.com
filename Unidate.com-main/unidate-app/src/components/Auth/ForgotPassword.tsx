@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Send } from 'lucide-react';
-import { resetPassword } from '../../firebase/auth';
+import { resetPassword } from '../../services/supabaseAuth';
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('');

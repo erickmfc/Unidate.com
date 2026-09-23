@@ -3,10 +3,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import ForgotPassword from './ForgotPassword';
 import ResetPassword from './ResetPassword';
-import { resetPassword } from '../../firebase/auth';
+import { resetPassword } from '../../services/supabaseAuth';
 import { supabase } from '../../supabaseClient';
 
-jest.mock('../../firebase/auth', () => ({ resetPassword: jest.fn() }));
+jest.mock('../../services/supabaseAuth', () => ({ resetPassword: jest.fn() }));
 jest.mock('../../supabaseClient', () => ({
   supabase: {
     auth: {

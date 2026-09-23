@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, UserPlus, UserMinus, Crown, Shield, Users } from 'lucide-react';
 import { SupabaseGroupsService } from '../../services/supabaseGroupsService';
 import { useAuth } from '../../contexts/AuthContext';
+import { supabase } from '../../supabaseClient';
 
 interface GroupEditorsModalProps {
   isOpen: boolean;
@@ -92,25 +93,18 @@ const GroupEditorsModal: React.FC<GroupEditorsModalProps> = ({
     }
 
     try {
-      const suggestions: EditorInfo[] = [
-        {
-          uid: 'user1',
-          name: 'João Silva',
-          email: 'joao@exemplo.com',
-          isOwner: false
-        },
-        {
-          uid: 'user2',
-          name: 'Maria Santos',
-          email: 'maria@exemplo.com',
-          isOwner: false
-        }
-      ].filter(user => 
-        user.name.toLowerCase().includes(term.toLowerCase()) ||
-        user.email.toLowerCase().includes(term.toLowerCase())
-      );
-
-      setSuggestedUsers(suggestions);
+      const escaped = term.replace(/[%_]/g, '').trim();
+      const { data, error } = await supabase.from('profiles')
+        .select('id, display_name, email')
+        .or(`display_name.ilike.%${escaped}%,email.ilike.%${escaped}%`)
+        .limit(8);
+      if (error) throw error;
+      setSuggestedUsers((data || []).filter(user => !currentEditors.includes(user.id)).map(user => ({
+        uid: user.id,
+        name: user.display_name || 'Usuário',
+        email: user.email || '',
+        isOwner: user.id === currentUser?.uid,
+      })));
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
     }

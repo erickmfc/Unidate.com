@@ -1,19 +1,3 @@
-import { db } from '../firebase/config';
-import { 
-  collection, 
-  doc, 
-  getDoc, 
-  getDocs, 
-  setDoc, 
-  updateDoc,
-  query,
-  where,
-  orderBy,
-  limit,
-  increment,
-  serverTimestamp,
-  Timestamp
-} from 'firebase/firestore';
 import { GeminiService } from './geminiService';
 import { ResearchPresentation, PresentationSection } from '../types/presentation';
 
@@ -22,33 +6,14 @@ const GEMINI_API_KEYS: string[] = [];
 const getNextApiKey = (): string => '';
 
 export class PresentationService {
+  private static readonly STORAGE_KEY = 'unidate.presentations';
+  private static getStored(): ResearchPresentation[] {
+    try { return JSON.parse(localStorage.getItem(this.STORAGE_KEY) || '[]').map((item: any) => ({ ...item, createdAt: new Date(item.createdAt), updatedAt: new Date(item.updatedAt) })); } catch { return []; }
+  }
   
   static async findExistingPresentation(theme: string): Promise<ResearchPresentation | null> {
-    try {
-      if (!db) return null;
-
-      const normalizedTheme = theme.toLowerCase().trim();
-      const presentationsRef = collection(db, 'presentations');
-      const q = query(
-        presentationsRef,
-        where('themeNormalized', '==', normalizedTheme),
-        where('metadata.isPublic', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(1)
-      );
-
-      const snapshot = await getDocs(q);
-      
-      if (snapshot.empty) {
-        return null;
-      }
-
-      const data = snapshot.docs[0].data();
-      return this.firestoreToPresentation(snapshot.docs[0].id, data);
-    } catch (error) {
-      console.error('Erro ao buscar apresentação existente:', error);
-      return null;
-    }
+    const normalizedTheme = theme.toLowerCase().trim();
+    return this.getStored().find(item => item.theme.toLowerCase().trim() === normalizedTheme && item.metadata.isPublic) || null;
   }
 
   
@@ -904,149 +869,28 @@ Responda APENAS com JSON:
 
   
   static async savePresentation(presentation: ResearchPresentation): Promise<string> {
-    try {
-      if (!db) {
-        console.warn('Firebase não inicializado');
-        return presentation.id;
-      }
-
-      const presentationRef = doc(db, 'presentations', presentation.id);
-      
-      await setDoc(presentationRef, {
-        theme: presentation.theme,
-        themeNormalized: presentation.theme.toLowerCase().trim(),
-        title: presentation.title,
-        subtitle: presentation.subtitle,
-        sections: presentation.sections,
-        metadata: presentation.metadata,
-        createdAt: Timestamp.fromDate(presentation.createdAt),
-        updatedAt: serverTimestamp()
-      });
-
-      console.log('✅ Apresentação salva no Firebase');
-      return presentation.id;
-    } catch (error) {
-      console.error('❌ Erro ao salvar apresentação:', error);
-      return presentation.id;
-    }
+    const stored = this.getStored().filter(item => item.id !== presentation.id);
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify([...stored, presentation]));
+    return presentation.id;
   }
 
   
   static async loadPresentation(presentationId: string): Promise<ResearchPresentation | null> {
-    try {
-      if (!db) return null;
-
-      const presentationRef = doc(db, 'presentations', presentationId);
-      const snapshot = await getDoc(presentationRef);
-
-      if (!snapshot.exists()) {
-        return null;
-      }
-
-      const data = snapshot.data();
-      return this.firestoreToPresentation(snapshot.id, data);
-    } catch (error) {
-      console.error('Erro ao carregar apresentação:', error);
-      return null;
-    }
-  }
-
-  
-  private static firestoreToPresentation(id: string, data: any): ResearchPresentation {
-    return {
-      id,
-      theme: data.theme,
-      title: data.title,
-      subtitle: data.subtitle,
-      createdAt: data.createdAt?.toDate() || new Date(),
-      updatedAt: data.updatedAt?.toDate() || new Date(),
-      sections: data.sections || [],
-      metadata: {
-        authorId: data.metadata?.authorId,
-        authorName: data.metadata?.authorName || 'Sistema',
-        isPublic: data.metadata?.isPublic !== false,
-        isEditable: data.metadata?.isEditable !== false,
-        views: data.metadata?.views || 0,
-        likes: data.metadata?.likes || 0,
-        likedBy: data.metadata?.likedBy || []
-      }
-    };
+    return this.getStored().find(item => item.id === presentationId) || null;
   }
 
   
   static async incrementViews(presentationId: string): Promise<void> {
-    try {
-      if (!db) return;
-
-      const presentationRef = doc(db, 'presentations', presentationId);
-      await updateDoc(presentationRef, {
-        'metadata.views': increment(1),
-        updatedAt: serverTimestamp()
-      });
-    } catch (error) {
-      console.error('Erro ao incrementar visualizações:', error);
-    }
+    const item = await this.loadPresentation(presentationId); if (!item) return; item.metadata.views += 1; item.updatedAt = new Date(); await this.savePresentation(item);
   }
 
   
   static async toggleLike(presentationId: string, userId: string): Promise<boolean> {
-    try {
-      if (!db) return false;
-
-      const presentationRef = doc(db, 'presentations', presentationId);
-      const snapshot = await getDoc(presentationRef);
-
-      if (!snapshot.exists()) return false;
-
-      const data = snapshot.data();
-      const likedBy = data.metadata?.likedBy || [];
-      const isLiked = likedBy.includes(userId);
-
-      if (isLiked) {
-        await updateDoc(presentationRef, {
-          'metadata.likes': increment(-1),
-          'metadata.likedBy': likedBy.filter((id: string) => id !== userId),
-          updatedAt: serverTimestamp()
-        });
-        return false;
-      } else {
-        await updateDoc(presentationRef, {
-          'metadata.likes': increment(1),
-          'metadata.likedBy': [...likedBy, userId],
-          updatedAt: serverTimestamp()
-        });
-        return true;
-      }
-    } catch (error) {
-      console.error('Erro ao alternar like:', error);
-      return false;
-    }
+    const item = await this.loadPresentation(presentationId); if (!item) return false; const liked = item.metadata.likedBy.includes(userId); item.metadata.likedBy = liked ? item.metadata.likedBy.filter(id => id !== userId) : [...item.metadata.likedBy, userId]; item.metadata.likes = item.metadata.likedBy.length; await this.savePresentation(item); return !liked;
   }
 
   
   static async getPublicPresentations(limitCount: number = 10): Promise<ResearchPresentation[]> {
-    try {
-      if (!db) return [];
-
-      const presentationsRef = collection(db, 'presentations');
-      const q = query(
-        presentationsRef,
-        where('metadata.isPublic', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(limitCount)
-      );
-
-      const snapshot = await getDocs(q);
-      const presentations: ResearchPresentation[] = [];
-
-      snapshot.forEach((doc) => {
-        presentations.push(this.firestoreToPresentation(doc.id, doc.data()));
-      });
-
-      return presentations;
-    } catch (error) {
-      console.error('Erro ao buscar apresentações públicas:', error);
-      return [];
-    }
+    return this.getStored().filter(item => item.metadata.isPublic).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, limitCount);
   }
 }

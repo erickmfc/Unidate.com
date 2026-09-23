@@ -17,7 +17,7 @@ import {
   Shield,
   Globe
 } from 'lucide-react';
-import { AdminMetricsService } from '../../../services/firebaseAdmin';
+import { AdminMetricsService } from '../../../services/adminMetricsService';
 
 interface DashboardMetrics {
   activeUsers: number;
@@ -60,17 +60,17 @@ const AdminDashboardV3: React.FC = () => {
       try {
         setLoading(true);
         
-        const firebaseMetrics = await AdminMetricsService.getMetrics();
+        const supabaseMetrics = await AdminMetricsService.getMetrics();
         
         setMetrics({
-          activeUsers: firebaseMetrics.activeUsers,
-          newRegistrations: firebaseMetrics.newUsers,
-          postsLast24h: firebaseMetrics.totalPosts,
-          pendingReports: firebaseMetrics.pendingReports,
-          totalUsers: firebaseMetrics.totalUsers,
-          totalPosts: firebaseMetrics.totalPosts,
-          totalGroups: firebaseMetrics.totalGroups,
-          engagementRate: firebaseMetrics.engagementRate
+          activeUsers: supabaseMetrics.activeUsers,
+          newRegistrations: supabaseMetrics.newUsers,
+          postsLast24h: supabaseMetrics.totalPosts,
+          pendingReports: supabaseMetrics.pendingReports,
+          totalUsers: supabaseMetrics.totalUsers,
+          totalPosts: supabaseMetrics.totalPosts,
+          totalGroups: supabaseMetrics.totalGroups,
+          engagementRate: supabaseMetrics.engagementRate
         });
 
         setRecentActivity([]);

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginUser } from '../../firebase/auth';
+import { loginUser } from '../../services/supabaseAuth';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Eye, 

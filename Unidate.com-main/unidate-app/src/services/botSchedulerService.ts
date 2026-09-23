@@ -51,7 +51,7 @@ class BotSchedulerService {
           
           this.startScheduleInternal(botProfile.intervalMinutes);
           
-          console.log('✅ [BotScheduler] Bot carregado do Firestore e reiniciado');
+          console.log('✅ [BotScheduler] Bot carregado da persistência local e reiniciado');
         } else {
           console.log('ℹ️ [BotScheduler] Nenhum perfil encontrado na configuração');
         }

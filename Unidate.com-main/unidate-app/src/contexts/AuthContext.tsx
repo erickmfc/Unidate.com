@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { supabase } from '../supabaseClient';
-import { getUserProfile, UserProfile } from '../firebase/auth';
+import { getUserProfile, UserProfile } from '../services/supabaseAuth';
 import { logSiteActivity } from '../services/activityLogService';
 
 interface AuthContextType {

@@ -21,7 +21,6 @@ import { botScheduler } from '../../../services/botSchedulerService';
 import { AIBotService } from '../../../services/aiBotService';
 import { PostsService, Post } from '../../../services/postsService';
 import { useUniDateToast } from '../../UI/Toast';
-import { Timestamp } from 'firebase/firestore';
 import { useAdminAuth } from '../../../contexts/AdminAuthContext';
 import { botPersistenceService } from '../../../services/botPersistenceService';
 
@@ -112,7 +111,7 @@ const AIBotPostsControl: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log('🔄 [AIBotPostsControl] Configurando observador do Firestore...');
+    console.log('🔄 [AIBotPostsControl] Configurando observador da configuração local...');
     
     const unsubscribe = botPersistenceService.watchScheduleConfig((config) => {
       if (config) {
@@ -143,7 +142,7 @@ const AIBotPostsControl: React.FC = () => {
     });
 
     return () => {
-      console.log('🔄 [AIBotPostsControl] Removendo observador do Firestore');
+    console.log('🔄 [AIBotPostsControl] Removendo observador da configuração local');
       unsubscribe();
     };
   }, []);
@@ -214,7 +213,7 @@ const AIBotPostsControl: React.FC = () => {
         .slice(0, 10)
         .map(post => {
           let timestamp: Date;
-          if (post.timestamp instanceof Timestamp) {
+          if (post.timestamp && typeof (post.timestamp as any).toDate === 'function') {
             timestamp = post.timestamp.toDate();
           } else if (post.timestamp && typeof post.timestamp === 'object' && 'toDate' in post.timestamp) {
             timestamp = (post.timestamp as any).toDate();
@@ -262,7 +261,7 @@ const AIBotPostsControl: React.FC = () => {
       const postsToday = botPosts.filter(post => {
         let postDate: Date;
         try {
-          if (post.timestamp instanceof Timestamp) {
+          if (post.timestamp && typeof (post.timestamp as any).toDate === 'function') {
             postDate = post.timestamp.toDate();
           } else if (post.timestamp && typeof post.timestamp === 'object' && 'toDate' in post.timestamp) {
             postDate = (post.timestamp as any).toDate();
@@ -278,7 +277,7 @@ const AIBotPostsControl: React.FC = () => {
       const postsThisWeek = botPosts.filter(post => {
         let postDate: Date;
         try {
-          if (post.timestamp instanceof Timestamp) {
+          if (post.timestamp && typeof (post.timestamp as any).toDate === 'function') {
             postDate = post.timestamp.toDate();
           } else if (post.timestamp && typeof post.timestamp === 'object' && 'toDate' in post.timestamp) {
             postDate = (post.timestamp as any).toDate();
