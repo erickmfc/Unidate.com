@@ -3,6 +3,7 @@ import { Bot, Check, Clock3, Pause, Play, RefreshCw, Send, Settings2, Sparkles, 
 import { supabase } from '../../../supabaseClient';
 import { AIBotService } from '../../../services/aiBotService';
 import { HumorCandidate, HumorGeneratorService } from '../../../services/humorGeneratorService';
+import { botAutomationService } from '../../../services/botAutomationService';
 import { useUniDateToast } from '../../UI/Toast';
 
 type BotMode = 'manual' | 'semi_automatic' | 'automatic';
@@ -17,6 +18,7 @@ const HumorBotPanel: React.FC = () => {
   const [memory, setMemory] = useState<Array<{ text: string; topic: string; format: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
+  const [profileReady, setProfileReady] = useState<boolean | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -27,6 +29,8 @@ const HumorBotPanel: React.FC = () => {
       ]);
       if (config) setSettings({ ...defaults, ...config });
       setMemory(recentMemory);
+      const { data: profiles } = await supabase.from('bot_profiles').select('id').eq('is_active', true).limit(1);
+      setProfileReady(Boolean(profiles?.length));
     } catch (error) {
       console.error('Erro ao carregar configurações do personagem:', error);
       showError('Não foi possível carregar as configurações do bot.');
@@ -64,6 +68,7 @@ const HumorBotPanel: React.FC = () => {
   const generate = async () => { setBusy(true); try { setCandidate(await AIBotService.generateCandidate()); } catch { showError('Não foi possível gerar uma ideia.'); } finally { setBusy(false); } };
   const generateIdeas = async () => { setBusy(true); try { const next = await Promise.all(Array.from({ length: 10 }, () => AIBotService.generateCandidate())); setIdeas(next); setCandidate(next[0]); } catch { showError('Não foi possível gerar as ideias.'); } finally { setBusy(false); } };
   const publish = async () => { if (!candidate) return; setBusy(true); try { await AIBotService.publishCandidate(candidate); setMemory(await HumorGeneratorService.getMemory(10).catch(() => memory)); setCandidate(null); showSuccess('Publicação feita pelo personagem.'); } catch (error: any) { showError(error.message || 'Não foi possível publicar.'); } finally { setBusy(false); } };
+  const createCharacter = async () => { setBusy(true); try { await botAutomationService.seedDemoBots(); setProfileReady(true); showSuccess('Personagem criado.'); await load(); } catch (error) { console.error(error); showError('Não foi possível criar o personagem agora.'); } finally { setBusy(false); } };
   const modeLabel = useMemo(() => ({ manual: 'Manual', semi_automatic: 'Semiautomático', automatic: 'Automático' }[settings.mode]), [settings.mode]);
 
   if (loading) return <div className="rounded-xl bg-white p-8 text-center text-gray-500">Carregando personagem...</div>;
@@ -74,6 +79,7 @@ const HumorBotPanel: React.FC = () => {
         <span className="rounded-full bg-white/15 px-4 py-2 text-sm font-semibold">{settings.is_paused ? 'PAUSADO' : 'ATIVO'} · {modeLabel}</span>
       </div>
     </div>
+    {!profileReady && <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900"><p className="font-semibold">O personagem ainda não está criado no Supabase.</p><p className="mt-1 text-sm">Crie o perfil automatizado uma vez para publicar no feed com o autor correto.</p><button onClick={createCharacter} disabled={busy} className="mt-3 rounded-lg bg-amber-600 px-4 py-2 font-semibold text-white disabled:opacity-50">Criar personagem</button></div>}
     <div className="grid gap-4 sm:grid-cols-3"><div className="rounded-xl bg-white p-5 shadow"><p className="text-sm text-gray-500">Memória recente</p><p className="mt-1 text-3xl font-bold text-gray-900">{memory.length}</p><p className="text-xs text-gray-400">últimas publicações</p></div><div className="rounded-xl bg-white p-5 shadow"><p className="text-sm text-gray-500">Meta diária</p><p className="mt-1 text-3xl font-bold text-gray-900">{settings.posts_per_day}</p><p className="text-xs text-gray-400">entre {settings.window_start} e {settings.window_end}</p></div><div className="rounded-xl bg-white p-5 shadow"><p className="text-sm text-gray-500">Anti-repetição</p><p className="mt-1 text-3xl font-bold text-emerald-600"><Check className="inline h-7 w-7" /> ativo</p><p className="text-xs text-gray-400">memória por tema e formato</p></div></div>
     <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
       <section className="rounded-xl bg-white p-6 shadow"><div className="mb-4 flex items-center justify-between"><h3 className="flex items-center gap-2 text-lg font-bold"><Sparkles className="h-5 w-5 text-violet-600" />Gerador e aprovação</h3><button onClick={load} className="rounded-lg p-2 text-gray-500 hover:bg-gray-100" title="Atualizar"><RefreshCw className="h-4 w-4" /></button></div><div className="flex flex-wrap gap-2"><button onClick={generate} disabled={busy} className="rounded-lg bg-violet-600 px-4 py-2 font-semibold text-white disabled:opacity-50">Gerar ideia</button><button onClick={generateIdeas} disabled={busy} className="rounded-lg border border-violet-200 px-4 py-2 font-semibold text-violet-700 disabled:opacity-50">Gerar 10 ideias</button></div>{candidate && <div className="mt-5 rounded-xl border-2 border-violet-100 bg-violet-50 p-5"><p className="whitespace-pre-wrap text-lg leading-7 text-gray-900">{candidate.text}</p><div className="mt-4 flex flex-wrap gap-2 text-xs text-violet-700"><span className="rounded-full bg-white px-2 py-1">{candidate.topic}</span><span className="rounded-full bg-white px-2 py-1">{candidate.format}</span><span className="rounded-full bg-white px-2 py-1">score interno {Math.round(candidate.score)}</span></div><div className="mt-4 flex gap-2"><button onClick={publish} disabled={busy} className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 font-semibold text-white disabled:opacity-50"><Send className="h-4 w-4" />Publicar</button><button onClick={generate} disabled={busy} className="rounded-lg border border-gray-300 px-4 py-2">Regenerar</button><button onClick={() => setCandidate(null)} className="rounded-lg border border-gray-300 px-4 py-2">Descartar</button></div></div>}{ideas.length > 1 && <div className="mt-4 space-y-2">{ideas.slice(1).map((idea, index) => <button key={`${idea.text}-${index}`} onClick={() => setCandidate(idea)} className="block w-full rounded-lg border border-gray-200 p-3 text-left text-sm hover:border-violet-400">{idea.text.replace(/\n/g, ' · ')}</button>)}</div>}</section>
