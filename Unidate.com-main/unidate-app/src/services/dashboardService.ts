@@ -124,9 +124,19 @@ export class DashboardService {
 
   private static async getMessagesCount(userId: string): Promise<number> {
     try {
+      const { data: memberships, error: membershipsError } = await supabase
+        .from('chat_participants')
+        .select('chat_id')
+        .eq('user_id', userId);
+
+      if (membershipsError) throw membershipsError;
+      const chatIds = (memberships || []).map((membership) => membership.chat_id);
+      if (chatIds.length === 0) return 0;
+
       const { count, error } = await supabase
         .from('messages')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
+        .in('chat_id', chatIds)
         .eq('sender_id', userId);
       
       if (error) throw error;
