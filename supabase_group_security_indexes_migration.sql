@@ -19,3 +19,28 @@ create index if not exists group_event_attendees_user_id_idx on public.group_eve
 create index if not exists group_messages_sender_id_idx on public.group_messages (sender_id);
 create index if not exists group_messages_reply_to_idx on public.group_messages (reply_to);
 create index if not exists group_posts_author_id_idx on public.group_posts (author_id);
+
+-- Avoid the recursive chat_participants SELECT policy that caused dashboard RLS errors.
+create or replace function public.is_chat_participant(target_chat_id uuid, target_user_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1
+    from public.chat_participants cp
+    where cp.chat_id = target_chat_id
+      and cp.user_id = target_user_id
+  );
+$$;
+
+revoke all on function public.is_chat_participant(uuid, uuid) from public;
+grant execute on function public.is_chat_participant(uuid, uuid) to authenticated;
+
+drop policy if exists "Participantes podem ler participantes" on public.chat_participants;
+create policy "Participantes podem ler participantes"
+  on public.chat_participants
+  for select to authenticated
+  using (public.is_chat_participant(chat_id, (select auth.uid())));
