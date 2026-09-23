@@ -18,7 +18,6 @@ export async function acceptTerms(userId: string): Promise<void> {
   const { error } = await supabase.from('terms_acceptances').insert({
     user_id: userId,
     terms_version: TERMS_VERSION,
-    accepted_at: new Date().toISOString(),
   });
 
   // A retry or two tabs may reach the unique constraint at the same time.
