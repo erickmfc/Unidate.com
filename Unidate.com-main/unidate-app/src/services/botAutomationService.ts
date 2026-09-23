@@ -68,7 +68,7 @@ export const botAutomationService = {
     return data as { ok: boolean; created: boolean; bot: DemoBotProfile };
   },
   async listDemoBots() {
-    const { data, error } = await supabase.from('bot_profiles').select('*').eq('is_active', true).order('created_at', { ascending: true });
+    const { data, error } = await supabase.from('bot_profiles').select('*').order('created_at', { ascending: true });
     if (error) throw error;
     return (data ?? []) as DemoBotProfile[];
   },
