@@ -3,6 +3,8 @@ import { Bot, CheckCircle2, Loader2, MessageCircle, RefreshCw } from 'lucide-rea
 import { botAutomationService, DemoBotProfile } from '../services/botAutomationService';
 import { useUniDateToast } from '../components/UI/Toast';
 
+const CAMPUS_PERSONA_KEYS = ['lara-saquarema', 'julia-saquarema', 'marina-saquarema', 'sofia-saquarema'];
+
 const BotDemo: React.FC = () => {
   const { showError, showSuccess } = useUniDateToast();
   const [bots, setBots] = useState<DemoBotProfile[]>([]);
@@ -10,6 +12,7 @@ const BotDemo: React.FC = () => {
   const [seeding, setSeeding] = useState(false);
   const [provisioning, setProvisioning] = useState(false);
   const [interacting, setInteracting] = useState(false);
+  const [provisioningCampus, setProvisioningCampus] = useState(false);
 
   const loadBots = async () => {
     try { setBots(await botAutomationService.listDemoBots()); }
@@ -48,6 +51,16 @@ const BotDemo: React.FC = () => {
     finally { setInteracting(false); }
   };
 
+  const handleProvisionCampus = async () => {
+    setProvisioningCampus(true);
+    try {
+      for (const botKey of CAMPUS_PERSONA_KEYS) await botAutomationService.provisionCampusPersona(botKey);
+      await loadBots();
+      showSuccess('As quatro personagens de Saquarema foram cadastradas.');
+    } catch (error: any) { showError(error?.message || 'Não foi possível cadastrar as personagens.'); }
+    finally { setProvisioningCampus(false); }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
       <div className="mx-auto max-w-5xl">
@@ -66,8 +79,11 @@ const BotDemo: React.FC = () => {
             <button onClick={handleInteractErick} disabled={interacting} className="inline-flex items-center gap-2 rounded-xl bg-fuchsia-950/50 px-5 py-3 font-semibold text-white ring-1 ring-white/30 hover:bg-fuchsia-950/80 disabled:opacity-60">
               {interacting ? 'Publicando...' : 'Publicar uma interação'}
             </button>
+            <button onClick={handleProvisionCampus} disabled={provisioningCampus} className="inline-flex items-center gap-2 rounded-xl bg-emerald-950/50 px-5 py-3 font-semibold text-white ring-1 ring-white/30 hover:bg-emerald-950/80 disabled:opacity-60">
+              {provisioningCampus ? 'Cadastrando personagens...' : 'Cadastrar personagens de Saquarema'}
+            </button>
           </div>
-          <p className="mt-3 text-sm text-violet-100/80">O perfil usa a primeira foto como avatar. Cada interação publica no máximo uma foto e reserva as outras para depois.</p>
+          <p className="mt-3 text-sm text-violet-100/80">Cada perfil aparece como personagem virtual. A automação publica no máximo uma ação por ciclo e respeita os limites configurados no painel administrativo.</p>
         </div>
         {loading ? <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-violet-600" /></div> : bots.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">A demonstração ainda não foi ativada. Clique no botão acima.</div>
