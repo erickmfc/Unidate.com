@@ -75,7 +75,7 @@ export const loginAdmin = async (email: string, password: string): Promise<Admin
   // Supabase seed user has not yet been provisioned. This branch is compiled
   // out of production builds and never accepts these credentials in prod.
   if (error) {
-    const isLocalDevAccount = import.meta.env.DEV &&
+    const isLocalDevAccount = process.env.NODE_ENV === 'development' &&
       email.trim().toLowerCase() === 'admin@unidate.com' &&
       password === 'admin123';
     if (isLocalDevAccount) {
