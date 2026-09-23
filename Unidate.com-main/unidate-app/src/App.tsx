@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useLayoutEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SiteActivityTracker from './components/SiteActivityTracker';
@@ -74,6 +74,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const AppContent: React.FC = () => {
   const { loading } = useAuth();
   const location = useLocation();
+
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [location.pathname]);
 
   if (loading) {
     return <LoadingSpinner />;
@@ -369,7 +373,7 @@ const AppContent: React.FC = () => {
           </Routes>
         </Suspense>
       </main>
-      <Footer />
+      {location.pathname !== '/login' && <Footer />}
     </div>
   );
 };
