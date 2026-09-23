@@ -14,6 +14,7 @@ import {
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Layout/Navbar';
 import { UserProfileService, UserProfile as RealUserProfile, UserPost } from '../services/userProfileService';
+import { FollowService } from '../services/followService';
 import { ChatService } from '../services/chatService';
 import { useUniDateToast } from '../components/UI/Toast';
 
@@ -42,6 +43,9 @@ const UserProfile: React.FC = () => {
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [isAddingFriend, setIsAddingFriend] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
+  const [followCounts, setFollowCounts] = useState({ followers: 0, following: 0 });
 
   useEffect(() => {
     console.log('🔄 UserProfile useEffect - userId:', userId);
@@ -58,6 +62,12 @@ const UserProfile: React.FC = () => {
   }, []);
 
   const loadUserProfile = async () => {
+    const profileId = userId;
+    if (!profileId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       
@@ -69,7 +79,13 @@ const UserProfile: React.FC = () => {
 
       console.log('🔍 Carregando perfil real do usuário:', userId);
 
-      const profile = await UserProfileService.getUserProfile(userId || '');
+      const [profile, posts, followStats] = await Promise.all([
+        UserProfileService.getUserProfile(profileId),
+        UserProfileService.getUserPosts(profileId),
+        FollowService.getProfileStats(currentUser?.uid || profileId, profileId),
+      ]);
+      setIsFollowing(followStats.isFollowing);
+      setFollowCounts({ followers: followStats.followers, following: followStats.following });
       
       if (!profile) {
         console.error('❌ Erro crítico: getUserProfile retornou null mesmo após todas as tentativas');
@@ -92,8 +108,6 @@ const UserProfile: React.FC = () => {
         return;
       }
 
-      const posts = await UserProfileService.getUserPosts(userId || '');
-      
       if (currentUser && profile) {
         const friendshipStatus = await UserProfileService.checkFriendship(currentUser.uid, userId || '');
         setIsFriend(friendshipStatus);
@@ -197,6 +211,29 @@ const UserProfile: React.FC = () => {
       showError(`Erro ao adicionar colega: ${errorMessage}`);
     } finally {
       setIsAddingFriend(false);
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!currentUser || !userProfile || isUpdatingFollow) return;
+    setIsUpdatingFollow(true);
+    try {
+      if (isFollowing) {
+        await FollowService.unfollow(currentUser.uid, userProfile.uid);
+        setIsFollowing(false);
+        setFollowCounts(counts => ({ ...counts, followers: Math.max(0, counts.followers - 1) }));
+        showSuccess(`Você deixou de colegar com ${userProfile.name}.`);
+      } else {
+        await FollowService.follow(currentUser.uid, userProfile.uid);
+        setIsFollowing(true);
+        setFollowCounts(counts => ({ ...counts, followers: counts.followers + 1 }));
+        showSuccess(`Agora você está colegando com ${userProfile.name}!`);
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar seguimento:', error);
+      showError('Não foi possível atualizar. Tente novamente.');
+    } finally {
+      setIsUpdatingFollow(false);
     }
   };
 
@@ -317,6 +354,12 @@ const UserProfile: React.FC = () => {
                 <MapPin className="h-5 w-5" />
                 <span>{userProfile.university}</span>
               </div>
+
+              {(userProfile.year || userProfile.period) && (
+                <p className="text-sm text-gray-600 mb-3">
+                  {[userProfile.year && `${userProfile.year}º ano`, userProfile.period && `${userProfile.period}º período`].filter(Boolean).join(' • ')}
+                </p>
+              )}
               
               {userProfile.bio && (
                 <p className="text-gray-700 mb-4">{userProfile.bio}</p>
@@ -329,8 +372,9 @@ const UserProfile: React.FC = () => {
                 </div>
                 <div className="flex items-center space-x-2">
                   <Users className="h-4 w-4" />
-                  <span>{userProfile.friendsCount} colegas universitários</span>
+                  <span>{followCounts.followers} seguidores</span>
                 </div>
+                <span>{followCounts.following} seguindo</span>
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4" />
                   <span>Membro desde {new Date(userProfile.joinDate).toLocaleDateString('pt-BR')}</span>
@@ -339,6 +383,16 @@ const UserProfile: React.FC = () => {
             </div>
 
             <div className="flex flex-col space-y-3">
+              {!isOwnProfile && currentUser && (
+                <button
+                  onClick={handleToggleFollow}
+                  disabled={isUpdatingFollow}
+                  className={`px-6 py-2 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-50 ${isFollowing ? 'border border-purple-200 text-purple-700 hover:bg-purple-50' : 'bg-purple-600 text-white hover:bg-purple-700'}`}
+                >
+                  <User className="h-4 w-4" />
+                  <span>{isUpdatingFollow ? 'Atualizando...' : isFollowing ? 'Colegado ✓' : 'Colegar'}</span>
+                </button>
+              )}
               <button
                 onClick={handleSendMessage}
                 className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
@@ -394,7 +448,7 @@ const UserProfile: React.FC = () => {
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-gray-900">{post.titulo}</h4>
                         <span className="text-xs text-gray-500">
-                          {post.dataCriacao ? new Date(post.dataCriacao.toDate()).toLocaleDateString('pt-BR') : ''}
+                          {post.dataCriacao ? new Date(post.dataCriacao).toLocaleDateString('pt-BR') : ''}
                         </span>
                       </div>
                       <p className="text-gray-700 text-sm mb-3">{post.conteudo}</p>
@@ -463,6 +517,9 @@ const UserProfile: React.FC = () => {
                   <p className="text-sm text-gray-500">Universidade</p>
                   <p className="font-medium text-gray-900">{userProfile.university}</p>
                 </div>
+                {userProfile.year && <div><p className="text-sm text-gray-500">Ano</p><p className="font-medium text-gray-900">{userProfile.year}º ano</p></div>}
+                {userProfile.period && <div><p className="text-sm text-gray-500">Período</p><p className="font-medium text-gray-900">{userProfile.period}º período</p></div>}
+                {!!userProfile.interests?.length && <div><p className="text-sm text-gray-500">Interesses</p><div className="flex flex-wrap gap-2 mt-1">{userProfile.interests.map(interest => <span key={interest} className="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 text-sm">{interest}</span>)}</div></div>}
                 <div>
                   <p className="text-sm text-gray-500">Membro desde</p>
                   <p className="font-medium text-gray-900">

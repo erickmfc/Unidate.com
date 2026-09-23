@@ -31,7 +31,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { ChatService, ChatMessage, Chat } from '../services/chatService';
 import { UserProfileService, UserProfile } from '../services/userProfileService';
-import { supabase } from '../supabaseClient';
+import { FollowService } from '../services/followService';
 import UserAvatar from '../components/UI/UserAvatar';
 
 interface ChatContact {
@@ -324,18 +324,14 @@ const ChatPage: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [userSearchTerm, currentUser?.uid]);
 
-  // Carregar as conexões que o usuário iniciou em Descobrir.
+  // Carrega os perfis seguidos pelo usuário.
   const loadFollowing = useCallback(async () => {
     if (!currentUser?.uid) return;
 
     try {
       setLoadingFollowing(true);
 
-      const { data: matches, error } = await supabase.from('matches').select('user2_id')
-        .eq('user1_id', currentUser.uid)
-        .in('status', ['pending', 'accepted']);
-      if (error) throw error;
-      const followingIds = Array.from(new Set((matches || []).map(match => match.user2_id)));
+      const followingIds = await FollowService.getFollowingIds(currentUser.uid);
 
       const followingProfiles = await Promise.all(
         followingIds.map(id => UserProfileService.getUserProfile(id))
@@ -353,6 +349,11 @@ const ChatPage: React.FC = () => {
 
   useEffect(() => {
     void loadFollowing();
+  }, [loadFollowing]);
+
+  useEffect(() => {
+    window.addEventListener('unidate-follows-updated', loadFollowing);
+    return () => window.removeEventListener('unidate-follows-updated', loadFollowing);
   }, [loadFollowing]);
 
   const handleStartChat = async (userId: string) => {
@@ -1050,7 +1051,7 @@ const ChatPage: React.FC = () => {
               onClick={() => {
                 // Navegar para o perfil do usuário
                 if (currentContact?.id) {
-                  navigate(`/user/${currentContact.id}`);
+                  navigate(`/profile/${currentContact.id}`);
                 }
               }}
               className="w-full flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
