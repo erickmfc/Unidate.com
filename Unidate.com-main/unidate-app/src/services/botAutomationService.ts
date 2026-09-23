@@ -21,6 +21,18 @@ export const botAutomationService = {
     return data as { ok: boolean; created: number; bots: Array<{ name: string; handle: string; isAutomated: boolean }> };
   },
 
+  async provisionErickCampus() {
+    const { data, error } = await supabase.functions.invoke('provision-erick-campus', { body: {} });
+    if (error) throw error;
+    return data as { ok: boolean; created: boolean; bot: { name: string; handle: string; isAutomated: boolean } };
+  },
+
+  async interactErickCampus() {
+    const { data, error } = await supabase.functions.invoke('interact-erick-campus', { body: {} });
+    if (error) throw error;
+    return data as { ok: boolean; commented: boolean; remainingPhotos: number; post: { id: string; image: string | null; content: string } };
+  },
+
   async listDemoBots() {
     const { data, error } = await supabase
       .from('bot_profiles')

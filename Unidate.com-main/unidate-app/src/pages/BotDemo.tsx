@@ -8,6 +8,8 @@ const BotDemo: React.FC = () => {
   const [bots, setBots] = useState<DemoBotProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
+  const [provisioning, setProvisioning] = useState(false);
+  const [interacting, setInteracting] = useState(false);
 
   const loadBots = async () => {
     try { setBots(await botAutomationService.listDemoBots()); }
@@ -27,6 +29,25 @@ const BotDemo: React.FC = () => {
     finally { setSeeding(false); }
   };
 
+  const handleProvisionErick = async () => {
+    setProvisioning(true);
+    try {
+      await botAutomationService.provisionErickCampus();
+      await loadBots();
+      showSuccess('Perfil do Erick Campus pronto com a primeira foto.');
+    } catch (error: any) { showError(error?.message || 'Não foi possível cadastrar o perfil.'); }
+    finally { setProvisioning(false); }
+  };
+
+  const handleInteractErick = async () => {
+    setInteracting(true);
+    try {
+      const result = await botAutomationService.interactErickCampus();
+      showSuccess(`Interação publicada. ${result.remainingPhotos} foto(s) reservada(s) para os próximos momentos.`);
+    } catch (error: any) { showError(error?.message || 'Não foi possível publicar a interação.'); }
+    finally { setInteracting(false); }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 px-4 py-10 sm:px-8">
       <div className="mx-auto max-w-5xl">
@@ -38,6 +59,15 @@ const BotDemo: React.FC = () => {
             {seeding ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
             {seeding ? 'Ativando demonstração...' : 'Ativar / atualizar os 5 bots'}
           </button>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <button onClick={handleProvisionErick} disabled={provisioning} className="inline-flex items-center gap-2 rounded-xl bg-indigo-950/50 px-5 py-3 font-semibold text-white ring-1 ring-white/30 hover:bg-indigo-950/80 disabled:opacity-60">
+              {provisioning ? 'Cadastrando...' : 'Cadastrar perfil do Erick Campus'}
+            </button>
+            <button onClick={handleInteractErick} disabled={interacting} className="inline-flex items-center gap-2 rounded-xl bg-fuchsia-950/50 px-5 py-3 font-semibold text-white ring-1 ring-white/30 hover:bg-fuchsia-950/80 disabled:opacity-60">
+              {interacting ? 'Publicando...' : 'Publicar uma interação'}
+            </button>
+          </div>
+          <p className="mt-3 text-sm text-violet-100/80">O perfil usa a primeira foto como avatar. Cada interação publica no máximo uma foto e reserva as outras para depois.</p>
         </div>
         {loading ? <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-violet-600" /></div> : bots.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center text-slate-600">A demonstração ainda não foi ativada. Clique no botão acima.</div>
