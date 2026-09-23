@@ -9,6 +9,7 @@ export interface Post {
     course: string;
     university: string;
     avatar: string;
+    isAutomated?: boolean;
   };
   content: string;
   type: 'text' | 'image' | 'poll' | 'tevi';
@@ -109,6 +110,7 @@ export class PostsService {
       const postIds = (postsData || []).map((post: any) => post.id);
       const authorIds = Array.from(new Set((postsData || []).map((post: any) => post.author_id)));
       let profilesById = new Map<string, any>();
+      let automatedAuthorIds = new Set<string>();
       let likedPostIds = new Set<string>();
 
       if (authorIds.length > 0) {
@@ -121,6 +123,17 @@ export class PostsService {
           console.warn('Não foi possível carregar perfis dos autores do Feed:', profilesError);
         } else {
           profilesById = new Map((profiles || []).map((profile: any) => [profile.id, profile]));
+        }
+
+        const { data: automatedProfiles, error: automatedProfilesError } = await supabase
+          .from('bot_profiles')
+          .select('auth_user_id, is_automated')
+          .in('auth_user_id', authorIds)
+          .eq('is_automated', true);
+        if (automatedProfilesError) {
+          console.warn('Não foi possível carregar marcadores de personagens virtuais:', automatedProfilesError);
+        } else {
+          automatedAuthorIds = new Set((automatedProfiles || []).map((profile: any) => profile.auth_user_id));
         }
       }
 
@@ -146,7 +159,8 @@ export class PostsService {
             name: author?.display_name || 'Usuário',
             course: author?.course || '',
             university: author?.university || '',
-            avatar: author?.photo_url || ''
+            avatar: author?.photo_url || '',
+            isAutomated: automatedAuthorIds.has(p.author_id)
           },
           content: p.content,
           type: p.type,

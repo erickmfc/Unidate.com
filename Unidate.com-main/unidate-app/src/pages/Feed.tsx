@@ -678,10 +678,16 @@ const Feed: React.FC = () => {
                         displayName={post.author.name}
                         size="md"
                         showGraduationCap={false}
+                        isAutomated={post.author.isAutomated}
                       />
                       <div>
                         <div className="flex items-center space-x-1.5">
                           <h4 className="font-extrabold text-slate-800 text-sm">{post.author.name}</h4>
+                          {post.author.isAutomated && (
+                            <span className="text-[9px] bg-blue-50 text-blue-600 font-semibold px-2 py-0.5 rounded-full border border-blue-100">
+                              Personagem virtual
+                            </span>
+                          )}
                           <span className="text-[10px] bg-slate-50 text-slate-400 font-semibold px-2 py-0.5 rounded-full border border-slate-100">
                             {post.author.course.split(' ')[0] || 'Aluno'}
                           </span>

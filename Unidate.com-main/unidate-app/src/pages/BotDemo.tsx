@@ -3,6 +3,8 @@ import { Bot, CheckCircle2, Loader2, MessageCircle, RefreshCw } from 'lucide-rea
 import { botAutomationService, DemoBotProfile } from '../services/botAutomationService';
 import { useUniDateToast } from '../components/UI/Toast';
 
+const CAMPUS_PERSONA_KEYS = ['lara-saquarema', 'julia-saquarema', 'marina-saquarema', 'sofia-saquarema', 'beatriz-saquarema', 'camila-saquarema', 'isabela-saquarema', 'renata-saquarema', 'paula-saquarema'];
+
 const BotDemo: React.FC = () => {
   const { showError, showSuccess } = useUniDateToast();
   const [bots, setBots] = useState<DemoBotProfile[]>([]);

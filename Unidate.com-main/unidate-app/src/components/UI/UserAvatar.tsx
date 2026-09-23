@@ -8,6 +8,7 @@ interface UserAvatarProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
   showGraduationCap?: boolean;
+  isAutomated?: boolean;
 }
 
 const UserAvatar: React.FC<UserAvatarProps> = ({
@@ -17,6 +18,7 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
   size = 'md',
   className = '',
   showGraduationCap = true,
+  isAutomated = false,
 }) => {
   const sizeClasses = {
     sm: 'w-8 h-8',
@@ -80,6 +82,14 @@ const UserAvatar: React.FC<UserAvatarProps> = ({
         <div className={`absolute ${capSizeClasses[size]} bg-yellow-400 rounded-full p-0.5 shadow-lg border-2 border-white z-10`}>
           <GraduationCap className="w-full h-full text-yellow-600" fill="currentColor" />
         </div>
+      )}
+
+      {isAutomated && (
+        <span
+          className="absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white bg-blue-500 shadow-sm"
+          title="Personagem virtual"
+          aria-label="Personagem virtual"
+        />
       )}
     </div>
   );
