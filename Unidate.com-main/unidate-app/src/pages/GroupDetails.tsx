@@ -361,14 +361,15 @@ const GroupDetails: React.FC = () => {
                     >
                       Editar informações do grupo
                     </button>
-                    {group.isOwner && (
-                      <button
-                        onClick={handleDeleteGroup}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
-                      >
-                        Excluir grupo
-                      </button>
-                    )}
+                  )}
+
+                  {group.isOwner && (
+                    <button
+                      onClick={handleDeleteGroup}
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-50"
+                    >
+                      Excluir grupo
+                    </button>
                   )}
 
                   <button 
